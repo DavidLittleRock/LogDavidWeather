@@ -38,6 +38,7 @@ def on_message(self, userdata, message):
     it will parse it into a list of data and
     sends data_list to be writen to DB
     """
+    print("on_message")
     full_payload = message.payload.decode()
     index = full_payload.index("MQTT")
     data_string = full_payload[index + 18:-2]
@@ -49,16 +50,26 @@ def on_message(self, userdata, message):
 
 
 def mqtt_client():
-    client = mqtt.Client(client_id='myweather2', clean_session=True, userdata=None, transport='tcp')
+    client = mqtt.Client(client_id='myweather2a', clean_session=True, userdata=None, transport='tcp')
     client.on_message = on_message
+    client.on_subscribe = on_subscribe
+    client.on_disconnect = on_disconnect
+    client.on_connect = on_connect
     client.connect(broker_url, broker_port)
     client.subscribe('OurWeather')
-    client.on_connect = on_connect
+ 
+    
     client.loop_start()
 
 
 def on_connect(self, userdata, flags, rc):
-    print("Connected")
+    print(f"Connected to mosquitto {rc}")
+    
+def on_disconnect(self, userdata, rc):
+    print_ts(txt='disconnected with rc ', msg=rc)
+    
+def on_subscribe(self, userdata, mid, granted_qos):
+    print("subscribed")
 
 
 def write_to_data(list_to_write):

@@ -44,9 +44,6 @@ for record in result:
     heat_index.append(record[2])
 
 
-
-
-
 fds = [dates.date2num(d) for d in time]
 hfmt = dates.DateFormatter('%m/%d - %H')
 
@@ -55,8 +52,6 @@ y = np.array([heat_index])
 
 x = x[y > 80]  # filter out if heat_index is less than 80
 y = y[y > 80]
-
-
 
 
 fig, ax = pyplot.subplots()
