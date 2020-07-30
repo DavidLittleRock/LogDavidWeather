@@ -5,6 +5,12 @@
 import pymysql as mdb
 import paho.mqtt.client as mqtt
 import time
+import TempHeatIndexSevenDay
+import BigGraph
+import Rain
+import WindSevenDay
+import TemperatureMaxMin
+import BP30
 
 dataBaseName = 'DataLogger'
 dataBaseTable = 'OURWEATHERTable'
@@ -12,22 +18,7 @@ username = 'datalogger'
 password = 'Data0233'
 
 hostname = 'localhost'
-user_data_tuple = (hostname, username, password, dataBaseName)
-# read old data
-
-# connection1 = mdb.connect(hostname, username, password, dataBaseName)
-# my_cursor = connection1.cursor()
-
-# query = 'SELECT id, TimeStamp, deviceid, Outdoor_Temperature, Outdoor_Humidity, Barometric_Pressure, ' \
-#       'Current_Wind_Speed, Current_Wind_Gust, Current_Wind_Direction, Wind_Speed_Maximum, Wind_Gust_Maximum, ' \
-#      'OurWeather_DateTime, Lightning_Time, Lightning_Distance, Lightning_Count, Rain_Total, Rain_Now FROM ' + \
-#       dataBaseTable + ' WHERE id > 35570 '
-
-# my_cursor.execute(query)
-# result = my_cursor.fetchall()
-
-# print(result)
-
+# user_data_tuple = (hostname, username, password, dataBaseName)
 
 broker_url = '192.168.1.84'
 broker_port = 1883
@@ -43,19 +34,21 @@ def on_message(self, userdata, message):
     index = full_payload.index("MQTT")
     data_string = full_payload[index + 18:-2]
     data_list = data_string.split(',')  # split the string to a list
-
     print(data_list)
     write_to_data(data_list)
 
 
-
 def mqtt_client():
+
     client = mqtt.Client(client_id='myweather2a', clean_session=True, userdata=None, transport='tcp')
+
     client.on_message = on_message
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
     client.on_connect = on_connect
     client.connect(broker_url, broker_port)
+    client.on_subscribe = on_subscribe
+    client.on_disconnect = on_disconnect
     client.subscribe('OurWeather')
  
     
@@ -71,6 +64,12 @@ def on_disconnect(self, userdata, rc):
 def on_subscribe(self, userdata, mid, granted_qos):
     print("subscribed")
 
+
+def on_subscribe(self, userdata, mid, granted_qos):
+    print("subscribe")
+
+def on_disconnect(self, userdata, rc):
+    print("disconect")
 
 def write_to_data(list_to_write):
     """
@@ -110,3 +109,19 @@ mqtt_client()
 
 while True:
     time.sleep(60)
+    TempHeatIndexSevenDay.temp_heat_index()
+    time.sleep(60)
+
+    BigGraph.big_graph()
+    time.sleep(60)
+
+    Rain.rain()
+    time.sleep(60)
+
+    WindSevenDay.wind()
+    time.sleep(60)
+
+    TemperatureMaxMin.temp_max_min()
+    time.sleep(60)
+
+    BP30.bp()
