@@ -44,9 +44,6 @@ for record in result:
     heat_index.append(record[2])
 
 
-
-
-
 fds = [dates.date2num(d) for d in time]
 hfmt = dates.DateFormatter('%m/%d - %H')
 
@@ -57,9 +54,7 @@ x = x[y > 80]  # filter out if heat_index is less than 80
 y = y[y > 80]
 
 
-
-
-fig, ax = pyplot.subplots()
+fig, ax = pyplot.subplots(figsize=(17.0, 8.0), facecolor='green')
 pyplot.xticks(rotation='45')
 ax.xaxis.set_major_formatter(hfmt)
 ax.plot(fds, temperature, marker='o', linestyle='--', color='blue', markersize=2.0)
@@ -78,6 +73,6 @@ pyplot.figtext(0.75, 0.85, f"Max: {max(temperature):.1f} \nMin: {min(temperature
 ax.set_xlabel("Date")
 ax.set_ylabel("degree F")
 ax.grid(which='both', axis='both')
-pyplot.savefig('/var/www/html/TestGraph.png')
+pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
 
 pyplot.show()
