@@ -72,3 +72,8 @@ def wind():
     pyplot.savefig('/var/www/html/WindSevenDayGraph.png')
 
     # pyplot.show()
+    cursor.close()
+    db_connection.close()
+    fig.clf()
+    pyplot.close()
+    gc.collect()

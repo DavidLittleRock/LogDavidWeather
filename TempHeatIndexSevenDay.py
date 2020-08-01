@@ -22,6 +22,7 @@ username = 'datalogger'
 password = 'Data0233'
 hostname = 'localhost'
 def temp_heat_index():
+    time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     db_connection = mdb.connect(hostname, username, password, dataBaseName)
     cursor = db_connection.cursor()
 
@@ -43,9 +44,9 @@ def temp_heat_index():
         temperature.append(record[1])
         heat_index.append(record[2])
 
-
     fds = [dates.date2num(d) for d in time]
-    hfmt = dates.DateFormatter('%m/%d - %H')
+    hfmt = dates.DateFormatter('%m/%d')
+#     hfmt = dates.DateFormatter('%m/%d - %H')
 
     x = np.array([fds])
     y = np.array([heat_index])
@@ -67,7 +68,7 @@ def temp_heat_index():
 
     # ax.annotate('local max', xy=(0.8, 0.2), xycoords='axes fraction', xytext=(0.1, 0.1), textcoords='axes fraction', arrowprops=dict(facecolor='black', shrink=0.05), horizontalalignment='right', verticalalignment='top',)
     ax.set_title("Temperature and Heat Index")
-    pyplot.figtext(0.15, 0.85, f"Temperature now:\n {temperature[-1]:.1f}", fontsize='large', horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.15, 0.85, f"Temperature: {temperature[-1]:.1f}\n {time_now}", fontsize='xx-large', horizontalalignment='left', verticalalignment='top')
     pyplot.figtext(0.75, 0.85, f"Max: {max(temperature):.1f} \nMin: {min(temperature):.1f} \nAve: {mean(temperature):.1f}", horizontalalignment='left', verticalalignment='top')
 
     ax.set_xlabel("Date")
@@ -76,3 +77,8 @@ def temp_heat_index():
     pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
 
     # pyplot.show()
+    cursor.close()
+    db_connection.close()
+    fig.clf()
+    pyplot.close()
+    gc.collect()

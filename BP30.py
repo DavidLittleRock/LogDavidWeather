@@ -65,3 +65,8 @@ def bp():
     pyplot.savefig('/var/www/html/BPGraph.png')
 
     # pyplot.show()
+    cursor.close()
+    db_connection.close()
+    fig.clf()
+    pyplot.close()
+    gc.collect()

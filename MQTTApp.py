@@ -11,6 +11,22 @@ import Rain
 import WindSevenDay
 import TemperatureMaxMin
 import BP30
+import gc
+import matplotlib
+# matplotlib.use('Agg')
+from matplotlib import pyplot
+from matplotlib import dates
+from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import FormatStrFormatter
+import pylab
+import numpy as np
+from numpy import mean
+import sys
+from pytz import timezone
+from httplib2 import http
+from datetime import datetime
+import scipy
+from scipy import signal
 
 dataBaseName = 'DataLogger'
 dataBaseTable = 'OURWEATHERTable'
@@ -50,8 +66,7 @@ def mqtt_client():
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
     client.subscribe('OurWeather')
- 
-    
+     
     client.loop_start()
 
 
@@ -63,7 +78,6 @@ def on_disconnect(self, userdata, rc):
     
 def on_subscribe(self, userdata, mid, granted_qos):
     print("subscribed")
-
 
 def on_subscribe(self, userdata, mid, granted_qos):
     print("subscribe")
@@ -98,30 +112,25 @@ def write_to_data(list_to_write):
                 float(list_to_write[3]), float(list_to_write[4]), float(list_to_write[5]), float(list_to_write[7]),
                 float(list_to_write[8]), list_to_write[9], list_to_write[10], int(list_to_write[11]),
                 int(list_to_write[12]), float(list_to_write[6]), float(list_to_write[13])))
-        print(query)
+        print(f"Write to database: {query}")
         my_cursor.execute(query)
         db_connection.commit()
     except:
         print("fail to write")
-
 
 mqtt_client()
 
 while True:
     time.sleep(60)
     TempHeatIndexSevenDay.temp_heat_index()
-    time.sleep(60)
-
+    time.sleep(10)
     BigGraph.big_graph()
-    time.sleep(60)
-
+    time.sleep(10)
     Rain.rain()
-    time.sleep(60)
-
+    time.sleep(10)
     WindSevenDay.wind()
-    time.sleep(60)
-
+    time.sleep(10)
     TemperatureMaxMin.temp_max_min()
-    time.sleep(60)
-
+    time.sleep(10)
     BP30.bp()
+ 

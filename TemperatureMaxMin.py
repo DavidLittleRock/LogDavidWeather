@@ -71,3 +71,8 @@ def temp_max_min():
     pyplot.savefig('/var/www/html/TemperatureMaxMinGraph.png')
 
     # pyplot.show()
+    cursor.close()
+    db_connection.close()
+    fig.clf()
+    pyplot.close()
+    gc.collect()

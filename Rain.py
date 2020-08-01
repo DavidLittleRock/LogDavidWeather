@@ -285,3 +285,8 @@ def rain():
     pyplot.savefig('/var/www/html/RainGraph.png')
 
     # pyplot.show()
+    my_cursor.close()
+    db_connection.close()
+    fig.clf()
+    pyplot.close()
+    gc.collect()

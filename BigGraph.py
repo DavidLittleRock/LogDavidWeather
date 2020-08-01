@@ -79,3 +79,8 @@ def big_graph():
     pyplot.savefig('/var/www/html/BigGraph.png')
 
     # pyplot.show()
+    cursor.close()
+    db_connection.close()
+    fig.clf()
+    pyplot.close()
+    gc.collect()
