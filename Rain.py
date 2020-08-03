@@ -1,20 +1,20 @@
 import gc
-import matplotlib
+# import matplotlib
 # matplotlib.use('Agg')
 from matplotlib import pyplot
 from matplotlib import dates
-from matplotlib.ticker import MultipleLocator
-from matplotlib.ticker import FormatStrFormatter
-import pylab
-import numpy as np
-from numpy import mean
+# from matplotlib.ticker import MultipleLocator
+# from matplotlib.ticker import FormatStrFormatter
+# import pylab
+# import numpy as np
+# from numpy import mean
 import sys
-from pytz import timezone
-from httplib2 import http
+# from pytz import timezone
+# from httplib2 import http
 from datetime import datetime
 import pymysql as mdb
-import scipy
-from scipy import signal
+# import scipy
+# from scipy import signal
 import math
 
 dataBaseName = 'DataLogger'
@@ -32,7 +32,7 @@ def rain():
     try:
         my_cursor.execute(query)
         result = my_cursor.fetchall()
-        print(result)
+#         print(result)
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -55,7 +55,7 @@ def rain():
     try:
         my_cursor.execute(query)
         result = my_cursor.fetchall()
-        print(result)
+#         print(result)
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -78,7 +78,7 @@ def rain():
     try:
         my_cursor.execute(query)
         result = my_cursor.fetchall()
-        print(result)
+#         print(result)
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -101,7 +101,7 @@ def rain():
     try:
         my_cursor.execute(query)
         result = my_cursor.fetchall()
-        print(result)
+ #       print(result)
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -125,7 +125,7 @@ def rain():
     try:
         my_cursor.execute(query)
         result = my_cursor.fetchall()
-        print(result)
+#         print(result)
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -149,7 +149,7 @@ def rain():
     try:
         my_cursor.execute(query)
         result = my_cursor.fetchall()
-        print(result)
+#         print(result)
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -172,7 +172,7 @@ def rain():
     try:
         my_cursor.execute(query)
         result = my_cursor.fetchall()
-        print(result)
+#         print(result)
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -195,7 +195,7 @@ def rain():
     try:
         my_cursor.execute(query)
         result = my_cursor.fetchall()
-        print(result)
+#         print(result)
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -225,7 +225,7 @@ def rain():
     fds7 = [dates.date2num(d) for d in time7]
 
 
-    hfmt = dates.DateFormatter('%m/%d - %H')
+    hfmt = dates.DateFormatter('%m/%d')
 
 
     pyplot.xticks(rotation='45')
@@ -275,18 +275,23 @@ def rain():
 
     # ax.annotate('local max', xy=(0.8, 0.2), xycoords='axes fraction', xytext=(0.1, 0.1), textcoords='axes fraction', arrowprops=dict(facecolor='black', shrink=0.05), horizontalalignment='right', verticalalignment='top',)
     ax.set_title("Rain")
-    pyplot.figtext(0.15, 0.85, f"Rain today : {today_rain:.1f} inches\n ", horizontalalignment='left', verticalalignment='top')
-    pyplot.figtext(0.75, 0.85, f"Rain this week:  \n{rain_week:.1f}  \nAve: "
-                               f"", horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.15, 0.85, f"Rain today : {today_rain:.1f} inches\n ", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.75, 0.85, f"Rain this week:  \n{rain_week:.1f} inches", fontsize=15
+                               , horizontalalignment='left', verticalalignment='top')
 
     ax.set_xlabel("Date")
     ax.set_ylabel("Inch")
     ax.grid(which='both', axis='both')
     pyplot.savefig('/var/www/html/RainGraph.png')
+    mng = pyplot.get_current_fig_manager()
+    mng.full_screen_toggle()
+    pyplot.show(block=False)
+    pyplot.pause(15)
+    pyplot.close()
 
-    # pyplot.show()
     my_cursor.close()
     db_connection.close()
-    fig.clf()
-    pyplot.close()
+    #fig.clf()
     gc.collect()
+if __name__ == '__main__':
+    rain()

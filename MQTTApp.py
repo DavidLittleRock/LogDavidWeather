@@ -45,7 +45,7 @@ def on_message(self, userdata, message):
     it will parse it into a list of data and
     sends data_list to be writen to DB
     """
-    print("on_message")
+    print("on_message \n")
     full_payload = message.payload.decode()
     index = full_payload.index("MQTT")
     data_string = full_payload[index + 18:-2]
@@ -56,7 +56,7 @@ def on_message(self, userdata, message):
 
 def mqtt_client():
 
-    client = mqtt.Client(client_id='myweather2a', clean_session=True, userdata=None, transport='tcp')
+    client = mqtt.Client(client_id='myweather2d', clean_session=True, userdata=None, transport='tcp')
 
     client.on_message = on_message
     client.on_subscribe = on_subscribe
@@ -65,7 +65,7 @@ def mqtt_client():
     client.connect(broker_url, broker_port)
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
-    client.subscribe('OurWeather')
+    client.subscribe('OurWeather', qos=2)
      
     client.loop_start()
 
@@ -77,13 +77,7 @@ def on_disconnect(self, userdata, rc):
     print_ts(txt='disconnected with rc ', msg=rc)
     
 def on_subscribe(self, userdata, mid, granted_qos):
-    print("subscribed")
-
-def on_subscribe(self, userdata, mid, granted_qos):
-    print("subscribe")
-
-def on_disconnect(self, userdata, rc):
-    print("disconect")
+    print(f"subscribed , with mid:{mid} and granted qos: {granted_qos}")
 
 def write_to_data(list_to_write):
     """
@@ -98,7 +92,7 @@ def write_to_data(list_to_write):
         db_connection = mdb.connect(hostname, username, password, dataBaseName)
         my_cursor = db_connection.cursor()
     except:
-        print("fail to connect")
+        print("fail to connect to database")
 
     device_id = 6
     try:
@@ -112,25 +106,25 @@ def write_to_data(list_to_write):
                 float(list_to_write[3]), float(list_to_write[4]), float(list_to_write[5]), float(list_to_write[7]),
                 float(list_to_write[8]), list_to_write[9], list_to_write[10], int(list_to_write[11]),
                 int(list_to_write[12]), float(list_to_write[6]), float(list_to_write[13])))
-        print(f"Write to database: {query}")
+        print(f"Write to database:\n {query}")
         my_cursor.execute(query)
         db_connection.commit()
     except:
-        print("fail to write")
+        print("fail to write to database")
 
 mqtt_client()
 
 while True:
-    time.sleep(60)
+#    time.sleep(10)
     TempHeatIndexSevenDay.temp_heat_index()
-    time.sleep(10)
+#    time.sleep(1)
     BigGraph.big_graph()
-    time.sleep(10)
+#    time.sleep(1)
     Rain.rain()
-    time.sleep(10)
+#    time.sleep(1)
     WindSevenDay.wind()
-    time.sleep(10)
+#    time.sleep(1)
     TemperatureMaxMin.temp_max_min()
-    time.sleep(10)
+#    time.sleep(1)
     BP30.bp()
  

@@ -1,20 +1,20 @@
 import gc
-import matplotlib
+# import matplotlib
 # matplotlib.use('Agg')
 from matplotlib import pyplot
 from matplotlib import dates
-from matplotlib.ticker import MultipleLocator
-from matplotlib.ticker import FormatStrFormatter
-import pylab
-import numpy as np
+# from matplotlib.ticker import MultipleLocator
+# from matplotlib.ticker import FormatStrFormatter
+# import pylab
+# import numpy as np
 from numpy import mean
 import sys
-from pytz import timezone
-from httplib2 import http
-from datetime import datetime
+# from pytz import timezone
+# from httplib2 import http
+# from datetime import datetime
 import pymysql as mdb
-import scipy
-from scipy import signal
+# import scipy
+# from scipy import signal
 
 dataBaseName = 'DataLogger'
 dataBaseTable = 'OURWEATHERTable'
@@ -45,7 +45,7 @@ def temp_max_min():
 
 
     fds = [dates.date2num(d) for d in time]
-    hfmt = dates.DateFormatter('%m/%d - %H')
+    hfmt = dates.DateFormatter('%m/%d')
     low = min(mint)
     high = max(maxt)
 
@@ -63,16 +63,20 @@ def temp_max_min():
     # ax.annotate('local max', xy=(0.8, 0.2), xycoords='axes fraction', xytext=(0.1, 0.1), textcoords='axes fraction', arrowprops=dict(facecolor='black', shrink=0.05), horizontalalignment='right', verticalalignment='top',)
     ax.set_title("Temperature Max and Min")
     # pyplot.figtext(0.15, 0.85, f"Temperature now:\n ", horizontalalignment='left', verticalalignment='top')
-    pyplot.figtext(0.75, 0.85, f"Max: {high:.1f} \nMin: {low:.1f}  \nAve: {ave:.1f} ", horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.75, 0.85, f"Max: {high:.1f} \nMin: {low:.1f}  \nAve: {ave:.1f} ", fontsize='15', horizontalalignment='left', verticalalignment='top')
 
     ax.set_xlabel("Date")
     ax.set_ylabel("degree F")
     ax.grid(which='both', axis='both')
     pyplot.savefig('/var/www/html/TemperatureMaxMinGraph.png')
-
-    # pyplot.show()
+    mng = pyplot.get_current_fig_manager()
+    mng.full_screen_toggle()
+    pyplot.show(block=False)
+    pyplot.pause(15)
     cursor.close()
     db_connection.close()
-    fig.clf()
     pyplot.close()
     gc.collect()
+    
+if __name__ == '__main__':
+    temp_max_min()

@@ -1,20 +1,21 @@
 import gc
-import matplotlib
+# import matplotlib
 # matplotlib.use('Agg')
 from matplotlib import pyplot
 from matplotlib import dates
-from matplotlib.ticker import MultipleLocator
-from matplotlib.ticker import FormatStrFormatter
-import pylab
+# from matplotlib.ticker import MultipleLocator
+# from matplotlib.ticker import FormatStrFormatter
+# import pylab
 import numpy as np
 from numpy import mean
 import sys
-from pytz import timezone
-from httplib2 import http
+# from pytz import timezone
+ # from httplib2 import http
 from datetime import datetime
 import pymysql as mdb
-import scipy
-from scipy import signal
+# import scipy
+# from scipy import signal
+import time
 
 dataBaseName = 'DataLogger'
 dataBaseTable = 'OURWEATHERTable'
@@ -35,16 +36,16 @@ def temp_heat_index():
         e = sys.exc_info()[0]
         print(f"the error is {e}")
 
-    time = []
+    timex = []
     temperature = []
     heat_index = []
 
     for record in result:
-        time.append(record[0])
+        timex.append(record[0])
         temperature.append(record[1])
         heat_index.append(record[2])
 
-    fds = [dates.date2num(d) for d in time]
+    fds = [dates.date2num(d) for d in timex]
     hfmt = dates.DateFormatter('%m/%d')
 #     hfmt = dates.DateFormatter('%m/%d - %H')
 
@@ -55,7 +56,7 @@ def temp_heat_index():
     y = y[y > 80]
 
 
-    fig, ax = pyplot.subplots(figsize=(17.0, 8.0), facecolor='green')
+    figt, ax = pyplot.subplots(nrows=1,ncols=1,figsize=(17.0, 8.0), facecolor='green', edgecolor='red', linewidth=10)
     pyplot.xticks(rotation='45')
     ax.xaxis.set_major_formatter(hfmt)
     ax.plot(fds, temperature, marker='o', linestyle='--', color='blue', markersize=2.0)
@@ -63,8 +64,8 @@ def temp_heat_index():
     ax.plot(x, y, marker='o', linestyle='', color='orange', markersize=2.0)
     ax.axis(ymin=10, ymax=110)
 
-    print(temperature[-1])
-    print(max(temperature))
+ #   print(temperature[-1])
+ #   print(max(temperature))
 
     # ax.annotate('local max', xy=(0.8, 0.2), xycoords='axes fraction', xytext=(0.1, 0.1), textcoords='axes fraction', arrowprops=dict(facecolor='black', shrink=0.05), horizontalalignment='right', verticalalignment='top',)
     ax.set_title("Temperature and Heat Index")
@@ -76,9 +77,30 @@ def temp_heat_index():
     ax.grid(which='both', axis='both')
     pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
 
-    # pyplot.show()
+    mng = pyplot.get_current_fig_manager()
+#    print(mng)
+# ok    mng.resize(*mng.window.maxsize())  # max with window outline
+# no    mng.frame.Maximize(True)
+# no    mng.window.state('zoomed')
+# no   mng.window.showMaximized()
+    mng.full_screen_toggle()  # full screen no outline
+
+
+    pyplot.show(block=False)
+    
+    print("show")
+    pyplot.pause(60)
+#    pyplot.clf()
+#    print("clf")
+#    pyplot.pause(5)
+    pyplot.close(fig=figt)
+    print("close")
+ #   pyplot.pause(1)
+
     cursor.close()
     db_connection.close()
-    fig.clf()
-    pyplot.close()
     gc.collect()
+    time.sleep(1)
+    
+if __name__ == '__main__':
+    temp_heat_index()

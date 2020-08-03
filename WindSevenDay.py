@@ -1,19 +1,19 @@
 import gc
-import matplotlib
+# import matplotlib
 # matplotlib.use('Agg')
 from matplotlib import pyplot
 from matplotlib import dates
-from matplotlib.ticker import MultipleLocator
-from matplotlib.ticker import FormatStrFormatter
-import pylab
-import numpy as np
-from numpy import mean
+# from matplotlib.ticker import MultipleLocator
+# from matplotlib.ticker import FormatStrFormatter
+# import pylab
+# import numpy as np
+# from numpy import mean
 import sys
-from pytz import timezone
-from httplib2 import http
-from datetime import datetime
+# from pytz import timezone
+# from httplib2 import http
+# from datetime import datetime
 import pymysql as mdb
-import scipy
+# import scipy
 from scipy import signal
 
 dataBaseName = 'DataLogger'
@@ -46,12 +46,10 @@ def wind():
     wss = signal.savgol_filter(ws, 35, 5)
     gss = signal.savgol_filter(gs, 35, 5)
     fds = [dates.date2num(d) for d in time]
-    hfmt = dates.DateFormatter('%m/%d - %H')
+    hfmt = dates.DateFormatter('%m/%d')
 
 
-
-
-    fig, ax = pyplot.subplots(figsize=(17.0, 8.0), facecolor='green')
+    fig, ax = pyplot.subplots(figsize=(7.0, 4.0), facecolor='green')
     pyplot.xticks(rotation='45')
     ax.xaxis.set_major_formatter(hfmt)
     ax.plot(fds, wss, marker='o', linestyle='-', color='blue', markersize=2.0)
@@ -70,10 +68,15 @@ def wind():
     ax.set_ylabel("MPH")
     ax.grid(which='both', axis='both')
     pyplot.savefig('/var/www/html/WindSevenDayGraph.png')
-
-    # pyplot.show()
+    mng = pyplot.get_current_fig_manager()
+    mng.full_screen_toggle()
+    pyplot.show(block=False)
+    pyplot.pause(30)
     cursor.close()
     db_connection.close()
-    fig.clf()
+#    fig.clf()
     pyplot.close()
     gc.collect()
+    
+if __name__ == '__main__':
+    wind()
