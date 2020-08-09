@@ -23,8 +23,7 @@ database_password = 'Data0233'
 hostname = 'localhost'
 ax_dict = {}
 time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
-db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
-cursor = db_connection.cursor()
+
 
 
 def make_ax(ax_dict):
@@ -47,7 +46,11 @@ def make_ax(ax_dict):
 
 
 
-def temp_heat_index():
+def wind():
+    db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
+    cursor = db_connection.cursor()
+
+
     query = 'SELECT Date, WS, GS FROM WindSevenDay ORDER BY Date ASC'
 
     try:
@@ -85,7 +88,7 @@ def temp_heat_index():
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
-    print(result_max_min)   # if returns empty need way to still print
+    # print(result_max_min)   # if returns empty need way to still print
 
     query_current_condition = 'SELECT id, Current_Wind_Speed, Current_Wind_Direction, Outdoor_Temperature FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
     try:
@@ -152,7 +155,7 @@ def temp_heat_index():
     mng.full_screen_toggle()  # full screen no outline
 
     pyplot.show(block=False)
-    pyplot.pause(60)
+    pyplot.pause(15)
     pyplot.close(fig="My Figure")
 
 
@@ -162,4 +165,4 @@ def temp_heat_index():
     gc.collect()
 
 if __name__ == '__main__':
-    temp_heat_index()
+    wind()

@@ -6,38 +6,75 @@ import pymysql as mdb
 import paho.mqtt.client as mqtt
 import time
 import TempHeatIndexSevenDay
+import TempHeatIndexSevenDayC
+import WindSevenDayB
+import TemperatureMaxMinB
+import BP30B
 import BigGraph
 import Rain
 import WindSevenDay
 import TemperatureMaxMin
 import BP30
 import gc
-import matplotlib
+# import matplotlib
 # matplotlib.use('Agg')
-from matplotlib import pyplot
-from matplotlib import dates
-from matplotlib.ticker import MultipleLocator
-from matplotlib.ticker import FormatStrFormatter
-import pylab
-import numpy as np
-from numpy import mean
+# from matplotlib import pyplot
+# from matplotlib import dates
+# from matplotlib.ticker import MultipleLocator
+# from matplotlib.ticker import FormatStrFormatter
+# import pylab
+# import numpy as np
+# from numpy import mean
 import sys
-from pytz import timezone
-from httplib2 import http
-from datetime import datetime
-import scipy
-from scipy import signal
+# from pytz import timezone
+# from httplib2 import http
+# from datetime import datetime
+# import scipy
+# from scipy import signal
 
-dataBaseName = 'DataLogger'
-dataBaseTable = 'OURWEATHERTable'
-username = 'datalogger'
-password = 'Data0233'
+database_name = 'DataLogger'
+database_table = 'OURWEATHERTable'
+database_user_name = 'datalogger'
+database_password = 'Data0233'
 
 hostname = 'localhost'
 # user_data_tuple = (hostname, username, password, dataBaseName)
 
 broker_url = '192.168.1.84'
 broker_port = 1883
+client = mqtt.Client(client_id='myweather2desk', clean_session=False, userdata=None, transport='tcp')
+
+def mqtt_app():
+
+    mqtt_client()
+    while True:
+        time.sleep(0.1)
+     #   TempHeatIndexSevenDay.temp_heat_index()
+        TempHeatIndexSevenDayC.temp_heat_index()
+
+    #    time.sleep(1)
+    #    BigGraph.big_graph()
+    #    time.sleep(1)
+        Rain.rain()
+        TempHeatIndexSevenDayC.temp_heat_index()
+
+    #    time.sleep(1)
+     #   WindSevenDay.wind()
+        WindSevenDayB.wind()
+        TempHeatIndexSevenDayC.temp_heat_index()
+
+    #    time.sleep(1)
+     #   TemperatureMaxMin.temp_max_min()
+        TemperatureMaxMinB.temp_max_min()
+        TempHeatIndexSevenDayC.temp_heat_index()
+
+    #    time.sleep(1)
+     #   BP30.bp()
+        BP30B.bp()
+
+def on_log(client, userdata, level, buff):
+    print(level)
+    print(buff)
 
 
 def on_message(self, userdata, message):
@@ -55,29 +92,41 @@ def on_message(self, userdata, message):
 
 
 def mqtt_client():
-
-    client = mqtt.Client(client_id='myweather2d', clean_session=True, userdata=None, transport='tcp')
+    print("in mqtt_client")
 
     client.on_message = on_message
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
     client.on_connect = on_connect
-    client.connect(broker_url, broker_port)
+
+    try:
+        client.connect(broker_url, broker_port)
+    except:
+        e = sys.exc_info()[0]
+        print(f"the error is {e}")
+        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
+
+
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
-    client.subscribe('OurWeather', qos=2)
-     
+
     client.loop_start()
 
 
 def on_connect(self, userdata, flags, rc):
-    print(f"Connected to mosquitto {rc}")
-    
+    print(f"Connected to mosquitto {rc} with client_id")
+    # Subscribing in on_connect() means that if we lose the connection and
+    # reconnect then subscriptions will be renewed.
+    client.subscribe('OurWeather', qos=2)
+
+
 def on_disconnect(self, userdata, rc):
-    print_ts(txt='disconnected with rc ', msg=rc)
-    
+    print(f'disconnected with rc {rc}')
+
+
 def on_subscribe(self, userdata, mid, granted_qos):
-    print(f"subscribed , with mid:{mid} and granted qos: {granted_qos}")
+    print(f"subscribed , with mid:{mid} and granted qos: {granted_qos} to topic OurWeather")
+
 
 def write_to_data(list_to_write):
     """
@@ -89,14 +138,14 @@ def write_to_data(list_to_write):
     """
 
     try:
-        db_connection = mdb.connect(hostname, username, password, dataBaseName)
+        db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
         my_cursor = db_connection.cursor()
     except:
         print("fail to connect to database")
 
     device_id = 6
     try:
-        query = 'INSERT INTO ' + dataBaseTable + (
+        query = 'INSERT INTO ' + database_table + (
             ' (timestamp, deviceid, Outdoor_Temperature, Outdoor_Humidity, Barometric_Pressure, Current_Wind_Speed, '
             'Current_Wind_Gust, Current_Wind_Direction, Wind_Speed_Maximum, Wind_Gust_Maximum, '
             'OurWeather_DateTime, Lightning_Time, Lightning_Distance, Lightning_Count, Rain_Total, '
@@ -112,19 +161,6 @@ def write_to_data(list_to_write):
     except:
         print("fail to write to database")
 
-mqtt_client()
 
-while True:
-#    time.sleep(10)
-    TempHeatIndexSevenDay.temp_heat_index()
-#    time.sleep(1)
-    BigGraph.big_graph()
-#    time.sleep(1)
-    Rain.rain()
-#    time.sleep(1)
-    WindSevenDay.wind()
-#    time.sleep(1)
-    TemperatureMaxMin.temp_max_min()
-#    time.sleep(1)
-    BP30.bp()
- 
+if __name__ == "__main__":
+    mqtt_app()

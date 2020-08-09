@@ -16,13 +16,13 @@ import pymysql as mdb
 # import scipy
 # from scipy import signal
 
-dataBaseName = 'DataLogger'
-dataBaseTable = 'OURWEATHERTable'
-username = 'datalogger'
-password = 'Data0233'
+database_name = 'DataLogger'
+database_table = 'OURWEATHERTable'
+database_user_name = 'datalogger'
+database_password = 'Data0233'
 hostname = 'localhost'
 def temp_max_min():
-    db_connection = mdb.connect(hostname, username, password, dataBaseName)
+    db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     cursor = db_connection.cursor()
 
     query = 'SELECT Date, Max, Min FROM TemperatureMaxMin ORDER BY Date ASC'

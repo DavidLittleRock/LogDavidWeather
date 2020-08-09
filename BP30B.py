@@ -14,7 +14,7 @@ import sys
 from datetime import datetime
 import pymysql as mdb
 # import scipy
-from scipy import signal
+# from scipy import signal
 
 database_name = 'DataLogger'
 database_table = 'OURWEATHERTable'
@@ -23,8 +23,7 @@ database_password = 'Data0233'
 hostname = 'localhost'
 ax_dict = {}
 time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
-db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
-cursor = db_connection.cursor()
+
 
 
 def make_ax(ax_dict):
@@ -36,7 +35,7 @@ def make_ax(ax_dict):
     line = ax.plot(ax_dict['x1'], ax_dict['y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['label1'])
     # ax.plot(fds, heat_index, c='r')
     if ax_dict['x2'] is not None:
-        ax.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='-', color='orange', markersize=2.0, label=ax_dict['label2'])
+        ax.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='', color='orange', markersize=2.0, label=ax_dict['label2'])
 #    ax.axis(ymin=10, ymax=110)
     ax.legend()
     ax.set_title(ax_dict['title'])
@@ -47,35 +46,31 @@ def make_ax(ax_dict):
 
 
 
-def temp_heat_index():
-    query = 'SELECT Date, WS, GS FROM WindSevenDay ORDER BY Date ASC'
+def bp():
+    db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
+    cursor = db_connection.cursor()
 
+    query = 'SELECT Date, BP FROM BarometricPressure30Day ORDER BY Date ASC'
     try:
         cursor.execute(query)
         result = cursor.fetchall()
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
-
     time = []
-    ws = []
-    gs = []
+    barometric_pressure = []
 
     for record in result:
         time.append(record[0])
-        ws.append(record[1])
-        gs.append(record[2])
-
-    wss = signal.savgol_filter(ws, 35, 5)
-    gss = signal.savgol_filter(gs, 35, 5)
+        barometric_pressure.append(record[1])
     fds = [dates.date2num(d) for d in time]
     x = None
     y = None
-    label1 = "Wind Speed"
-    label2 = "Gust"
-    title = "Wind and Gust"
+    label1 = "Pressure"
+    label2 = None
+    title = "Barometric Pressure"
     xlabel = "Date"
-    ylabel = "MPH"
+    ylabel = "inches Hg"
 
 
     query_max_min = 'SELECT Date, Max, Min FROM TemperatureMaxMin WHERE Date = CURDATE()'
@@ -85,7 +80,7 @@ def temp_heat_index():
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
-    print(result_max_min)   # if returns empty need way to still print
+  #  print(result_max_min)   # if returns empty need way to still print
 
     query_current_condition = 'SELECT id, Current_Wind_Speed, Current_Wind_Direction, Outdoor_Temperature FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
     try:
@@ -122,10 +117,10 @@ def temp_heat_index():
     ax_dict = {
         'fig': fig,
         'x1': fds,
-        'y1': wss,
+        'y1': barometric_pressure,
         'label1': label1,
-        'x2': fds,
-        'y2': gss,
+        'x2': x,
+        'y2': y,
         'label2': label2,
         'title': title,
         'xlabel': xlabel,
@@ -135,8 +130,11 @@ def temp_heat_index():
 
     ax = make_ax(ax_dict)
 
+    try:
+        pyplot.figtext(0.15, 0.85, f"{time_now}\nTemperature now: {result_current_condition[0][3]*9/5+32:.0f}  \nHigh: {result_max_min[0][1]:.1f} \nLow: {result_max_min[0][2]:.1f} \nWind is {result_current_condition[0][1]*0.6214:.0f} MPH from the {compass[result_current_condition[0][2]]}", fontsize=20, horizontalalignment='left', verticalalignment='top')
+    except IndexError:
+        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
 
-    pyplot.figtext(0.15, 0.85, f"{time_now}\nTemperature now: {result_current_condition[0][3]*9/5+32:.0f}  \nHigh: {result_max_min[0][1]:.1f} \nLow: {result_max_min[0][2]:.1f} \nWind is {result_current_condition[0][1]*0.6214:.0f} MPH from the {compass[result_current_condition[0][2]]}", fontsize=20, horizontalalignment='left', verticalalignment='top')
 #    pyplot.figtext(0.75, 0.85, f"This week: \nMax: {max(temperature):.1f} \nMin: {min(temperature):.1f} \nAve: {mean(temperature):.1f}", fontsize=15, horizontalalignment='left', verticalalignment='top')
  #   if y[-1] > 80:
   #      print(y[-1])
@@ -152,7 +150,7 @@ def temp_heat_index():
     mng.full_screen_toggle()  # full screen no outline
 
     pyplot.show(block=False)
-    pyplot.pause(60)
+    pyplot.pause(10)
     pyplot.close(fig="My Figure")
 
 
@@ -162,4 +160,4 @@ def temp_heat_index():
     gc.collect()
 
 if __name__ == '__main__':
-    temp_heat_index()
+    bp()

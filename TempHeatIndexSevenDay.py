@@ -17,14 +17,14 @@ import pymysql as mdb
 # from scipy import signal
 import time
 
-dataBaseName = 'DataLogger'
-dataBaseTable = 'OURWEATHERTable'
-username = 'datalogger'
-password = 'Data0233'
+database_name = 'DataLogger'
+database_table = 'OURWEATHERTable'
+database_user_name = 'datalogger'
+database_password = 'Data0233'
 hostname = 'localhost'
 def temp_heat_index():
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
-    db_connection = mdb.connect(hostname, username, password, dataBaseName)
+    db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     cursor = db_connection.cursor()
 
     query = 'SELECT Date, Temp, HI FROM SevenDayTempHeatIndex ORDER BY Date ASC'
@@ -88,13 +88,11 @@ def temp_heat_index():
 
     pyplot.show(block=False)
     
-    print("show")
-    pyplot.pause(60)
+    pyplot.pause(6)
 #    pyplot.clf()
 #    print("clf")
 #    pyplot.pause(5)
     pyplot.close(fig=figt)
-    print("close")
  #   pyplot.pause(1)
 
     cursor.close()
