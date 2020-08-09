@@ -74,7 +74,7 @@ def on_connect(self, userdata, flags, rc):
     print(f"Connected to mosquitto {rc}")
     
 def on_disconnect(self, userdata, rc):
-    print_ts(txt='disconnected with rc ', msg=rc)
+    print(f'disconnected with rc {rc}')
     
 def on_subscribe(self, userdata, mid, granted_qos):
     print(f"subscribed , with mid:{mid} and granted qos: {granted_qos}")
