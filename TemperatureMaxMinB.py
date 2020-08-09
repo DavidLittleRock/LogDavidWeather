@@ -23,8 +23,7 @@ database_password = 'Data0233'
 hostname = 'localhost'
 ax_dict = {}
 time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
-db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
-cursor = db_connection.cursor()
+
 
 
 def make_ax(ax_dict):
@@ -33,10 +32,10 @@ def make_ax(ax_dict):
     ax = ax_dict['fig'].add_subplot(gs[1:, :])
     pyplot.xticks(rotation='45')
     ax.xaxis.set_major_formatter(hfmt)
-    line = ax.plot(ax_dict['x1'], ax_dict['y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['label1'])
+    line = ax.plot(ax_dict['x1'], ax_dict['y1'], marker='o', linestyle='-', color='red', markersize=2.0, label=ax_dict['label1'])
     # ax.plot(fds, heat_index, c='r')
     if ax_dict['x2'] is not None:
-        ax.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='-', color='orange', markersize=2.0, label=ax_dict['label2'])
+        ax.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['label2'])
 #    ax.axis(ymin=10, ymax=110)
     ax.legend()
     ax.set_title(ax_dict['title'])
@@ -47,8 +46,11 @@ def make_ax(ax_dict):
 
 
 
-def temp_heat_index():
-    query = 'SELECT Date, WS, GS FROM WindSevenDay ORDER BY Date ASC'
+def temp_max_min():
+    db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
+    cursor = db_connection.cursor()
+
+    query = 'SELECT Date, Max, Min FROM TemperatureMaxMin ORDER BY Date ASC'
 
     try:
         cursor.execute(query)
@@ -58,24 +60,21 @@ def temp_heat_index():
         print(f"the error is {e}")
 
     time = []
-    ws = []
-    gs = []
+    maxt = []
+    mint = []
 
     for record in result:
         time.append(record[0])
-        ws.append(record[1])
-        gs.append(record[2])
-
-    wss = signal.savgol_filter(ws, 35, 5)
-    gss = signal.savgol_filter(gs, 35, 5)
+        maxt.append(record[1])
+        mint.append(record[2])
     fds = [dates.date2num(d) for d in time]
     x = None
     y = None
-    label1 = "Wind Speed"
-    label2 = "Gust"
-    title = "Wind and Gust"
+    label1 = "High"
+    label2 = "Low"
+    title = "Temperature High and Low"
     xlabel = "Date"
-    ylabel = "MPH"
+    ylabel = "degree F"
 
 
     query_max_min = 'SELECT Date, Max, Min FROM TemperatureMaxMin WHERE Date = CURDATE()'
@@ -85,7 +84,7 @@ def temp_heat_index():
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
-    print(result_max_min)   # if returns empty need way to still print
+ #   print(result_max_min)   # if returns empty need way to still print
 
     query_current_condition = 'SELECT id, Current_Wind_Speed, Current_Wind_Direction, Outdoor_Temperature FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
     try:
@@ -122,10 +121,10 @@ def temp_heat_index():
     ax_dict = {
         'fig': fig,
         'x1': fds,
-        'y1': wss,
+        'y1': maxt,
         'label1': label1,
         'x2': fds,
-        'y2': gss,
+        'y2': mint,
         'label2': label2,
         'title': title,
         'xlabel': xlabel,
@@ -152,7 +151,7 @@ def temp_heat_index():
     mng.full_screen_toggle()  # full screen no outline
 
     pyplot.show(block=False)
-    pyplot.pause(60)
+    pyplot.pause(6)
     pyplot.close(fig="My Figure")
 
 
@@ -162,4 +161,4 @@ def temp_heat_index():
     gc.collect()
 
 if __name__ == '__main__':
-    temp_heat_index()
+    temp_max_min()

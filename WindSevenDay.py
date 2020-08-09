@@ -16,13 +16,13 @@ import pymysql as mdb
 # import scipy
 from scipy import signal
 
-dataBaseName = 'DataLogger'
-dataBaseTable = 'OURWEATHERTable'
-username = 'datalogger'
-password = 'Data0233'
+database_name = 'DataLogger'
+database_table = 'OURWEATHERTable'
+database_user_name = 'datalogger'
+database_password = 'Data0233'
 hostname = 'localhost'
 def wind():
-    db_connection = mdb.connect(hostname, username, password, dataBaseName)
+    db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     cursor = db_connection.cursor()
 
     query = 'SELECT Date, WS, GS FROM WindSevenDay ORDER BY Date ASC'
@@ -71,7 +71,7 @@ def wind():
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()
     pyplot.show(block=False)
-    pyplot.pause(30)
+    pyplot.pause(5)
     cursor.close()
     db_connection.close()
 #    fig.clf()

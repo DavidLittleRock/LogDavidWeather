@@ -66,7 +66,7 @@ def bp():
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()
     pyplot.show(block=False)
-    pyplot.pause(15)
+    pyplot.pause(10)
     cursor.close()
     db_connection.close()
     pyplot.close()
