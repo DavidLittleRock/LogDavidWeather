@@ -16,13 +16,7 @@ import pymysql as mdb
 # import scipy
 # from scipy import signal
 
-database_name = 'DataLogger'
-database_table = 'OURWEATHERTable'
-database_user_name = 'datalogger'
-database_password = 'Data0233'
-hostname = 'localhost'
-ax_dict = {}
-time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
+
 
 
 
@@ -47,6 +41,13 @@ def make_ax(ax_dict):
 
 
 def bp():
+    database_name = 'DataLogger'
+    database_table = 'OURWEATHERTable'
+    database_user_name = 'datalogger'
+    database_password = 'Data0233'
+    hostname = 'localhost'
+    ax_dict = {}
+    time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     cursor = db_connection.cursor()
 

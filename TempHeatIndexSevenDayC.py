@@ -16,13 +16,7 @@ import pymysql as mdb
 # import scipy
 # from scipy import signal
 
-database_name = 'DataLogger'
-database_table = 'OURWEATHERTable'
-database_user_name = 'datalogger'
-database_password = 'Data0233'
-hostname = 'localhost'
-ax_dict = {}
-time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
+
 # db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
 # cursor = db_connection.cursor()
 
@@ -48,6 +42,14 @@ def make_ax(ax_dict):
 
 
 def temp_heat_index():
+    database_name = 'DataLogger'
+    database_table = 'OURWEATHERTable'
+    database_user_name = 'datalogger'
+    database_password = 'Data0233'
+    hostname = 'localhost'
+    ax_dict = {}
+    time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
+
     db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     cursor = db_connection.cursor()
 
@@ -136,8 +138,10 @@ def temp_heat_index():
 
     ax = make_ax(ax_dict)
 
-
-    pyplot.figtext(0.15, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {result_max_min[0][1]:.1f} \nLow: {result_max_min[0][2]:.1f} \nWind is {result_wind[0][1]*0.6214:.0f} MPH from the {compass[result_wind[0][2]]}", fontsize=20, horizontalalignment='left', verticalalignment='top')
+    try:
+        pyplot.figtext(0.15, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {result_max_min[0][1]:.1f} \nLow: {result_max_min[0][2]:.1f} \nWind is {result_wind[0][1]*0.6214:.0f} MPH from the {compass[result_wind[0][2]]}", fontsize=20, horizontalalignment='left', verticalalignment='top')
+    except IndexError:
+        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     pyplot.figtext(0.75, 0.85, f"This week: \nMax: {max(temperature):.1f} \nMin: {min(temperature):.1f} \nAve: {mean(temperature):.1f}", fontsize=15, horizontalalignment='left', verticalalignment='top')
     if y[-1] > 80:
      #   print(y[-1])
@@ -145,11 +149,7 @@ def temp_heat_index():
 
     pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
     mng = pyplot.get_current_fig_manager()
-    #    print(mng)
-    # ok    mng.resize(*mng.window.maxsize())  # max with window outline
-    # no    mng.frame.Maximize(True)
-    # no    mng.window.state('zoomed')
-    # no   mng.window.showMaximized()
+
     mng.full_screen_toggle()  # full screen no outline
 
     pyplot.show(block=False)

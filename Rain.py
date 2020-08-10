@@ -17,15 +17,16 @@ import pymysql as mdb
 # from scipy import signal
 import math
 
-database_name = 'DataLogger'
-database_table = 'OURWEATHERTable'
-database_user_name = 'datalogger'
-database_password = 'Data0233'
-hostname = 'localhost'
-time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
+
 
 
 def rain():
+    database_name = 'DataLogger'
+    database_table = 'OURWEATHERTable'
+    database_user_name = 'datalogger'
+    database_password = 'Data0233'
+    hostname = 'localhost'
+    time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     my_cursor = db_connection.cursor()
 
@@ -273,7 +274,7 @@ def rain():
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
-    print(result_max_min)  # if returns empty need way to still print
+   # print(result_max_min)  # if returns empty need way to still print
 
     query_current_condition = 'SELECT id, Current_Wind_Speed, Current_Wind_Direction, Outdoor_Temperature FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
     try:
@@ -307,11 +308,12 @@ def rain():
     ax.set_xlabel("Date")
     ax.set_ylabel("Inch")
     ax.grid(which='both', axis='both')
-
-    pyplot.figtext(0.15, 0.85,
+    try:
+        pyplot.figtext(0.15, 0.85,
                    f"{time_now}\nTemperature now: {result_current_condition[0][3] * 9 / 5 + 32:.0f}  \nHigh: {result_max_min[0][1]:.1f} \nLow: {result_max_min[0][2]:.1f} \nWind is {result_current_condition[0][1] * 0.6214:.0f} MPH from the {compass[result_current_condition[0][2]]}",
                    fontsize=20, horizontalalignment='left', verticalalignment='top')
-
+    except IndexError:
+        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     pyplot.figtext(0.75, 0.85, f"Rain today : {today_rain:.1f} inches\n Rain this week:  \n{rain_week:.1f} inches", fontsize=15
                                , horizontalalignment='left', verticalalignment='top')
     pyplot.xticks(rotation='45')
