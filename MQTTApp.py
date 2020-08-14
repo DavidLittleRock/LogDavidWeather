@@ -42,7 +42,7 @@ hostname = 'localhost'
 
 broker_url = '192.168.1.84'
 broker_port = 1883
-client = mqtt.Client(client_id='myweather2desk', clean_session=False, userdata=None, transport='tcp')
+client = mqtt.Client(client_id='myweather2pi', clean_session=False, userdata=None, transport='tcp')
 
 def mqtt_app():
 

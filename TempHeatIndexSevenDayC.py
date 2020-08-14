@@ -90,7 +90,7 @@ def temp_heat_index():
         print(f"the error is {e}")
    # print(result_max_min)   # if returns empty need way to still print
 
-    query_wind = 'SELECT id, Current_Wind_Speed, Current_Wind_Direction FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
+    query_wind = 'SELECT id, Current_Wind_Speed, Current_Wind_Direction, OurWeather_DateTime FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
     try:
         cursor.execute(query_wind)
         result_wind = cursor.fetchall()
@@ -142,8 +142,8 @@ def temp_heat_index():
         pyplot.figtext(0.15, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {result_max_min[0][1]:.1f} \nLow: {result_max_min[0][2]:.1f} \nWind is {result_wind[0][1]*0.6214:.0f} MPH from the {compass[result_wind[0][2]]}", fontsize=20, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-    pyplot.figtext(0.75, 0.85, f"This week: \nMax: {max(temperature):.1f} \nMin: {min(temperature):.1f} \nAve: {mean(temperature):.1f}", fontsize=15, horizontalalignment='left', verticalalignment='top')
-    if y[-1] > 80:
+    pyplot.figtext(0.75, 0.85, f"This week: \nMax: {max(temperature):.1f} \nMin: {min(temperature):.1f} \nAve: {mean(temperature):.1f} \n(Last report time: {result_wind[0][3]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    if temperature[-1] > 80:
      #   print(y[-1])
         pyplot.figtext(0.75, 0.4, f"The Heat Index is: {y[-1]:.1f}", fontsize=15)
 
