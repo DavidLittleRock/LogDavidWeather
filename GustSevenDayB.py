@@ -32,7 +32,7 @@ def make_ax(ax_dict):
     if ax_dict['x2'] is not None:
         ax.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='-', color='orange', markersize=2.0, label=ax_dict['label2'])
 #    ax.axis(ymin=10, ymax=110)
-    ax.axis(ymin=0, ymax=max(ax_dict['y1']+3), xmin=math.trunc(dates.date2num(datetime.today()))-7, xmax=math.trunc(dates.date2num(datetime.now()))+1)
+    ax.axis(ymin=0, ymax=max(ax_dict['y2']), xmin=math.trunc(dates.date2num(datetime.today()))-7, xmax=math.trunc(dates.date2num(datetime.now()))+1)
 
     ax.legend()
     ax.set_title(ax_dict['title'], fontsize='15')
@@ -82,7 +82,7 @@ def wind():
     y = None
     label1 = "Wind Speed"
     label2 = "Gust"
-    title = "Wind with Gust"
+    title = "Gust with Wind"
     xlabel = "Date"
     ylabel = "MPH"
 

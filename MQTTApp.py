@@ -13,6 +13,7 @@ import BP30B
 import BigGraph
 import Rain
 import WindSevenDay
+import GustSevenDayB
 import TemperatureMaxMin
 import BP30
 import gc
@@ -56,17 +57,18 @@ def mqtt_app():
     #    BigGraph.big_graph()
     #    time.sleep(1)
         Rain.rain()
-        TempHeatIndexSevenDayC.temp_heat_index()
+     #   TempHeatIndexSevenDayC.temp_heat_index()
 
     #    time.sleep(1)
      #   WindSevenDay.wind()
         WindSevenDayB.wind()
-        TempHeatIndexSevenDayC.temp_heat_index()
+        GustSevenDayB.wind()
+      #  TempHeatIndexSevenDayC.temp_heat_index()
 
     #    time.sleep(1)
      #   TemperatureMaxMin.temp_max_min()
         TemperatureMaxMinB.temp_max_min()
-        TempHeatIndexSevenDayC.temp_heat_index()
+      #  TempHeatIndexSevenDayC.temp_heat_index()
 
     #    time.sleep(1)
      #   BP30.bp()
@@ -159,6 +161,9 @@ def write_to_data(list_to_write):
         db_connection.commit()
     except:
         print("fail to write to database")
+        e = sys.exc_info()[0]
+        print(f"the error is {e}")
+        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
 
 
 if __name__ == "__main__":

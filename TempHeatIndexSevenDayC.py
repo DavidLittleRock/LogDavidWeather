@@ -15,6 +15,7 @@ from datetime import datetime
 import pymysql as mdb
 # import scipy
 # from scipy import signal
+import math
 
 
 # db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
@@ -31,7 +32,7 @@ def make_ax(ax_dict):
     # ax.plot(fds, heat_index, c='r')
     if ax_dict['x2'] is not None:
         ax.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='', color='orange', markersize=2.0, label=ax_dict['label2'])
-    ax.axis(ymin=10, ymax=110)
+    ax.axis(ymin=10, ymax=110, xmin=math.trunc(dates.date2num(datetime.today()))-7, xmax=math.trunc(dates.date2num(datetime.now()))+1)
     ax.legend()
     ax.set_title(ax_dict['title'])
     ax.set_xlabel(ax_dict['xlabel'])
