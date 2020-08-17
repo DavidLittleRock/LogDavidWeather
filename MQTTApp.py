@@ -74,7 +74,7 @@ def mqtt_app():
 
     #    time.sleep(1)
      #   BP30.bp()
-     #   BP30B.bp()
+        BP30B.bp()
 
 def on_log(client, userdata, level, buff):
     print(level)
