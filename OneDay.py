@@ -127,13 +127,13 @@ def one_day():
 #    label5 = "Barometric Pressure, inch Hg"
 
 
-    query_max_min = 'SELECT Date, Max, Min FROM TemperatureMaxMin WHERE Date = CURDATE()'
-    try:
-        cursor.execute(query_max_min)
-        result_max_min = cursor.fetchall()
-    except:
-        e = sys.exc_info()[0]
-        print(f"the error is {e}")
+#    query_max_min = 'SELECT Date, Max, Min FROM TemperatureMaxMin WHERE Date = CURDATE()'
+ #   try:
+ #       cursor.execute(query_max_min)
+  #      result_max_min = cursor.fetchall()
+ #   except:
+ #       e = sys.exc_info()[0]
+ #       print(f"the error is {e}")
    # print(result_max_min)   # if returns empty need way to still print
 
     query_wind = 'SELECT id, Current_Wind_Speed, Current_Wind_Direction, OurWeather_DateTime FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
@@ -209,12 +209,12 @@ def one_day():
 
 
     try:
-        pyplot.figtext(0.73, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {result_max_min[0][1]:.1f} \nLow: {result_max_min[0][2]:.1f} \nHumidity {humid[-1]:.0f}%", fontsize=20, horizontalalignment='left', verticalalignment='top')
+        pyplot.figtext(0.73, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {max(temperature):.1f} \nLow: {min(temperature):.1f} \nHumidity {humid[-1]:.0f}%", fontsize=20, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     if temperature[-1] > 80:
      #   print(y[-1])
-        pyplot.figtext(0.73, 0.65, f"The Heat Index is: {y[-1]:.1f}", fontsize=15)
+        pyplot.figtext(0.73, 0.65, f"The Heat Index is: {heat_index_2[-1]:.1f}", fontsize=15)
     try:
         pyplot.figtext(0.73, 0.45, f"Wind is {result_wind[0][1]*0.6214:.0f} MPH from the {compass[result_wind[0][2]]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
     except IndexError:
