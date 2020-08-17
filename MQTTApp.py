@@ -16,6 +16,7 @@ import WindSevenDay
 import GustSevenDayB
 import TemperatureMaxMin
 import BP30
+import OneDay
 import gc
 # import matplotlib
 # matplotlib.use('Agg')
@@ -43,15 +44,16 @@ hostname = 'localhost'
 
 broker_url = '192.168.1.84'
 broker_port = 1883
-client = mqtt.Client(client_id='myweather2desktop', clean_session=False, userdata=None, transport='tcp')
+client = mqtt.Client(client_id='myweather2pi', clean_session=False, userdata=None, transport='tcp')
 
 def mqtt_app():
 
     mqtt_client()
     while True:
         time.sleep(0.1)
+        OneDay.one_day()
      #   TempHeatIndexSevenDay.temp_heat_index()
-    #    TempHeatIndexSevenDayC.temp_heat_index()
+        TempHeatIndexSevenDayC.temp_heat_index()
 
     #    time.sleep(1)
     #    BigGraph.big_graph()
