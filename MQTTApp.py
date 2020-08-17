@@ -17,6 +17,7 @@ import GustSevenDayB
 import TemperatureMaxMin
 import BP30
 import OneDay
+import OneWeek
 import gc
 # import matplotlib
 # matplotlib.use('Agg')
@@ -52,8 +53,9 @@ def mqtt_app():
     while True:
         time.sleep(0.1)
         OneDay.one_day()
+        OneWeek.one_week()
      #   TempHeatIndexSevenDay.temp_heat_index()
-        TempHeatIndexSevenDayC.temp_heat_index()
+     #   TempHeatIndexSevenDayC.temp_heat_index()
 
     #    time.sleep(1)
     #    BigGraph.big_graph()
@@ -74,7 +76,7 @@ def mqtt_app():
 
     #    time.sleep(1)
      #   BP30.bp()
-        BP30B.bp()
+     #   BP30B.bp()
 
 def on_log(client, userdata, level, buff):
     print(level)

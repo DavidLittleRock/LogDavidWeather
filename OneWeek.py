@@ -242,7 +242,7 @@ def one_week():
     mng.full_screen_toggle()  # full screen no outline
 
     pyplot.show(block=False)
-    pyplot.pause(120)
+    pyplot.pause(90)
     pyplot.close(fig="My Figure")
 
 
