@@ -34,7 +34,7 @@ def make_ax(ax_dict):
         ax.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='', color='orange', markersize=2.0, label=ax_dict['label2'])
     ax.axis(ymin=10, ymax=110, xmin=math.trunc(dates.date2num(datetime.today()))-7, xmax=math.trunc(dates.date2num(datetime.now()))+1)
     ax.legend()
-    ax.set_title(ax_dict['title'])
+    ax.set_title(ax_dict['title'], fontsize='15')
     ax.set_xlabel(ax_dict['xlabel'])
     ax.set_ylabel(ax_dict['ylabel'])
     ax.grid(which='both', axis='both')

@@ -34,7 +34,7 @@ def make_ax(ax_dict):
         ax.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='', color='orange', markersize=2.0, label=ax_dict['label2'])
     ax.axis(ymin=10, ymax=110, xmin=math.trunc(dates.date2num(datetime.today()))-30, xmax=math.trunc(dates.date2num(datetime.now()))+1)
     ax.legend()
-    ax.set_title(ax_dict['title'])
+    ax.set_title(ax_dict['title'], fontsize='15')
     ax.set_xlabel(ax_dict['xlabel'])
     ax.set_ylabel(ax_dict['ylabel'])
     ax.grid(which='both', axis='both')
@@ -143,12 +143,12 @@ def temp_heat_index():
         pyplot.figtext(0.15, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {result_max_min[0][1]:.1f} \nLow: {result_max_min[0][2]:.1f} \nWind is {result_wind[0][1]*0.6214:.0f} MPH from the {compass[result_wind[0][2]]}", fontsize=20, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-    pyplot.figtext(0.75, 0.85, f"This week: \nMax: {max(temperature):.1f} \nMin: {min(temperature):.1f} \nAve: {mean(temperature):.1f} \n(Last report time: {result_wind[0][3]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.75, 0.85, f"This month: \nMax: {max(temperature):.1f} \nMin: {min(temperature):.1f} \nAve: {mean(temperature):.1f} \n(Last report time: {result_wind[0][3]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
     if temperature[-1] > 80:
      #   print(y[-1])
         pyplot.figtext(0.75, 0.4, f"The Heat Index is: {y[-1]:.1f}", fontsize=15)
 
-    pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
+    pyplot.savefig('/var/www/html/TempHeatIndexThirtyDayGraph.png')
     mng = pyplot.get_current_fig_manager()
 
     mng.full_screen_toggle()  # full screen no outline
