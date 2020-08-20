@@ -68,7 +68,7 @@ def make_ax3(ax_dict):
     pyplot.xticks([], rotation='45')
     ax3.xaxis.set_major_locator(dates.HourLocator(interval=4))
     ax3.xaxis.set_major_formatter(hfmt)
-    ax3.plot(ax_dict['ax_x1'], ax_dict['ax3_y'], marker='o', linestyle='-', color='green', markersize=1, linewidth=0.5, label=ax_dict['ax3_label'])
+    ax3.plot(ax_dict['ax_x1'], ax_dict['ax3_y'], marker='o', linestyle='-', color='green', markersize=1.5, linewidth=1, label=ax_dict['ax3_label'])
     ax3.axis(ymin=29.83, ymax=30.20, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax3.legend()
     ax3.set_title(ax_dict['ax3_title'], fontsize='15')
@@ -197,7 +197,7 @@ def one_day():
         'ax3_y': baro,
         'ax3_label': "Barometric Pressure, inch Hg",
         'ax3_xlabel': xlabel,
-        'ax3_ylabel': ylabel,
+        'ax3_ylabel': None,
 
 
     }

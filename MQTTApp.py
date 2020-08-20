@@ -18,6 +18,7 @@ import TemperatureMaxMin
 import BP30
 import OneDay
 import OneWeek
+import OneMonth
 import gc
 # import matplotlib
 # matplotlib.use('Agg')
@@ -54,6 +55,7 @@ def mqtt_app():
         time.sleep(0.1)
         OneDay.one_day()
         OneWeek.one_week()
+        OneMonth.one_month()
      #   TempHeatIndexSevenDay.temp_heat_index()
      #   TempHeatIndexSevenDayC.temp_heat_index()
 
