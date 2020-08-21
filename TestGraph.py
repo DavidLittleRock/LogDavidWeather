@@ -23,6 +23,13 @@ import math
 
 
 def make_ax1(ax_dict):
+    """
+
+    :param ax_dict:
+    :type ax_dict:
+    :return:
+    :rtype:
+    """
     hfmt = dates.DateFormatter('')
     ax1 = ax_dict['fig'].add_subplot(ax_dict['gs'][:5, :4])
     ax1.xaxis.set_major_locator(dates.DayLocator(interval=1))
@@ -40,7 +47,7 @@ def make_ax1(ax_dict):
     ax1.set_xlabel(ax_dict['ax1_xlabel'])
     ax1.set_ylabel(ax_dict['ax1_ylabel'])
     ax1.grid(which='both', axis='both')
-
+    return ax1
 
 def make_ax2(ax_dict):
     hfmt = dates.DateFormatter('')

@@ -40,16 +40,16 @@ database_name = 'DataLogger'
 database_table = 'OURWEATHERTable'
 database_user_name = 'datalogger'
 database_password = 'Data0233'
-
 hostname = 'localhost'
-# user_data_tuple = (hostname, username, password, dataBaseName)
-
 broker_url = '192.168.1.84'
 broker_port = 1883
 client = mqtt.Client(client_id='myweather2pi', clean_session=False, userdata=None, transport='tcp')
 
-def mqtt_app():
 
+def mqtt_app():
+    """
+
+    """
     mqtt_client()
     while True:
         time.sleep(0.1)
@@ -86,11 +86,19 @@ def on_log(client, userdata, level, buff):
 
 
 def on_message(self, userdata, message):
-    """This function triggered when message received,
+    """
+    This function triggered when message received,
     it will parse it into a list of data and
     sends data_list to be writen to DB
+
+    :param self:
+    :type self:
+    :param userdata: not used
+    :type userdata:
+    :param message: the message string from Mosquitto MQTT
+    :type message: str
     """
-    print("on_message \n")
+    print("in on_message \n")
     full_payload = message.payload.decode()
     index = full_payload.index("MQTT")
     data_string = full_payload[index + 18:-2]
@@ -101,7 +109,6 @@ def on_message(self, userdata, message):
 
 def mqtt_client():
     print("in mqtt_client")
-
     client.on_message = on_message
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
@@ -113,7 +120,6 @@ def mqtt_client():
         e = sys.exc_info()[0]
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-
 
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
@@ -131,6 +137,7 @@ def on_connect(self, userdata, flags, rc):
 def on_disconnect(self, userdata, rc):
     print(f'disconnected with rc {rc}')
 
+
 def on_subscribe(self, userdata, mid, granted_qos):
     print(f"subscribed , with mid:{mid} and granted qos: {granted_qos} to topic OurWeather")
 
@@ -138,8 +145,9 @@ def on_subscribe(self, userdata, mid, granted_qos):
 def write_to_data(list_to_write):
     """
     Writes data to the database table
+
     :param list_to_write: a list if data
-    :type list_to_write:
+    :type list_to_write: list
     :return:
     :rtype:
     """
@@ -162,7 +170,7 @@ def write_to_data(list_to_write):
                 float(list_to_write[3]), float(list_to_write[4]), float(list_to_write[5]), float(list_to_write[7]),
                 float(list_to_write[8]), list_to_write[9], list_to_write[10], int(list_to_write[11]),
                 int(list_to_write[12]), float(list_to_write[6]), float(list_to_write[13])))
-        print(f"Write to database:\n {query}")
+        print(f"Successful write to database:\n {query}")
         my_cursor.execute(query)
         db_connection.commit()
     except:

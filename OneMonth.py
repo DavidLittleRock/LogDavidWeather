@@ -28,13 +28,13 @@ def make_ax1(ax_dict):
     ax1.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax1.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
-    ax1.plot(ax_dict['ax1_x1'], ax_dict['ax1_y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['ax1_label1'])
-    if ax_dict['ax1_y2'] is not None:
-        ax1.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_label2'])
-    if ax_dict['ax1_y3'] is not None:
-        ax1.plot(ax_dict['ax1_x1'], ax_dict['ax1_y3'], marker='.', linestyle='-', linewidth=0.5, color='orange', label=ax_dict['ax1_label3'])
+    ax1.plot(ax_dict['ax1_x1'], ax_dict['ax1_y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['ax1_legend1'])
+#    if ax_dict['ax1_y2'] is not None:
+ #       ax1.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2'])
+ #   if ax_dict['ax1_y3'] is not None:
+ #       ax1.plot(ax_dict['ax1_x1'], ax_dict['ax1_y3'], marker='.', linestyle='-', linewidth=0.5, color='orange', label=ax_dict['ax1_legend3'])
     ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceeding 30 days
-#    ax.axis(ymin=10, ymax=110, xmin=math.trunc(dates.date2num(datetime.today()))-0, xmax=math.trunc(dates.date2num(datetime.now()))+1)  # set a 24 hour period midnight to midnight
+#    ax.axis(ymin=10, ymax=110, xmin=math.trunc(dates.date2num(datetime.today()))-0, xmax=math.trunc(dates.date2num(datetime.now()))+1)  # set a 30 day period midnight to midnight
     ax1.legend()
     ax1.set_title(ax_dict['ax1_title'], fontsize='15')
     ax1.set_xlabel(ax_dict['ax1_xlabel'])
@@ -49,7 +49,7 @@ def make_ax2(ax_dict):
     ax2.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax2.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
-    ax2.plot(ax_dict['ax1_x1'], ax_dict['ax2_y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5, label=ax_dict['ax2_label'])
+    ax2.plot(ax_dict['ax1_x1'], ax_dict['ax2_y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5, label=ax_dict['ax2_legend'])
     ax2.axis(ymin=0, ymax=5, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
     ax2.legend()
     ax2.set_title(ax_dict['ax2_title'], fontsize='15')
@@ -64,7 +64,7 @@ def make_ax3(ax_dict):
     pyplot.xticks([], rotation='45')
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax3.xaxis.set_major_formatter(hfmt)
-    ax3.plot(ax_dict['ax1_x1'], ax_dict['ax3_y'], marker='o', linestyle='-', color='green', markersize=1, linewidth=0.5, label=ax_dict['ax3_label'])
+    ax3.plot(ax_dict['ax1_x1'], ax_dict['ax3_y'], marker='o', linestyle='-', color='green', markersize=1, linewidth=0.5, label=ax_dict['ax3_legend'])
     ax3.axis(ymin=29.83, ymax=30.20, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
     ax3.legend()
     ax3.set_title(ax_dict['ax3_title'], fontsize='15')
@@ -97,7 +97,7 @@ def one_month():
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     cursor = db_connection.cursor()
-    query = 'SELECT Date, Temp, HI, Humid, BP, Wind FROM OneMonth WHERE MOD(ID, 10) = 0 ORDER BY Date ASC'  # SELECT every 10th
+    query = 'SELECT Date, Temp, HI, Humid, BP, Wind, Wind_Direction FROM OneMonth WHERE MOD(ID, 7) = 0 ORDER BY Date ASC'  # SELECT every 10th
     try:
         cursor.execute(query)
         result = cursor.fetchall()
@@ -112,6 +112,7 @@ def one_month():
     humid = []
     baro = []
     wind = []
+    wind_direct = []
     for record in result:
         time.append(record[0])
         temperature.append(record[1])  # ax_x1
@@ -119,6 +120,7 @@ def one_month():
         humid.append(record[3])
         baro.append(record[4])
         wind.append(record[5])
+        wind_direct.append(record[6])
 
     temp_now = temperature[-1]
     max_temp = max(temperature)
@@ -131,7 +133,6 @@ def one_month():
 
     fds_2 = np.array([fds])
     heat_index_2 = np.array([heat_index])
-#    heat_index = np.array([heat_index])
     fds_2 = fds_2[temperature_2 > 80]  # filter out if temperature is less than 80
     heat_index_2 = heat_index_2[temperature_2 > 80]
 
@@ -147,12 +148,12 @@ def one_month():
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
 
-    time = []
+    time_rain = []
     rain = []
     for record in result_rain:
-        time.append(record[0])
+        time_rain.append(record[0])
         rain.append(record[1]/22.5)
-    x6 = time
+    x6 = time_rain
     y6 = rain
     rain_total = sum(y6)
 
@@ -192,32 +193,32 @@ def one_month():
         'ax1_title': None,  # "Temperature",
         'ax1_x1': fds,
         'ax1_y1': temperature,
-        'ax1_label1': "Temperature, \u2109",
+        'ax1_legend1': "Temperature, \u2109",
         'ax1_x2': fds_2,
         'ax1_y2': heat_index_2,
-        'ax1_label2': "Heat Index, \u2109",
+        'ax1_legend2': "Heat Index, \u2109",
         'ax1_x3': None,
         'ax1_y3': humid,
-        'ax1_label3': "% Humidity",
+        'ax1_legend3': "% Humidity",
         'ax1_xlabel': None,
         'ax1_ylabel': None,
 
         'ax2_title': None,   # "Wind Speed",
         'ax2_x': None,
         'ax2_y': wind,
-        'ax2_label': "Wind, MPH",
+        'ax2_legend': "Wind, MPH",
         'ax2_xlabel': None,
         'ax2_ylabel': None,
 
         'ax3_title': None,   # "Barometric Pressure",
         'ax3_x': None,
         'ax3_y': baro,
-        'ax3_label': "Barometric Pressure, inch Hg",
+        'ax3_legend': "Barometric Pressure, inch Hg",
         'ax3_xlabel': xlabel,
         'ax3_ylabel': None,
 
-        'ax4_x': x6,
-        'ax4_y': y6,
+        'ax4_x': time_rain,
+        'ax4_y': rain,
 
     }
 
@@ -238,14 +239,14 @@ def one_month():
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     try:
-        pyplot.figtext(0.75, 0.40, f"Wind is {result_wind[0][1]*0.6214:.0f} MPH from the {compass[result_wind[0][2]]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
+        pyplot.figtext(0.75, 0.40, f"Wind is {wind[-1]*0.6214:.0f} MPH from the {compass[wind_direct[-1]]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     try:
         pyplot.figtext(0.75, 0.25, f"Barometric pressure is {baro_now:.2f} inches Hg", fontsize=15, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-    pyplot.figtext(0.75, 0.10, f"(Last report time: {result_wind[0][3]})", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.75, 0.10, f"(Last report time: {time[-1]})", fontsize=15, horizontalalignment='left', verticalalignment='top')
 
     pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
     mng = pyplot.get_current_fig_manager()
