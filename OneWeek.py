@@ -128,7 +128,18 @@ def one_week():
 #    label4 = "Wind, MPH"
 #    label5 = "Barometric Pressure, inch Hg"
 
-
+    query_report = 'SELECT id, OurWeather_DateTime FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
+    last_report = []
+    try:
+        cursor.execute(query_report)
+        result_time = cursor.fetchall()
+    except:
+        e = sys.exc_info()[0]
+        print(f"The error is {e}")
+    # print(result_time[1])
+    for record in result_time:
+        last_report.append(record[1])
+    print(last_report)
 
 
 
@@ -205,7 +216,7 @@ def one_week():
         pyplot.figtext(0.75, 0.20, f"Barometric pressure is {baro[-1]:.2f} inches Hg", fontsize=15, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-    pyplot.figtext(0.75, 0.10, f"(Last report time: {time[-1]})", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.75, 0.10, f"(Last report time: {last_report[0]})", fontsize=15, horizontalalignment='left', verticalalignment='top')
 
     pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
     mng = pyplot.get_current_fig_manager()
