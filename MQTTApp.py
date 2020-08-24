@@ -46,7 +46,7 @@ database_password = Settings.database_password
 hostname = Settings.hostname
 broker_url = Settings.broker_url
 broker_port = Settings.broker_port
-client = mqtt.Client(client_id='myweather2desk', clean_session=False, userdata=None, transport='tcp')
+client = mqtt.Client(client_id='myweather2pi', clean_session=False, userdata=None, transport='tcp')
 
 
 def mqtt_app():
@@ -56,9 +56,9 @@ def mqtt_app():
     mqtt_client()
     while True:
         time.sleep(0.1)
-     #   OneDay.one_day()
-     #   OneWeek.one_week()
-     #   OneMonth.one_month()
+        OneDay.one_day()
+        OneWeek.one_week()
+        OneMonth.one_month()
      #   TempHeatIndexSevenDay.temp_heat_index()
      #   TempHeatIndexSevenDayC.temp_heat_index()
 
