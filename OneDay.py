@@ -179,11 +179,10 @@ def one_day():
     }
 
 
-    ax1 = make_ax1(ax_dict)
-    ax2 = make_ax2(ax_dict)
-    ax3 = make_ax3(ax_dict)
+    make_ax1(ax_dict)
+    make_ax2(ax_dict)
+    make_ax3(ax_dict)
 
-    print(wind_direct[-1])
     try:
         pyplot.figtext(0.73, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {max(temperature):.1f} \nLow: {min(temperature):.1f} \nHumidity {humid[-1]:.0f}%", fontsize=20, horizontalalignment='left', verticalalignment='top')
     except IndexError:

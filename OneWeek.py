@@ -138,7 +138,6 @@ def one_week():
     # print(result_time[1])
     for record in result_time:
         last_report.append(record[1])
-    print(last_report)
 
 
 
@@ -197,9 +196,9 @@ def one_week():
 
     }
 
-    ax1 = make_ax1(ax_dict)
-    ax2 = make_ax2(ax_dict)
-    ax3 = make_ax3(ax_dict)
+    make_ax1(ax_dict)
+    make_ax2(ax_dict)
+    make_ax3(ax_dict)
 
     try:
         pyplot.figtext(0.75, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {max(temperature):.1f} \nLow: {min(temperature):.1f} \nHumidity {humid[-1]:.0f}%", fontsize=20, horizontalalignment='left', verticalalignment='top')
