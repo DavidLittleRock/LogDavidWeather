@@ -5,6 +5,9 @@
 import pymysql as mdb
 import paho.mqtt.client as mqtt
 import time
+
+import Settings
+
 import TempHeatIndexSevenDay
 import TempHeatIndexSevenDayC
 import WindSevenDayB
@@ -35,15 +38,15 @@ import sys
 # from datetime import datetime
 # import scipy
 # from scipy import signal
-
-database_name = 'DataLogger'
-database_table = 'OURWEATHERTable'
-database_user_name = 'datalogger'
-database_password = 'Data0233'
-hostname = 'localhost'
-broker_url = '192.168.1.84'
-broker_port = 1883
-client = mqtt.Client(client_id='myweather2pi', clean_session=False, userdata=None, transport='tcp')
+# database_name = 'DataLogger'
+database_name = Settings.database_name
+database_table = Settings.database_table
+database_user_name = Settings.database_user_name
+database_password = Settings.database_password
+hostname = Settings.hostname
+broker_url = Settings.broker_url
+broker_port = Settings.broker_port
+client = mqtt.Client(client_id='myweather2desk', clean_session=False, userdata=None, transport='tcp')
 
 
 def mqtt_app():
@@ -53,9 +56,9 @@ def mqtt_app():
     mqtt_client()
     while True:
         time.sleep(0.1)
-        OneDay.one_day()
-        OneWeek.one_week()
-        OneMonth.one_month()
+     #   OneDay.one_day()
+     #   OneWeek.one_week()
+     #   OneMonth.one_month()
      #   TempHeatIndexSevenDay.temp_heat_index()
      #   TempHeatIndexSevenDayC.temp_heat_index()
 

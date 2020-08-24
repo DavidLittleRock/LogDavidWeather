@@ -16,10 +16,9 @@ import pymysql as mdb
 # import scipy
 # from scipy import signal
 import math
+import Settings
 
 
-# db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
-# cursor = db_connection.cursor()
 
 
 def make_ax1(ax_dict):
@@ -77,11 +76,11 @@ def make_ax3(ax_dict):
 
 
 def one_week():
-    database_name = 'DataLogger'
-    database_table = 'OURWEATHERTable'
-    database_user_name = 'datalogger'
-    database_password = 'Data0233'
-    hostname = 'localhost'
+    database_name = Settings.database_name
+    database_table = Settings.database_table
+    database_user_name = Settings.database_user_name
+    database_password = Settings.database_password
+    hostname = Settings.hostname
     ax_dict = {}
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)

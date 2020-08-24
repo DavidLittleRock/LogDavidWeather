@@ -1,28 +1,16 @@
 import gc
-# import matplotlib
-# matplotlib.use('Agg')
 from typing import Any
 from typing import Dict
-
 from matplotlib import pyplot
 from matplotlib import dates
-# from matplotlib.ticker import MultipleLocator
-# from matplotlib.ticker import FormatStrFormatter
-# import pylab
 import numpy as np
 from numpy import mean
 import sys
-# from pytz import timezone
-# from httplib2 import http
 from datetime import datetime
 import pymysql as mdb
-# import scipy
-# from scipy import signal
 import math
+import Settings
 
-
-# db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
-# cursor = db_connection.cursor()
 
 ax_dict: Dict[Any, Any] = {}
 
@@ -84,11 +72,11 @@ def make_ax3(ax_dict):
 
 
 def one_day():
-    database_name = 'DataLogger'
-    database_table = 'OURWEATHERTable'
-    database_user_name = 'datalogger'
-    database_password = 'Data0233'
-    hostname = 'localhost'
+    database_name = Settings.database_name
+    database_table = Settings.database_table
+    database_user_name = Settings.database_user_name
+    database_password = Settings.database_password
+    hostname = Settings.hostname
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     cursor = db_connection.cursor()

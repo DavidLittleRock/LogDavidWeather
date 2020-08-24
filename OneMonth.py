@@ -1,25 +1,12 @@
 import gc
-# import matplotlib
-# matplotlib.use('Agg')
 from matplotlib import pyplot
 from matplotlib import dates
-# from matplotlib.ticker import MultipleLocator
-# from matplotlib.ticker import FormatStrFormatter
-# import pylab
 import numpy as np
 from numpy import mean
 import sys
-# from pytz import timezone
-# from httplib2 import http
 from datetime import datetime
 import pymysql as mdb
-# import scipy
-# from scipy import signal
-import math
-
-
-# db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
-# cursor = db_connection.cursor()
+import Settings
 
 
 def make_ax1(ax_dict):
@@ -88,11 +75,11 @@ def make_ax4(ax_dict):
 
 
 def one_month():
-    database_name = 'DataLogger'
-    database_table = 'OURWEATHERTable'
-    database_user_name = 'datalogger'
-    database_password = 'Data0233'
-    hostname = 'localhost'
+    database_name = Settings.database_name
+    database_table = Settings.database_table
+    database_user_name = Settings.database_user_name
+    database_password = Settings.database_password
+    hostname = Settings.hostname
     ax_dict = {}
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
@@ -165,7 +152,6 @@ def one_month():
     except:
         e = sys.exc_info()[0]
         print(f"The error is {e}")
-   # print(result_time[1])
     for record in result_time:
         last_report.append(record[1])
     print(last_report)
@@ -227,10 +213,10 @@ def one_month():
     }
 
 
-    ax1 = make_ax1(ax_dict)
-    ax2 = make_ax2(ax_dict)
-    ax3 = make_ax3(ax_dict)
-    ax4 = make_ax4(ax_dict)
+    make_ax1(ax_dict)
+    make_ax2(ax_dict)
+    make_ax3(ax_dict)
+    make_ax4(ax_dict)
 
     try:
         pyplot.figtext(0.75, 0.85, f"{time_now}\nTemperature now: {temp_now:.1f} \nHigh: {max_temp:.1f} \nLow: {min_temp:.1f} \nHumidity {humid_now:.0f}%", fontsize=20, horizontalalignment='left', verticalalignment='top')
