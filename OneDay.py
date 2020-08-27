@@ -75,15 +75,15 @@ def make_ax4(ax_dict):
     hfmt = dates.DateFormatter('')
     ax4 = ax_dict['fig'].add_subplot(gs[5:6, :4])
     pyplot.xticks([], rotation='45')
-    ax4.xaxis.set_major_locator(dates.DayLocator(interval=1))
+    ax4.xaxis.set_major_locator(dates.HourLocator(interval=4))
     ax4.xaxis.set_major_formatter(hfmt)
-    ax4.bar(ax_dict['ax4_x'], ax_dict['ax4_y'],  color='blue', width=0.1, label='Rain, inches')
+    ax4.bar(ax_dict['ax4_x'], ax_dict['ax4_y'],  color='blue', width=0.005, label='Rain, inches')
  #   ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y'], marker='o', linestyle='-', color='yellow', markersize=1.5, linewidth=1, label= "Rain Total, inch")
 
     ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y2'], marker='o', linestyle='-', color='red', markersize=1.5, linewidth=3, label= "Rain Total, inch")
 #    ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y'], marker='o', linestyle='-', color='yellow', markersize=1.5, linewidth=2, label= "Rain Total, inch")
 
-    ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
+    ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax4.legend()
     ax4.set_title(ax_dict['ax3_title'], fontsize='15')
  #   ax4.set_ylabel("Rain")
