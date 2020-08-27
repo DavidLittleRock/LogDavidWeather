@@ -217,8 +217,11 @@ def one_day():
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     if temperature[-1] > 80:
         pyplot.figtext(0.75, 0.65, f"The Heat Index is: {heat_index_2[-1]:.1f}", fontsize=15)
+    if rain_total[-1] > 0:
+        pyplot.figtext(0.75, 0.50, f"{rain_total[-1]:.1f} inches rain today", fontsize=15, horizontalalignment='left', verticalalignment='top')
+
     try:
-        pyplot.figtext(0.75, 0.45, f"Wind is {wind[-1]*0.6214:.0f} MPH from the {compass[wind_direct[-1]]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
+        pyplot.figtext(0.75, 0.40, f"Wind is {wind[-1]*0.6214:.0f} MPH from the {compass[wind_direct[-1]]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     try:
