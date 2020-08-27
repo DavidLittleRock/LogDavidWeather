@@ -51,7 +51,7 @@ def make_ax2(ax_dict):
     ax2.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
     ax2.plot(ax_dict['ax1_x1'], ax_dict['ax2_y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5, label=ax_dict['ax2_legend'])
-    ax2.axis(ymin=0, ymax=5, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))
+    ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))
     ax2.legend()
     ax2.set_title(ax_dict['ax2_title'], fontsize='15')
     ax2.set_xlabel(ax_dict['ax2_xlabel'])
@@ -60,6 +60,11 @@ def make_ax2(ax_dict):
 
 
 def make_ax3(ax_dict):
+    """
+    Barometric pressure
+    Args:
+        ax_dict ():
+    """
     gs = ax_dict['fig'].add_gridspec(5, 5)
     hfmt = dates.DateFormatter('%m/%d \n %H:%M')
     ax3 = ax_dict['fig'].add_subplot(gs[4:, :4])
@@ -67,7 +72,7 @@ def make_ax3(ax_dict):
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax3.xaxis.set_major_formatter(hfmt)
     ax3.plot(ax_dict['ax1_x1'], ax_dict['ax3_y'], marker='o', linestyle='-', color='green', markersize=1.5, linewidth=1, label=ax_dict['ax3_legend'])
-    ax3.axis(ymin=29.83, ymax=30.20, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))
+    ax3.axis(ymin=29.55, ymax=30.20, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))
     ax3.legend()
     ax3.set_title(ax_dict['ax3_title'], fontsize='15')
     ax3.set_xlabel(ax_dict['ax3_xlabel'])

@@ -37,6 +37,12 @@ def make_ax1(ax_dict):
 
 
 def make_ax2(ax_dict):
+    """
+    wind
+
+    Args:
+        ax_dict ():
+    """
     gs = ax_dict['fig'].add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
     ax2 = ax_dict['fig'].add_subplot(gs[6:8, :4])
@@ -45,7 +51,7 @@ def make_ax2(ax_dict):
     ax2.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
     ax2.plot(ax_dict['ax1_x1'], ax_dict['ax2_y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5, label=ax_dict['ax2_legend'])
-    ax2.axis(ymin=0, ymax=5, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
+    ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax2.legend()
     ax2.set_title(ax_dict['ax2_title'], fontsize='15')
     ax2.set_xlabel(ax_dict['ax2_xlabel'])
@@ -55,6 +61,11 @@ def make_ax2(ax_dict):
 
 
 def make_ax3(ax_dict):
+    """
+    barometric pressure
+    Args:
+        ax_dict ():
+    """
     gs = ax_dict['fig'].add_gridspec(10, 5)
     hfmt = dates.DateFormatter('%m/%d \n %H:%M')
     ax3 = ax_dict['fig'].add_subplot(gs[8:, :4])
@@ -62,7 +73,7 @@ def make_ax3(ax_dict):
     ax3.xaxis.set_major_locator(dates.HourLocator(interval=4))
     ax3.xaxis.set_major_formatter(hfmt)
     ax3.plot(ax_dict['ax1_x1'], ax_dict['ax3_y'], marker='o', linestyle='-', color='green', markersize=1.5, linewidth=1, label=ax_dict['ax3_legend'])
-    ax3.axis(ymin=29.83, ymax=30.20, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
+    ax3.axis(ymin=29.55, ymax=30.20, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax3.legend()
     ax3.set_title(ax_dict['ax3_title'], fontsize='15')
     ax3.set_xlabel(ax_dict['ax3_xlabel'])
@@ -99,7 +110,7 @@ def one_day():
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     cursor = db_connection.cursor()
-    query = 'SELECT Date, Temp, HI, Humid, BP, Wind, Wind_Direction, Rain_Change FROM OneDay ORDER BY Date ASC'
+    query = 'SELECT Date, Temp, HI, Humid, BP, Wind, Wind_Direction, Rain_Change, Gust FROM OneDay ORDER BY Date ASC'
     try:
         cursor.execute(query)
         result = cursor.fetchall()
@@ -117,6 +128,7 @@ def one_day():
     wind_direct = []
     rain_change = []
     rain_total = []
+    gust = []
     for record in result:
         time.append(record[0])
         temperature.append(record[1])  # ax_x1
@@ -127,6 +139,7 @@ def one_day():
         wind_direct.append(record[6])
         rain_change.append(record[7]/22.5)
         rain_total.append(sum(rain_change))
+        gust.append(record[8])
     fds = [dates.date2num(d) for d in time]  # ax_y
     fds_2 = np.array([fds])
     heat_index_2 = np.array([heat_index])
@@ -221,7 +234,7 @@ def one_day():
         pyplot.figtext(0.75, 0.50, f"{rain_total[-1]:.1f} inches rain today", fontsize=15, horizontalalignment='left', verticalalignment='top')
 
     try:
-        pyplot.figtext(0.75, 0.40, f"Wind is {wind[-1]*0.6214:.0f} MPH from the {compass[wind_direct[-1]]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
+        pyplot.figtext(0.75, 0.40, f"Wind is {wind[-1]:.0f} MPH from the {compass[wind_direct[-1]]}\nwith Gusts at {gust[-1]:.0f} MPH", fontsize=15, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     try:
