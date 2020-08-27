@@ -16,7 +16,7 @@ import pymysql as mdb
 # import scipy
 # from scipy import signal
 import math
-
+import webbrowser
 
 # db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
 # cursor = db_connection.cursor()
@@ -48,6 +48,7 @@ def make_ax1(ax_dict):
     ax1.set_ylabel(ax_dict['ax1_ylabel'])
     ax1.grid(which='both', axis='both')
     return ax1
+
 
 def make_ax2(ax_dict):
     hfmt = dates.DateFormatter('')
@@ -191,7 +192,7 @@ def one_month():
         360: 'North',
     }
 
-    fig = pyplot.figure(num="My Figure", facecolor='green')
+    fig = pyplot.figure(num=111, facecolor='green')
     ax_dict = {
         'fig': fig,
         'gs':  fig.add_gridspec(10, 5),
@@ -254,19 +255,38 @@ def one_month():
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     pyplot.figtext(0.75, 0.10, f"(Last report time: {result_wind[0][3]})", fontsize=15, horizontalalignment='left', verticalalignment='top')
 
-    pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
-    mng = pyplot.get_current_fig_manager()
+    pyplot.savefig('/var/www/html/TestGraph.png')
 
-    mng.full_screen_toggle()  # full screen no outline
-
-    pyplot.show(block=False)
-    pyplot.pause(120)
-    pyplot.close(fig="My Figure")
 
     cursor.close()
     db_connection.close()
+
+def show_fig():
+    pyplot.figure(111)
+ #   mng = pyplot.get_current_fig_manager()
+  #  mng.full_screen_toggle()  # full screen no outline
+
+  #  mng.resize(*mng.window.maxsize())
+   # mng.window.showMaximized()
+    pyplot.show(block=False)
+    pyplot.pause(5)
+    one_month()
+    pyplot.close(fig=111)
+   # pyplot.clf()
+
+ #   cursor.close()
+ #   db_connection.close()
     gc.collect()
 
 
 if __name__ == '__main__':
+
     one_month()
+    print("step 2")
+    mng = pyplot.get_current_fig_manager()
+    mng.full_screen_toggle()  # full screen no outline
+    show_fig()
+    print("step 3")
+    show_fig()
+    print("step 4")
+    show_fig()

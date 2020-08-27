@@ -25,7 +25,7 @@ import OneMonth
 import gc
 # import matplotlib
 # matplotlib.use('Agg')
-# from matplotlib import pyplot
+from matplotlib import pyplot
 # from matplotlib import dates
 # from matplotlib.ticker import MultipleLocator
 # from matplotlib.ticker import FormatStrFormatter
@@ -59,29 +59,21 @@ def mqtt_app():
         OneDay.one_day()
         OneWeek.one_week()
         OneMonth.one_month()
-     #   TempHeatIndexSevenDay.temp_heat_index()
-     #   TempHeatIndexSevenDayC.temp_heat_index()
+    #    pyplot.show(block=False)
+     #   pyplot.pause(2)
 
-    #    time.sleep(1)
-    #    BigGraph.big_graph()
-    #    time.sleep(1)
-     #   Rain.rain()
-     #   TempHeatIndexSevenDayC.temp_heat_index()
+      #  OneDay.one_day()
 
-    #    time.sleep(1)
-     #   WindSevenDay.wind()
-     #   WindSevenDayB.wind()
-    #    GustSevenDayB.wind()
-      #  TempHeatIndexSevenDayC.temp_heat_index()
+     #   pyplot.clf()
+   #     pyplot.close()
 
-    #    time.sleep(1)
-     #   TemperatureMaxMin.temp_max_min()
-     #   TemperatureMaxMinB.temp_max_min()
-      #  TempHeatIndexSevenDayC.temp_heat_index()
 
-    #    time.sleep(1)
-     #   BP30.bp()
-     #   BP30B.bp()
+     #   pyplot.show(block=False)
+     #   pyplot.pause(3)
+      #  pyplot.clf()
+      #  pyplot.close()
+     #   pyplot.figure('fig3')
+
 
 def on_log(client, userdata, level, buff):
     print(level)

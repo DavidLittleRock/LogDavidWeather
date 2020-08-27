@@ -222,13 +222,13 @@ def one_week():
     mng.full_screen_toggle()  # full screen no outline
 
     pyplot.show(block=False)
-    pyplot.pause(90)
+    pyplot.pause(60)
     pyplot.close(fig="My Figure")
 
     cursor.close()
     db_connection.close()
     gc.collect()
-
+ #   return fig
 
 if __name__ == '__main__':
     one_week()

@@ -16,9 +16,9 @@ ax_dict: Dict[Any, Any] = {}
 
 
 def make_ax1(ax_dict):
-    gs = ax_dict['fig'].add_gridspec(4, 4)
+    gs = ax_dict['fig'].add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
-    ax = ax_dict['fig'].add_subplot(gs[:2, :3])
+    ax = ax_dict['fig'].add_subplot(gs[:5, :4])
     ax.xaxis.set_major_locator(dates.HourLocator(interval=4))
     ax.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
@@ -37,9 +37,9 @@ def make_ax1(ax_dict):
 
 
 def make_ax2(ax_dict):
-    gs = ax_dict['fig'].add_gridspec(4, 4)
+    gs = ax_dict['fig'].add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
-    ax2 = ax_dict['fig'].add_subplot(gs[2:3, :3])
+    ax2 = ax_dict['fig'].add_subplot(gs[6:8, :4])
     pyplot.xticks(rotation='45')
     ax2.xaxis.set_major_locator(dates.HourLocator(interval=4))
     ax2.xaxis.set_major_formatter(hfmt)
@@ -55,9 +55,9 @@ def make_ax2(ax_dict):
 
 
 def make_ax3(ax_dict):
-    gs = ax_dict['fig'].add_gridspec(4, 4)
+    gs = ax_dict['fig'].add_gridspec(10, 5)
     hfmt = dates.DateFormatter('%m/%d \n %H:%M')
-    ax3 = ax_dict['fig'].add_subplot(gs[3:, :3])
+    ax3 = ax_dict['fig'].add_subplot(gs[8:, :4])
     pyplot.xticks([], rotation='45')
     ax3.xaxis.set_major_locator(dates.HourLocator(interval=4))
     ax3.xaxis.set_major_formatter(hfmt)
@@ -69,6 +69,25 @@ def make_ax3(ax_dict):
     ax3.set_ylabel(ax_dict['ax3_ylabel'])
     ax3.grid(which='both', axis='both')
 
+def make_ax4(ax_dict):
+    gs = ax_dict['fig'].add_gridspec(10, 5)
+
+    hfmt = dates.DateFormatter('')
+    ax4 = ax_dict['fig'].add_subplot(gs[5:6, :4])
+    pyplot.xticks([], rotation='45')
+    ax4.xaxis.set_major_locator(dates.DayLocator(interval=1))
+    ax4.xaxis.set_major_formatter(hfmt)
+    ax4.bar(ax_dict['ax4_x'], ax_dict['ax4_y'],  color='blue', width=0.1, label='Rain, inches')
+ #   ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y'], marker='o', linestyle='-', color='yellow', markersize=1.5, linewidth=1, label= "Rain Total, inch")
+
+    ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y2'], marker='o', linestyle='-', color='red', markersize=1.5, linewidth=3, label= "Rain Total, inch")
+#    ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y'], marker='o', linestyle='-', color='yellow', markersize=1.5, linewidth=2, label= "Rain Total, inch")
+
+    ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
+    ax4.legend()
+    ax4.set_title(ax_dict['ax3_title'], fontsize='15')
+ #   ax4.set_ylabel("Rain")
+    ax4.grid(which='both', axis='both')
 
 
 def one_day():
@@ -80,7 +99,7 @@ def one_day():
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     cursor = db_connection.cursor()
-    query = 'SELECT Date, Temp, HI, Humid, BP, Wind, Wind_Direction FROM OneDay ORDER BY Date ASC'
+    query = 'SELECT Date, Temp, HI, Humid, BP, Wind, Wind_Direction, Rain_Change FROM OneDay ORDER BY Date ASC'
     try:
         cursor.execute(query)
         result = cursor.fetchall()
@@ -96,6 +115,8 @@ def one_day():
     baro = []
     wind = []
     wind_direct = []
+    rain_change = []
+    rain_total = []
     for record in result:
         time.append(record[0])
         temperature.append(record[1])  # ax_x1
@@ -104,6 +125,8 @@ def one_day():
         baro.append(record[4])
         wind.append(record[5])
         wind_direct.append(record[6])
+        rain_change.append(record[7]/22.5)
+        rain_total.append(sum(rain_change))
     fds = [dates.date2num(d) for d in time]  # ax_y
     fds_2 = np.array([fds])
     heat_index_2 = np.array([heat_index])
@@ -148,7 +171,7 @@ def one_day():
     ax_dict = {
         'fig': fig,
 
-        'ax1_title': "Temperature",
+        'ax1_title': None,
         'ax1_x1': fds,
         'ax1_y1': temperature,
         'ax1_legend1': "Temperature, \u2109",
@@ -161,19 +184,23 @@ def one_day():
         'ax1_xlabel': None,
         'ax1_ylabel': None,
 
-        'ax2_title': "Wind Speed",
+        'ax2_title': None,
         'ax2_x': None,
         'ax2_y': wind,
         'ax2_legend': "Wind, MPH",
         'ax2_xlabel': None,
         'ax2_ylabel': None,
 
-        'ax3_title': "Barometric Pressure",
+        'ax3_title': None,
         'ax3_x': None,
         'ax3_y': baro,
         'ax3_legend': "Barometric Pressure, inch Hg",
         'ax3_xlabel': xlabel,
         'ax3_ylabel': None,
+
+        'ax4_x': fds,
+        'ax4_y': rain_change,
+        'ax4_y2': rain_total,
 
 
     }
@@ -182,22 +209,23 @@ def one_day():
     make_ax1(ax_dict)
     make_ax2(ax_dict)
     make_ax3(ax_dict)
+    make_ax4(ax_dict)
 
     try:
-        pyplot.figtext(0.73, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {max(temperature):.1f} \nLow: {min(temperature):.1f} \nHumidity {humid[-1]:.0f}%", fontsize=20, horizontalalignment='left', verticalalignment='top')
+        pyplot.figtext(0.75, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {max(temperature):.1f} \nLow: {min(temperature):.1f} \nHumidity {humid[-1]:.0f}%", fontsize=20, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     if temperature[-1] > 80:
-        pyplot.figtext(0.73, 0.65, f"The Heat Index is: {heat_index_2[-1]:.1f}", fontsize=15)
+        pyplot.figtext(0.75, 0.65, f"The Heat Index is: {heat_index_2[-1]:.1f}", fontsize=15)
     try:
-        pyplot.figtext(0.73, 0.45, f"Wind is {wind[-1]*0.6214:.0f} MPH from the {compass[wind_direct[-1]]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
+        pyplot.figtext(0.75, 0.45, f"Wind is {wind[-1]*0.6214:.0f} MPH from the {compass[wind_direct[-1]]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     try:
-        pyplot.figtext(0.73, 0.25, f"Barometric pressure is {baro[-1]:.2f} inches Hg", fontsize=15, horizontalalignment='left', verticalalignment='top')
+        pyplot.figtext(0.75, 0.25, f"Barometric pressure is {baro[-1]:.2f} inches Hg", fontsize=15, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-    pyplot.figtext(0.73, 0.10, f"(Last report time: {time[-1]})", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.75, 0.10, f"(Last report time: {time[-1]})", fontsize=15, horizontalalignment='left', verticalalignment='top')
 
     pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
     mng = pyplot.get_current_fig_manager()
@@ -205,12 +233,19 @@ def one_day():
     mng.full_screen_toggle()  # full screen no outline
 
     pyplot.show(block=False)
-    pyplot.pause(120)
+    pyplot.pause(60)
+ #   pyplot.clf()
+  #  pyplot.pause(10)
+ #   pyplot.show(block=False)
+ #   pyplot.pause(10)
+
     pyplot.close(fig="My Figure")
 
     cursor.close()
     db_connection.close()
     gc.collect()
+ #  print(fig)
+  #  return fig
 
 if __name__ == '__main__':
     one_day()
