@@ -22,6 +22,7 @@ import BP30
 import OneDay
 import OneWeek
 import OneMonth
+import TestGraph
 import gc
 # import matplotlib
 # matplotlib.use('Agg')
@@ -58,6 +59,7 @@ def mqtt_app():
         time.sleep(0.1)
         OneDay.one_day()
         OneWeek.one_week()
+        TestGraph.one_day()
         OneMonth.one_month()
     #    pyplot.show(block=False)
      #   pyplot.pause(2)
