@@ -96,9 +96,11 @@ RAIN
     ax4.bar(ax_dict['ax4_x'], ax_dict['ax4_y'],  color='blue', width=0.005, label='Rain, inches')
  #   ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y'], marker='o', linestyle='-', color='yellow', markersize=1.5, linewidth=1, label= "Rain Total, inch")
 
-    ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y2'], marker='o', linestyle='-', color='red', markersize=1.5, linewidth=3, label= "Rain 24 hr, inch")
-    ax4.plot(ax_dict['ax4_x4'], ax_dict['ax4_y4'], marker='o', linestyle='--', color='yellow', markersize=1.5, linewidth=4, label= "Rain yesterday, inch")
+  #  ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y2'], marker='o', linestyle='-', color='red', markersize=1.5, linewidth=3, label= "Rain 24 ???, inch")
+    ax4.plot(ax_dict['ax4_x4'], ax_dict['ax4_y4'], marker='o', linestyle='--', color='orange', markersize=1.5, linewidth=4, label= "Rain yesterday, inch")
     ax4.plot(ax_dict['ax4_x3'], ax_dict['ax4_y3'], marker='o', linestyle='--', color='green', markersize=1.5, linewidth=4, label= "Rain today, inch")
+    ax4.plot(ax_dict['ax4_x5'], ax_dict['ax4_y5'], marker='o', linestyle='-', color='blue', markersize=1.5, linewidth=1, label= "Rain 24, inch")
+
 
     ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax4.legend()
@@ -116,7 +118,7 @@ def one_day():
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     cursor = db_connection.cursor()
-    query = 'SELECT Date, Temp, HI, Humid, BP, Wind, Wind_Direction, Rain_Change, Gust FROM OneDay ORDER BY Date ASC'
+    query = 'SELECT Date, Temp, HI, Humid, BP, Wind, Wind_Direction, Rain_Change, Gust FROM OneDay ORDER BY Date ASC'  # this rain will be 48 Hours, not usefull
     try:
         cursor.execute(query)
         result = cursor.fetchall()
@@ -163,7 +165,7 @@ def one_day():
 #    label5 = "Barometric Pressure, inch Hg"
 
   #  query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY)) ORDER BY Date ASC'
-    query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY)) ORDER BY Date ASC'
+    query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY)) ORDER BY Date ASC'  # Yesterday 00:00 to 00:00
 
     try:
         cursor.execute(query)
@@ -183,9 +185,10 @@ def one_day():
         rain_change_yesterday.append(record[1] / 22.5)
         rain_total_yesterday.append(sum(rain_change_yesterday))
     fds_rain_yesterday = [dates.date2num(d) for d in time_rain_yesterday]  # ax_y
+    print("rain yesterday")
     print(rain_total_yesterday)
 
-    query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'
+    query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'  # Today start 00:00 to now
 
     try:
         cursor.execute(query)
@@ -205,7 +208,32 @@ def one_day():
         rain_change_today.append(record[1] / 22.5)
         rain_total_today.append(sum(rain_change_today))
     fds_rain_today = [dates.date2num(d) for d in time_rain_today]  # ax_y
+    print("rain today >>>")
     print(rain_total_today)
+
+    query = 'SELECT Date, Rain_Change FROM OneDay WHERE Date >= DATE_SUB(CURDATE(), INTERVAL 24 HOUR) ORDER BY Date ASC'  # 24 hr rain
+
+    try:
+        cursor.execute(query)
+        result_rain_24 = cursor.fetchall()
+    except:
+        e = sys.exc_info()[0]
+        print(f"the error is {e}")
+        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
+
+    time_rain_24 = []
+
+    rain_change_24 = []
+    rain_total_24 = []
+    for record in result_rain_24:
+        time_rain_24.append(record[0])
+
+        rain_change_24.append(record[1] / 22.5)
+        rain_total_24.append(sum(rain_change_24))
+    fds_rain_24 = [dates.date2num(d) for d in time_rain_24]  # ax_y
+    print("rain 24 >>")
+    print(rain_total_24)
+
 
 
     compass = {
@@ -266,7 +294,9 @@ def one_day():
         'ax4_y3': rain_total_today,
         'ax4_x3': fds_rain_today,
         'ax4_y4': rain_total_yesterday,
-        'ax4_x4': fds_rain_yesterday
+        'ax4_x4': fds_rain_yesterday,
+        'ax4_y5': rain_total_24,
+        'ax4_x5': fds_rain_24,
 
 
     }
