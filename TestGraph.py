@@ -101,11 +101,14 @@ RAIN
     ax4.xaxis.set_major_formatter(hfmt)
     ax4.bar(ax_dict['ax4_x'], ax_dict['ax4_y'],  color='blue', width=0.005, label='Rain, inches')
  #   ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y'], marker='o', linestyle='-', color='black', markersize=1.5, linewidth=1, label= "Rain Total, inch")
-    ax4.plot(ax_dict['ax4_x3'], ax_dict['ax4_y3'], marker='o', linestyle='--', color='green', markersize=1, linewidth=2, label= f"Rain today, {ax_dict['ax4_y3'][-1]:.1f} inch")
+    if len(ax_dict['ax4_y3']) > 0:
+        ax4.plot(ax_dict['ax4_x3'], ax_dict['ax4_y3'], marker='o', linestyle='--', color='green', markersize=1, linewidth=2, label= f"Rain today, {ax_dict['ax4_y3'][-1]:.1f} inch")
 
  #   ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y2'], marker='o', linestyle='-', color='red', markersize=1.5, linewidth=3, label= "Rain 48 hr ???, inch")
-    ax4.plot(ax_dict['ax4_x4'], ax_dict['ax4_y4'], marker='o', linestyle='--', color='orange', markersize=1, linewidth=2, label= f"Rain yesterday, {ax_dict['ax4_y4'][-1]:.1f} inch")
-    ax4.plot(ax_dict['ax4_x5'], ax_dict['ax4_y5'], marker='o', linestyle='--', color='blue', markersize=1, linewidth=2, label= f"Rain 24 hours {ax_dict['ax4_y5'][-1]:.1f} inch")
+    if len(ax_dict['ax4_y4']) > 0:
+        ax4.plot(ax_dict['ax4_x4'], ax_dict['ax4_y4'], marker='o', linestyle='--', color='orange', markersize=1, linewidth=2, label= f"Rain yesterday, {ax_dict['ax4_y4'][-1]:.1f} inch")
+    if len(ax_dict['ax4_y5']) > 0:
+        ax4.plot(ax_dict['ax4_x5'], ax_dict['ax4_y5'], marker='o', linestyle='--', color='blue', markersize=1, linewidth=2, label= f"Rain 24 hours {ax_dict['ax4_y5'][-1]:.1f} inch")
 
 
     ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
