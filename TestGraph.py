@@ -24,8 +24,9 @@ def make_ax1(ax_dict):
     pyplot.xticks(rotation='45')
     ax.plot(ax_dict['ax1_x1'], ax_dict['ax1_y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['ax1_legend1'])
     if ax_dict['ax1_y2'] is not None:
+        print(ax_dict['ax1_y2'])
         if ax_dict['ax1_y1'][-1] >= 80:
-            ax.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2'])
+            ax.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2a'])
         else:
             ax.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2a'])
 
@@ -33,7 +34,7 @@ def make_ax1(ax_dict):
         ax.plot(ax_dict['ax1_x1'], ax_dict['ax1_y3'], marker='.', linestyle='', color='orange', label=ax_dict['ax1_legend3'])
     ax.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceeding 24 hours
 #    ax.axis(ymin=10, ymax=110, xmin=math.trunc(dates.date2num(datetime.today()))-0, xmax=math.trunc(dates.date2num(datetime.now()))+1)  # set a 24 hour period midnight to midnight
-    ax.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1)
+    ax.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1, fontsize=15)
     ax.set_title(ax_dict['ax1_title'], fontsize='15')
     ax.set_xlabel(ax_dict['ax1_xlabel'])
     ax.set_ylabel(ax_dict['ax1_ylabel'])
@@ -56,7 +57,7 @@ def make_ax2(ax_dict):
     pyplot.xticks(rotation='45')
     ax2.plot(ax_dict['ax1_x1'], ax_dict['ax2_y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5, label=ax_dict['ax2_legend'])
     ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
-    ax2.legend(loc='upper left', bbox_to_anchor=(1.0, 0.9), shadow=True, ncol=1)
+    ax2.legend(loc='upper left', bbox_to_anchor=(1.0, 0.9), shadow=True, ncol=1, fontsize=15)
     ax2.set_title(ax_dict['ax2_title'], fontsize='15')
     ax2.set_xlabel(ax_dict['ax2_xlabel'])
     ax2.set_ylabel(ax_dict['ax2_ylabel'])
@@ -78,7 +79,7 @@ def make_ax3(ax_dict):
     ax3.xaxis.set_major_formatter(hfmt)
     ax3.plot(ax_dict['ax1_x1'], ax_dict['ax3_y'], marker='o', linestyle='-', color='green', markersize=1.5, linewidth=1, label=ax_dict['ax3_legend'])
     ax3.axis(ymin=29.50, ymax=30.20, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
-    ax3.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1)
+    ax3.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1, fontsize=15)
     ax3.set_title(ax_dict['ax3_title'], fontsize='15')
     ax3.set_xlabel(ax_dict['ax3_xlabel'])
     ax3.set_ylabel(ax_dict['ax3_ylabel'])
@@ -119,7 +120,7 @@ RAIN
 
  #   chartBox = ax4.get_position()
 #    ax4.set_position([chartBox.x0, chartBox.y0, chartBox.width, chartBox.height])
-    ax4.legend(loc='upper left', bbox_to_anchor=(1.0, 1.1), shadow=True, ncol=1)
+    ax4.legend(loc='upper left', bbox_to_anchor=(1.0, 1.6), shadow=True, ncol=1, fontsize=15)
 
 
 def one_day():
@@ -167,6 +168,7 @@ def one_day():
     temperature_2 = np.array([temperature])
     fds_2 = fds_2[temperature_2 > 80]  # filter out if temperature is less than 80
     heat_index_2 = heat_index_2[temperature_2 > 80]
+    print(heat_index_2)
 #    label1 = "Temperature, \u2109"  # \u2109 is degree F
 #    label2 = "Heat Index, \u2109"
 #    label3 = "Humidity, %"
@@ -271,6 +273,14 @@ def one_day():
 
     fig = pyplot.figure(num="My Figure", facecolor='green')
 
+    try:
+        hx = f"Heat Index, {heat_index_2[-1]:.1f}\u2109"
+    except:
+        e = sys.exc_info()[0]
+        print(f"the error is {e}")
+        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
+        hx = "none"
+
     ax_dict = {
         'fig': fig,
 
@@ -280,7 +290,7 @@ def one_day():
         'ax1_legend1': f"Temperature, {temperature[-1]:.1f} \u2109",
         'ax1_x2': fds_2,
         'ax1_y2': heat_index_2,
-        'ax1_legend2': f"Heat Index, {heat_index_2[-1]:.1f}\u2109",
+        'ax1_legend2': hx,
         'ax1_legend2a': f"Heat Index, \u2109",
 
         'ax1_x3': None,
