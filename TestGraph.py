@@ -10,7 +10,7 @@ from datetime import datetime
 import pymysql as mdb
 import math
 import Settings
-
+import logging
 
 ax_dict: Dict[Any, Any] = {}
 
@@ -19,14 +19,15 @@ def make_ax1(ax_dict):
     gs = ax_dict['fig'].add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
     ax = ax_dict['fig'].add_subplot(gs[:5, :4])
-    ax.xaxis.set_major_locator(dates.HourLocator(interval=4))
+    ax.xaxis.set_major_locator(dates.HourLocator(interval=6))
+    ax.xaxis.set_minor_locator(dates.HourLocator(interval=1))
     ax.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
     ax.plot(ax_dict['ax1_x1'], ax_dict['ax1_y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['ax1_legend1'])
     if ax_dict['ax1_y2'] is not None:
-        print(ax_dict['ax1_y2'])
+#        print(ax_dict['ax1_y2'])
         if ax_dict['ax1_y1'][-1] >= 80:
-            ax.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2a'])
+            ax.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2'])
         else:
             ax.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2a'])
 
@@ -39,7 +40,8 @@ def make_ax1(ax_dict):
     ax.set_xlabel(ax_dict['ax1_xlabel'])
     ax.set_ylabel(ax_dict['ax1_ylabel'])
     ax.grid(which='both', axis='both')
-
+    ax.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
+    ax.grid(which='major', color='#666666', linewidth=1.2)
 
 def make_ax2(ax_dict):
     """
@@ -52,18 +54,19 @@ def make_ax2(ax_dict):
     hfmt = dates.DateFormatter('')
     ax2 = ax_dict['fig'].add_subplot(gs[6:8, :4])
     pyplot.xticks(rotation='45')
-    ax2.xaxis.set_major_locator(dates.HourLocator(interval=4))
+    ax2.xaxis.set_major_locator(dates.HourLocator(interval=6))
+    ax2.xaxis.set_minor_locator(dates.HourLocator(interval=1))
     ax2.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
     ax2.plot(ax_dict['ax1_x1'], ax_dict['ax2_y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5, label=ax_dict['ax2_legend'])
-    ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
+    ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax2.legend(loc='upper left', bbox_to_anchor=(1.0, 0.9), shadow=True, ncol=1, fontsize=15)
     ax2.set_title(ax_dict['ax2_title'], fontsize='15')
     ax2.set_xlabel(ax_dict['ax2_xlabel'])
     ax2.set_ylabel(ax_dict['ax2_ylabel'])
     ax2.grid(which='both', axis='both')
-
-
+    ax2.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
+    ax2.grid(which='major', color='#666666', linewidth=1.2)
 
 def make_ax3(ax_dict):
     """
@@ -75,15 +78,19 @@ def make_ax3(ax_dict):
     hfmt = dates.DateFormatter('%m/%d \n %H:%M')
     ax3 = ax_dict['fig'].add_subplot(gs[8:, :4])
     pyplot.xticks([], rotation='45')
-    ax3.xaxis.set_major_locator(dates.HourLocator(interval=4))
+    ax3.xaxis.set_major_locator(dates.HourLocator(interval=6))
+    ax3.xaxis.set_minor_locator(dates.HourLocator(interval=1))
     ax3.xaxis.set_major_formatter(hfmt)
     ax3.plot(ax_dict['ax1_x1'], ax_dict['ax3_y'], marker='o', linestyle='-', color='green', markersize=1.5, linewidth=1, label=ax_dict['ax3_legend'])
-    ax3.axis(ymin=29.50, ymax=30.20, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
+    ax3.axis(ymin=29.50, ymax=30.35, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax3.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1, fontsize=15)
     ax3.set_title(ax_dict['ax3_title'], fontsize='15')
     ax3.set_xlabel(ax_dict['ax3_xlabel'])
     ax3.set_ylabel(ax_dict['ax3_ylabel'])
     ax3.grid(which='both', axis='both')
+    ax3.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
+    ax3.grid(which='major', color='#666666', linewidth=1.2)
+
 
 def make_ax4(ax_dict):
     """
@@ -94,32 +101,25 @@ RAIN
     gs = ax_dict['fig'].add_gridspec(10, 5)
 
     hfmt = dates.DateFormatter('')
- #   ax4 = ax_dict['fig'].add_subplot(gs[2:9, :])
     ax4 = ax_dict['fig'].add_subplot(gs[5:6, :4])
 
     pyplot.xticks([], rotation='45')
-    ax4.xaxis.set_major_locator(dates.HourLocator(interval=4))
+    ax4.xaxis.set_major_locator(dates.HourLocator(interval=6))
+    ax4.xaxis.set_minor_locator(dates.HourLocator(interval=1))
     ax4.xaxis.set_major_formatter(hfmt)
     ax4.bar(ax_dict['ax4_x'], ax_dict['ax4_y'],  color='blue', width=0.005, label='Rain, inches')
- #   ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y'], marker='o', linestyle='-', color='black', markersize=1.5, linewidth=1, label= "Rain Total, inch")
     if len(ax_dict['ax4_y3']) > 0:
         ax4.plot(ax_dict['ax4_x3'], ax_dict['ax4_y3'], marker='o', linestyle='--', color='green', markersize=1, linewidth=2, label= f"Rain today, {ax_dict['ax4_y3'][-1]:.1f} inch")
-
- #   ax4.plot(ax_dict['ax4_x'], ax_dict['ax4_y2'], marker='o', linestyle='-', color='red', markersize=1.5, linewidth=3, label= "Rain 48 hr ???, inch")
     if len(ax_dict['ax4_y4']) > 0:
         ax4.plot(ax_dict['ax4_x4'], ax_dict['ax4_y4'], marker='o', linestyle='--', color='orange', markersize=1, linewidth=2, label= f"Rain yesterday, {ax_dict['ax4_y4'][-1]:.1f} inch")
     if len(ax_dict['ax4_y5']) > 0:
         ax4.plot(ax_dict['ax4_x5'], ax_dict['ax4_y5'], marker='o', linestyle='--', color='blue', markersize=1, linewidth=2, label= f"Rain 24 hours {ax_dict['ax4_y5'][-1]:.1f} inch")
-
-
     ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
- #   ax4.legend()
     ax4.set_title(ax_dict['ax3_title'], fontsize='15')
  #   ax4.set_ylabel("Rain")
     ax4.grid(which='both', axis='both')
-
- #   chartBox = ax4.get_position()
-#    ax4.set_position([chartBox.x0, chartBox.y0, chartBox.width, chartBox.height])
+    ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
+    ax4.grid(which='major', color='#666666', linewidth=1.2)
     ax4.legend(loc='upper left', bbox_to_anchor=(1.0, 1.6), shadow=True, ncol=1, fontsize=15)
 
 
@@ -140,6 +140,7 @@ def one_day():
         e = sys.exc_info()[0]
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
+        logger.exception(str(e))
 
     time = []
     temperature = []
@@ -168,7 +169,7 @@ def one_day():
     temperature_2 = np.array([temperature])
     fds_2 = fds_2[temperature_2 > 80]  # filter out if temperature is less than 80
     heat_index_2 = heat_index_2[temperature_2 > 80]
-    print(heat_index_2)
+    logger.debug(f"heat_index_2: {heat_index_2}")
 #    label1 = "Temperature, \u2109"  # \u2109 is degree F
 #    label2 = "Heat Index, \u2109"
 #    label3 = "Humidity, %"
@@ -235,6 +236,7 @@ def one_day():
         e = sys.exc_info()[0]
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
+        logger.exception(str(e))
 
     time_rain_24 = []
 
@@ -242,13 +244,10 @@ def one_day():
     rain_total_24 = []
     for record in result_rain_24:
         time_rain_24.append(record[0])
-
         rain_change_24.append(record[1] / 22.5)
         rain_total_24.append(sum(rain_change_24))
     fds_rain_24 = [dates.date2num(d) for d in time_rain_24]  # ax_y
- #   print("rain 24 >>")
- #   print(rain_total_24)
-
+    logger.debug(f"rain_total_24: {rain_total_24}")
 
 
     compass = {
@@ -280,6 +279,7 @@ def one_day():
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
         hx = "none"
+        logger.exception(str(e))
 
     ax_dict = {
         'fig': fig,
@@ -326,31 +326,13 @@ def one_day():
 
     }
 
-
     make_ax1(ax_dict)
     make_ax2(ax_dict)
     make_ax3(ax_dict)
     make_ax4(ax_dict)
 
- #   try:
     pyplot.figtext(0.75, 0.95, f"{time_now}\n", fontsize=20, horizontalalignment='left', verticalalignment='top')
 
-    #       pyplot.figtext(0.75, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {max(temperature):.1f} \nLow: {min(temperature):.1f} \nHumidity {humid[-1]:.0f}%", fontsize=20, horizontalalignment='left', verticalalignment='top')
- #   except IndexError:
- #       print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
- #   if temperature[-1] > 80:
- #       pyplot.figtext(0.75, 0.65, f"The Heat Index is: {heat_index_2[-1]:.1f}", fontsize=15)
-#    if rain_total[-1] > 0:
- #       pyplot.figtext(0.75, 0.50, f"{rain_total[-1]:.1f} inches rain 24 hr", fontsize=15, horizontalalignment='left', verticalalignment='top')
-
- #   try:
- #       pyplot.figtext(0.75, 0.40, f"Wind is {wind[-1]:.0f} MPH from the {compass[wind_direct[-1]]}\nwith Gusts at {gust[-1]:.0f} MPH", fontsize=15, horizontalalignment='left', verticalalignment='top')
- #   except IndexError:
- #       print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-  #  try:
-  #      pyplot.figtext(0.75, 0.25, f"Barometric pressure is {baro[-1]:.2f} inches Hg", fontsize=15, horizontalalignment='left', verticalalignment='top')
-  #  except IndexError:
-  #      print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     pyplot.figtext(0.75, 0.10, f"(Last report time: {time[-1]})", fontsize=15, horizontalalignment='left', verticalalignment='top')
 
     pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
@@ -360,18 +342,32 @@ def one_day():
 
     pyplot.show(block=False)
     pyplot.pause(60)
- #   pyplot.clf()
-  #  pyplot.pause(10)
- #   pyplot.show(block=False)
- #   pyplot.pause(10)
 
     pyplot.close(fig="My Figure")
 
     cursor.close()
     db_connection.close()
     gc.collect()
- #  print(fig)
-  #  return fig
+
 
 if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    # set up logging to a file
+    # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', filename='/temp/MQTTApp.log', filemode='w')
+    # define a
+    # create a file handler to log to a file
+    fh = logging.FileHandler('MQTTApp.log')
+    fh.setLevel(logging.DEBUG)
+    # create a handler to write to console
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.WARNING)
+    # create a formatter and add to handlers
+    formatter = logging.Formatter(
+        '%(asctime)s - Level Name: %(levelname)s\n  - Message: %(message)s \n  - Function: %(funcName)s - Line: %(lineno)s - Module: %(module)s')
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    # add the handlers to logger
+    logger.addHandler(fh)
+    logger.addHandler(ch)
     one_day()
