@@ -13,6 +13,7 @@ import Settings
 import logging
 
 ax_dict: Dict[Any, Any] = {}
+logger = logging.getLogger('ml')
 
 
 def make_ax1(ax_dict):
@@ -30,7 +31,6 @@ def make_ax1(ax_dict):
             ax.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2'])
         else:
             ax.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2a'])
-
     if ax_dict['ax1_y3'] is not None:
         ax.plot(ax_dict['ax1_x1'], ax_dict['ax1_y3'], marker='.', linestyle='', color='orange', label=ax_dict['ax1_legend3'])
     ax.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceeding 24 hours
@@ -42,7 +42,7 @@ def make_ax1(ax_dict):
     ax.grid(which='both', axis='both')
     ax.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
     ax.grid(which='major', color='#666666', linewidth=1.2)
-
+    logger.debug('did make_ax1')
 def make_ax2(ax_dict):
     """
     wind
@@ -190,6 +190,7 @@ def one_day():
         e = sys.exc_info()[0]
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
+        logger.exception(str(e))
 
     time_rain_yesterday = []
 
@@ -213,6 +214,7 @@ def one_day():
         e = sys.exc_info()[0]
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
+        logger.exception(str(e))
 
     time_rain_today = []
 
