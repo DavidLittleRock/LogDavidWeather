@@ -171,7 +171,7 @@ def write_to_data(list_to_write):
 
 
 if __name__ == "__main__":
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger('ml')
     logger.setLevel(logging.DEBUG)
     # set up logging to a file
    # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', filename='/temp/MQTTApp.log', filemode='w')
