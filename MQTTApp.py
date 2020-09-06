@@ -66,6 +66,8 @@ def mqtt_app():
 
 
 
+
+
 def on_log(client, userdata, level, buff):
     print(level)
     print(buff)
