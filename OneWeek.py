@@ -19,8 +19,7 @@ import math
 import Settings
 
 
-
-
+# temperature
 def make_ax1(ax_dict):
     gs = ax_dict['fig'].add_gridspec(5, 5)
     hfmt = dates.DateFormatter('')
@@ -34,14 +33,14 @@ def make_ax1(ax_dict):
     if ax_dict['ax1_y3'] is not None:
         ax1.plot(ax_dict['ax1_x1'], ax_dict['ax1_y3'], marker='.', linestyle='', color='orange', label=ax_dict['ax1_legend3'])
     ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceeding 7 days
-#    ax.axis(ymin=10, ymax=110, xmin=math.trunc(dates.date2num(datetime.today()))-0, xmax=math.trunc(dates.date2num(datetime.now()))+1)  # set a 7 day period midnight to midnight
-    ax1.legend()
+    ax1.legend(shadow=True)
     ax1.set_title(ax_dict['ax1_title'], fontsize='15')
     ax1.set_xlabel(ax_dict['ax1_xlabel'])
     ax1.set_ylabel(ax_dict['ax1_ylabel'])
     ax1.grid(which='both', axis='both')
 
 
+# wind
 def make_ax2(ax_dict):
     gs = ax_dict['fig'].add_gridspec(5, 5)
     hfmt = dates.DateFormatter('')
@@ -52,13 +51,14 @@ def make_ax2(ax_dict):
     pyplot.xticks(rotation='45')
     ax2.plot(ax_dict['ax1_x1'], ax_dict['ax2_y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5, label=ax_dict['ax2_legend'])
     ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))
-    ax2.legend()
+    ax2.legend(shadow=True)
     ax2.set_title(ax_dict['ax2_title'], fontsize='15')
     ax2.set_xlabel(ax_dict['ax2_xlabel'])
     ax2.set_ylabel(ax_dict['ax2_ylabel'])
     ax2.grid(which='both', axis='both')
 
 
+# barometric pressure
 def make_ax3(ax_dict):
     """
     Barometric pressure
@@ -66,14 +66,14 @@ def make_ax3(ax_dict):
         ax_dict ():
     """
     gs = ax_dict['fig'].add_gridspec(5, 5)
-    hfmt = dates.DateFormatter('%m/%d \n %H:%M')
+    hfmt = dates.DateFormatter('%m/%d')
     ax3 = ax_dict['fig'].add_subplot(gs[4:, :4])
     pyplot.xticks([], rotation='45')
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax3.xaxis.set_major_formatter(hfmt)
     ax3.plot(ax_dict['ax1_x1'], ax_dict['ax3_y'], marker='o', linestyle='-', color='green', markersize=1.5, linewidth=1, label=ax_dict['ax3_legend'])
-    ax3.axis(ymin=29.55, ymax=30.20, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))
-    ax3.legend()
+    ax3.axis(ymin=29.50, ymax=30.35, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))
+    ax3.legend(shadow=True)
     ax3.set_title(ax_dict['ax3_title'], fontsize='15')
     ax3.set_xlabel(ax_dict['ax3_xlabel'])
     ax3.set_ylabel(ax_dict['ax3_ylabel'])
@@ -98,6 +98,7 @@ def one_week():
         e = sys.exc_info()[0]
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
+        result = ((0, 0, 0, 0, 0, 0, 0),)
 
     time = []
     temperature = []
@@ -115,22 +116,14 @@ def one_week():
         wind.append(record[5])
         wind_direct.append(record[6])
 
-
     fds = [dates.date2num(d) for d in time]  # ax_y
     fds_2 = np.array([fds])
     heat_index_2 = np.array([heat_index])
     temperature_2 = np.array([temperature])
     fds_2 = fds_2[temperature_2 > 80]  # filter out if temperature is less than 80
     heat_index_2 = heat_index_2[temperature_2 > 80]
-#    label1 = "Temperature, \u2109"  # \u2109 is degree F
-#    label2 = "Heat Index, \u2109"
-#    label3 = "Humidity, %"
-#    title = "Temperature past 24 hours"
     xlabel = "Date"
     ylabel = "degree F"
-#    ylabel3 = "MPH"
-#    label4 = "Wind, MPH"
-#    label5 = "Barometric Pressure, inch Hg"
 
     query_report = 'SELECT id, OurWeather_DateTime FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
     last_report = []
@@ -140,11 +133,10 @@ def one_week():
     except:
         e = sys.exc_info()[0]
         print(f"The error is {e}")
+        result_time = ((0,),)
     # print(result_time[1])
     for record in result_time:
         last_report.append(record[1])
-
-
 
     compass = {
         0.0: 'North',
@@ -233,7 +225,7 @@ def one_week():
     cursor.close()
     db_connection.close()
     gc.collect()
- #   return fig
+
 
 if __name__ == '__main__':
     one_week()

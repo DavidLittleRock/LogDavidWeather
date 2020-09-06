@@ -9,6 +9,7 @@ import pymysql as mdb
 import Settings
 
 
+# temperature
 def make_ax1(ax_dict):
     hfmt = dates.DateFormatter('')
     ax1 = ax_dict['fig'].add_subplot(ax_dict['gs'][:5, :4])
@@ -16,20 +17,16 @@ def make_ax1(ax_dict):
     ax1.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
     ax1.plot(ax_dict['ax1_x1'], ax_dict['ax1_y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['ax1_legend1'])
-#    if ax_dict['ax1_y2'] is not None:
- #       ax1.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2'])
- #   if ax_dict['ax1_y3'] is not None:
- #       ax1.plot(ax_dict['ax1_x1'], ax_dict['ax1_y3'], marker='.', linestyle='-', linewidth=0.5, color='orange', label=ax_dict['ax1_legend3'])
     ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceeding 30 days
-#    ax.axis(ymin=10, ymax=110, xmin=math.trunc(dates.date2num(datetime.today()))-0, xmax=math.trunc(dates.date2num(datetime.now()))+1)  # set a 30 day period midnight to midnight
-    ax1.legend()
+    ax1.legend(shadow=True)
     ax1.set_title(ax_dict['ax1_title'], fontsize='15')
     ax1.set_xlabel(ax_dict['ax1_xlabel'])
     ax1.set_ylabel(ax_dict['ax1_ylabel'])
     ax1.grid(which='both', axis='both')
 
 
-def make_ax2(ax_dict):
+# wind
+def make_ax2(ax_dict):  # wind
     hfmt = dates.DateFormatter('')
     ax2 = ax_dict['fig'].add_subplot(ax_dict['gs'][6:8, :4])
     pyplot.xticks(rotation='45')
@@ -37,40 +34,41 @@ def make_ax2(ax_dict):
     ax2.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
     ax2.plot(ax_dict['ax1_x1'], ax_dict['ax2_y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5, label=ax_dict['ax2_legend'])
-    ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
-    ax2.legend()
+    ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
+    ax2.legend(shadow=True)
     ax2.set_title(ax_dict['ax2_title'], fontsize='15')
     ax2.set_xlabel(ax_dict['ax2_xlabel'])
     ax2.set_ylabel(ax_dict['ax2_ylabel'])
     ax2.grid(which='both', axis='both')
 
 
-def make_ax3(ax_dict):
+# barometric pressure
+def make_ax3(ax_dict):  # barometric pressure
     hfmt = dates.DateFormatter('%m/\n%d')
     ax3 = ax_dict['fig'].add_subplot(ax_dict['gs'][8:, :4])
     pyplot.xticks([], rotation='45')
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax3.xaxis.set_major_formatter(hfmt)
     ax3.plot(ax_dict['ax1_x1'], ax_dict['ax3_y'], marker='o', linestyle='-', color='green', markersize=1, linewidth=0.5, label=ax_dict['ax3_legend'])
-    ax3.axis(ymin=29.55, ymax=30.20, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
-    ax3.legend()
+    ax3.axis(ymin=29.50, ymax=30.35, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
+    ax3.legend(shadow=True)
     ax3.set_title(ax_dict['ax3_title'], fontsize='15')
     ax3.set_xlabel(ax_dict['ax3_xlabel'])
     ax3.set_ylabel(ax_dict['ax3_ylabel'])
     ax3.grid(which='both', axis='both')
 
 
+# rain
 def make_ax4(ax_dict):
     hfmt = dates.DateFormatter('')
     ax4 = ax_dict['fig'].add_subplot(ax_dict['gs'][5:6, :4])
     pyplot.xticks([], rotation='45')
     ax4.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax4.xaxis.set_major_formatter(hfmt)
-    ax4.bar(ax_dict['ax4_x'], ax_dict['ax4_y'],  color='blue', width=0.6, label='Rain, inches')
+    ax4.bar(ax_dict['ax4_x'], ax_dict['ax4_y'],  color='blue', width=0.99, label='Rain, inches', align='edge')
     ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
-    ax4.legend()
+    ax4.legend(shadow=True)
     ax4.set_title(ax_dict['ax3_title'], fontsize='15')
- #   ax4.set_ylabel("Rain")
     ax4.grid(which='both', axis='both')
 
 
@@ -92,7 +90,7 @@ def one_month():
         e = sys.exc_info()[0]
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-
+        result = ((0, 0, 0, 0, 0, 0, 0),)
     time = []
     temperature = []
     heat_index = []
@@ -134,7 +132,7 @@ def one_month():
         e = sys.exc_info()[0]
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-
+        result_rain = ((0, 0), )
     time_rain = []
     rain = []
     for record in result_rain:
@@ -152,9 +150,10 @@ def one_month():
     except:
         e = sys.exc_info()[0]
         print(f"The error is {e}")
+        result_time = 0
     for record in result_time:
         last_report.append(record[1])
-    print(last_report)
+
     compass = {
         0.0: 'North',
         22.5: 'North',
@@ -250,7 +249,7 @@ def one_month():
     cursor.close()
     db_connection.close()
     gc.collect()
- #   return fig
+
 
 if __name__ == '__main__':
     one_month()
