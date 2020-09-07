@@ -1,23 +1,13 @@
 import gc
-# import matplotlib
-# matplotlib.use('Agg')
 from matplotlib import pyplot
 from matplotlib import dates
-# from matplotlib.ticker import MultipleLocator
-# from matplotlib.ticker import FormatStrFormatter
-# import pylab
 import numpy as np
-from numpy import mean
 import sys
-# from pytz import timezone
-# from httplib2 import http
 from datetime import datetime
 import pymysql as mdb
-# import scipy
-# from scipy import signal
-import math
 import Settings
-
+import logging
+from python_mysql_dbconfig import read_db_config
 
 # temperature
 def make_ax1(ax_dict):
@@ -81,14 +71,12 @@ def make_ax3(ax_dict):
 
 
 def one_week():
-    database_name = Settings.database_name
+    db_config = read_db_config()
+    # make connection to database
+    db_connection = mdb.connect(**db_config)
     database_table = Settings.database_table
-    database_user_name = Settings.database_user_name
-    database_password = Settings.database_password
-    hostname = Settings.hostname
     ax_dict = {}
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
-    db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
     cursor = db_connection.cursor()
     query = 'SELECT Date, Temp, HI, Humid, BP, Wind, Wind_Direction FROM OneWeek WHERE MOD(ID, 5) = 0 ORDER BY Date ASC'  # SELECT every 7th
     try:
@@ -125,18 +113,30 @@ def one_week():
     xlabel = "Date"
     ylabel = "degree F"
 
-    query_report = 'SELECT id, OurWeather_DateTime FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
+    query_report = 'SELECT id, OurWeather_DateTime, Outdoor_Temperature, Outdoor_Humidity, Barometric_Pressure, Current_Wind_Speed, Current_Wind_Direction FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
     last_report = []
+    last_temperature = []
+    last_humidity = []
+    last_pressure = []
+    last_wind_speed = []
+    last_wind_direction = []
     try:
         cursor.execute(query_report)
         result_time = cursor.fetchall()
     except:
         e = sys.exc_info()[0]
         print(f"The error is {e}")
-        result_time = ((0,),)
+        result_time = ((0, 0, 0, 0, 0, 0, 0,),)
     # print(result_time[1])
     for record in result_time:
         last_report.append(record[1])
+        last_temperature.append(record[2]*9/5+32)
+        last_humidity.append(record[3])
+        last_pressure.append(record[4]/3386.4)
+        last_wind_speed.append(record[5]*0.621)
+        last_wind_direction.append(record[6])
+
+
 
     compass = {
         0.0: 'North',
@@ -198,17 +198,17 @@ def one_week():
     make_ax3(ax_dict)
 
     try:
-        pyplot.figtext(0.75, 0.85, f"{time_now}\nTemperature now: {temperature[-1]:.1f} \nHigh: {max(temperature):.1f} \nLow: {min(temperature):.1f} \nHumidity {humid[-1]:.0f}%", fontsize=20, horizontalalignment='left', verticalalignment='top')
+        pyplot.figtext(0.75, 0.85, f"{time_now}\nTemperature now: {last_temperature[0]:.1f} \nHigh: {max(temperature):.1f} \nLow: {min(temperature):.1f} \nHumidity {last_humidity[0]:.0f}%", fontsize=20, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     if temperature[-1] > 80:
         pyplot.figtext(0.75, 0.65, f"The Heat Index is: {heat_index_2[-1]:.1f}", fontsize=15)
     try:
-        pyplot.figtext(0.75, 0.40, f"Wind is {wind[-1]*0.6214:.0f} MPH from the {compass[wind_direct[-1]]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
+        pyplot.figtext(0.75, 0.40, f"Wind is {last_wind_speed[0]*0.6214:.0f} MPH from the {compass[last_wind_direction[0]]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     try:
-        pyplot.figtext(0.75, 0.20, f"Barometric pressure is {baro[-1]:.2f} inches Hg", fontsize=15, horizontalalignment='left', verticalalignment='top')
+        pyplot.figtext(0.75, 0.20, f"Barometric pressure is {last_pressure[0]:.2f} inches Hg", fontsize=15, horizontalalignment='left', verticalalignment='top')
     except IndexError:
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
     pyplot.figtext(0.75, 0.10, f"(Last report time: {last_report[0]})", fontsize=15, horizontalalignment='left', verticalalignment='top')
@@ -228,4 +228,23 @@ def one_week():
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    # set up logging to a file
+    # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', filename='/temp/MQTTApp.log', filemode='w')
+    # define a
+    # create a file handler to log to a file
+    fh = logging.FileHandler('MQTTApp.log')
+    fh.setLevel(logging.DEBUG)
+    # create a handler to write to console
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.WARNING)
+    # create a formatter and add to handlers
+    formatter = logging.Formatter(
+        '%(asctime)s - Level Name: %(levelname)s\n  - Message: %(message)s \n  - Function: %(funcName)s - Line: %(lineno)s - Module: %(module)s')
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    # add the handlers to logger
+    logger.addHandler(fh)
+    logger.addHandler(ch)
     one_week()

@@ -24,36 +24,22 @@ import OneWeek
 import OneMonth
 import TestGraph
 import gc
-# import matplotlib
-# matplotlib.use('Agg')
-from matplotlib import pyplot
-# from matplotlib import dates
-# from matplotlib.ticker import MultipleLocator
-# from matplotlib.ticker import FormatStrFormatter
-# import pylab
-# import numpy as np
-# from numpy import mean
+
+# from matplotlib import pyplot
+
 import sys
-# from pytz import timezone
-# from httplib2 import http
-# from datetime import datetime
-# import scipy
-# from scipy import signal
-# database_name = 'DataLogger'
-database_name = Settings.database_name
+
+from python_mysql_dbconfig import read_db_config
+
+
 database_table = Settings.database_table
-database_user_name = Settings.database_user_name
-database_password = Settings.database_password
-hostname = Settings.hostname
+
 broker_url = Settings.broker_url
 broker_port = Settings.broker_port
 client = mqtt.Client(client_id='myweather2pi', clean_session=False, userdata=None, transport='tcp')
 
 
 def mqtt_app():
-    """
-
-    """
 
     mqtt_client()
     while True:
@@ -64,13 +50,11 @@ def mqtt_app():
         OneMonth.one_month()
 
 
-
-
-
-
 def on_log(client, userdata, level, buff):
     print(level)
     print(buff)
+    return database_password
+    raise dd
 
 
 def on_message(self, userdata, message):
@@ -86,7 +70,7 @@ def on_message(self, userdata, message):
     :param message: the message string from Mosquitto MQTT
     :type message: str
     """
-#    print("in on_message \n")
+    print("in on_message \n")
     logger.info("In on_message")
     full_payload = message.payload.decode()
     index = full_payload.index("MQTT")
@@ -97,7 +81,7 @@ def on_message(self, userdata, message):
 
 
 def mqtt_client():
-#    print("in mqtt_client")
+    print("in mqtt_client")
     logger.info("in mqtt_client")
     client.on_message = on_message
     client.on_subscribe = on_subscribe
@@ -133,17 +117,20 @@ def on_subscribe(self, userdata, mid, granted_qos):
     logger.info(f"subscribed , with mid:{mid} and granted qos: {granted_qos} to topic OurWeather")
 
 
-def write_to_data(list_to_write):
+def write_to_data(list_to_write: list) -> object:
     """
-    Writes data to the database table
 
-    :param list_to_write: a list if data
-    :type list_to_write: list
-    :return:
-    :rtype:
+    Args:
+        list_to_write ():
     """
+    print("in write")
     try:
-        db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
+        db_config = read_db_config()
+        # make connection to database
+        db_connection = mdb.connect(**db_config)
+        if db_connection.open:  # way to check if sql connected
+            print('connected')
+        #   db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
         my_cursor = db_connection.cursor()
     except:
         print("fail to connect to database")
@@ -177,8 +164,7 @@ if __name__ == "__main__":
     logger = logging.getLogger('ml')
     logger.setLevel(logging.DEBUG)
     # set up logging to a file
-   # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', filename='/temp/MQTTApp.log', filemode='w')
-    # define a
+    # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', filename='/temp/MQTTApp.log', filemode='w')
     # create a file handler to log to a file
     fh = logging.FileHandler('MQTTApp.log')
     fh.setLevel(logging.DEBUG)
@@ -192,4 +178,5 @@ if __name__ == "__main__":
     # add the handlers to logger
     logger.addHandler(fh)
     logger.addHandler(ch)
+
     mqtt_app()

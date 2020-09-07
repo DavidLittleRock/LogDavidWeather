@@ -4,13 +4,11 @@ from typing import Dict
 from matplotlib import pyplot
 from matplotlib import dates
 import numpy as np
-from numpy import mean
 import sys
 from datetime import datetime
 import pymysql as mdb
-import math
-import Settings
 import logging
+from python_mysql_dbconfig import read_db_config
 
 ax_dict: Dict[Any, Any] = {}
 logger = logging.getLogger('ml')
@@ -27,8 +25,10 @@ def make_ax1(ax_dict):
     pyplot.xticks(rotation='45')
     ax.plot(ax_dict['ax1_x1'], ax_dict['ax1_y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['ax1_legend1'])
     if ax_dict['ax1_y2'] is not None:
+        logger.debug(f"temp = {ax_dict['ax1_y1'][-1]}")
         if ax_dict['ax1_y1'][-1] >= 80:
             ax.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2'])
+            logger.debug(f"legend {ax_dict['ax1_legend2']}")
         else:
             ax.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2a'])
     if ax_dict['ax1_y3'] is not None:
@@ -129,17 +129,19 @@ RAIN
 
 
 def one_day():
-    database_name = Settings.database_name
-    database_table = Settings.database_table
-    database_user_name = Settings.database_user_name
-    database_password = Settings.database_password
-    hostname = Settings.hostname
+
+    db_config = read_db_config()
+    # make connection to database
+    db_connection = mdb.connect(**db_config)
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
-    db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
+
+    if db_connection.open:   # way to check if sql connected
+        logger.debug('connected to database')
+
     cursor = db_connection.cursor()
     query = 'SELECT Date, Temp, HI, Humid, BP, Wind, Wind_Direction, Rain_Change, Gust FROM OneDay ORDER BY Date ASC'  # this rain will be 48 Hours, not usefull
     try:
-        cursor.execute(query)
+        cursor.execute(query)  # execute a query to select all rows
         result = cursor.fetchall()
     except:
         e = sys.exc_info()[0]
@@ -281,7 +283,7 @@ def one_day():
         'ax1_x2': fds_2,
         'ax1_y2': heat_index_2,
         'ax1_legend2': hx,
-        'ax1_legend2a': f"Heat Index, \u2109",
+        'ax1_legend2a': f"Heat Index, --\u2109",
 
         'ax1_x3': None,
         'ax1_y3': humid,
@@ -320,21 +322,14 @@ def one_day():
     make_ax2(ax_dict)
     make_ax3(ax_dict)
     make_ax4(ax_dict)
-
     pyplot.figtext(0.75, 0.95, f"{time_now}\n", fontsize=20, horizontalalignment='left', verticalalignment='top')
-
     pyplot.figtext(0.75, 0.10, f"(Last report time: {time[-1]})", fontsize=15, horizontalalignment='left', verticalalignment='top')
-
     pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
     mng = pyplot.get_current_fig_manager()
-
     mng.full_screen_toggle()  # full screen no outline
-
     pyplot.show(block=False)
     pyplot.pause(60)
-
     pyplot.close(fig="My Figure")
-
     cursor.close()
     db_connection.close()
     gc.collect()
