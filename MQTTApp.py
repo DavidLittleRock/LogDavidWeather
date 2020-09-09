@@ -8,35 +8,19 @@ import time
 import logging
 import Settings
 
-import TempHeatIndexSevenDay
-import TempHeatIndexSevenDayC
-import WindSevenDayB
-import TemperatureMaxMinB
-import BP30B
-import BigGraph
-import Rain
-import WindSevenDay
-import GustSevenDayB
-import TemperatureMaxMin
-import BP30
 import OneDay
 import OneWeek
 import OneMonth
 import TestGraph
 import gc
 
-# from matplotlib import pyplot
-
 import sys
-
 from python_mysql_dbconfig import read_db_config
 
 
 database_table = Settings.database_table
 
-broker_url = Settings.broker_url
-broker_port = Settings.broker_port
-client = mqtt.Client(client_id='myweather2pi', clean_session=False, userdata=None, transport='tcp')
+
 
 
 def mqtt_app():
@@ -44,10 +28,10 @@ def mqtt_app():
     mqtt_client()
     while True:
         time.sleep(0.1)
-#        OneDay.one_day()
         OneWeek.one_week()
-        TestGraph.one_day()
+ #       TestGraph.one_day()
         OneMonth.one_month()
+        OneDay.one_day()
 
 
 def on_log(client, userdata, level, buff):
@@ -70,24 +54,27 @@ def on_message(self, userdata, message):
     :param message: the message string from Mosquitto MQTT
     :type message: str
     """
-    print("in on_message \n")
     logger.info("In on_message")
     full_payload = message.payload.decode()
     index = full_payload.index("MQTT")
     data_string = full_payload[index + 18:-2]
     data_list = data_string.split(',')  # split the string to a list
-#    print(data_list)
     write_to_data(data_list)
 
 
 def mqtt_client():
-    print("in mqtt_client")
     logger.info("in mqtt_client")
+
+    broker_url = Settings.broker_url
+    broker_port = Settings.broker_port
+    client = mqtt.Client(client_id='myweather2pi', clean_session=False, userdata=None, transport='tcp')
+
+
+
     client.on_message = on_message
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
     client.on_connect = on_connect
-
     try:
         client.connect(broker_url, broker_port)
     except:
@@ -95,10 +82,8 @@ def mqtt_client():
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
         logger.exception(str(e))
-
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
-
     client.loop_start()
 
 
@@ -123,14 +108,10 @@ def write_to_data(list_to_write: list) -> object:
     Args:
         list_to_write ():
     """
-    print("in write")
     try:
         db_config = read_db_config()
         # make connection to database
         db_connection = mdb.connect(**db_config)
-        if db_connection.open:  # way to check if sql connected
-            print('connected')
-        #   db_connection = mdb.connect(hostname, database_user_name, database_password, database_name)
         my_cursor = db_connection.cursor()
     except:
         print("fail to connect to database")
@@ -170,7 +151,7 @@ if __name__ == "__main__":
     fh.setLevel(logging.DEBUG)
     # create a handler to write to console
     ch = logging.StreamHandler()
-    ch.setLevel(logging.WARNING)
+    ch.setLevel(logging.INFO)
     # create a formatter and add to handlers
     formatter = logging.Formatter('%(asctime)s - Level Name: %(levelname)s\n  - Message: %(message)s \n  - Function: %(funcName)s - Line: %(lineno)s - Module: %(module)s')
     fh.setFormatter(formatter)

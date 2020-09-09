@@ -9,24 +9,25 @@ import Settings
 import logging
 from python_mysql_dbconfig import read_db_config
 
+
 # temperature
 def make_ax1(ax_dict):
     gs = ax_dict['fig'].add_gridspec(5, 5)
     hfmt = dates.DateFormatter('')
-    ax1 = ax_dict['fig'].add_subplot(gs[:3, :4])
+    ax1 = ax_dict['fig'].add_subplot(gs[:3, :])
     ax1.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax1.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
-    ax1.plot(ax_dict['ax1_x1'], ax_dict['ax1_y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['ax1_legend1'])
-    if ax_dict['ax1_y2'] is not None:
-        ax1.plot(ax_dict['ax1_x2'], ax_dict['ax1_y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['ax1_legend2'])
-    if ax_dict['ax1_y3'] is not None:
-        ax1.plot(ax_dict['ax1_x1'], ax_dict['ax1_y3'], marker='.', linestyle='', color='orange', label=ax_dict['ax1_legend3'])
+    ax1.plot(ax_dict['x1'], ax_dict['y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['y1_legend'])
+    if ax_dict['y2'] is not None:
+        ax1.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='', color='red', markersize=2.0, label=ax_dict['y2_legend'])
+    if ax_dict['y3'] is not None:
+        ax1.plot(ax_dict['x3'], ax_dict['y3'], marker='.', linestyle='', color='orange', label=ax_dict['y3_legend'])
     ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceeding 7 days
-    ax1.legend(shadow=True)
-    ax1.set_title(ax_dict['ax1_title'], fontsize='15')
-    ax1.set_xlabel(ax_dict['ax1_xlabel'])
-    ax1.set_ylabel(ax_dict['ax1_ylabel'])
+    ax1.legend(shadow=True, ncol=1, fontsize=15)
+    ax1.set_title(ax_dict['title'], fontsize='15')
+    ax1.set_xlabel(ax_dict['x_label'])
+    ax1.set_ylabel(ax_dict['y_label'])
     ax1.grid(which='both', axis='both')
 
 
@@ -34,17 +35,17 @@ def make_ax1(ax_dict):
 def make_ax2(ax_dict):
     gs = ax_dict['fig'].add_gridspec(5, 5)
     hfmt = dates.DateFormatter('')
-    ax2 = ax_dict['fig'].add_subplot(gs[3:4, :4])
+    ax2 = ax_dict['fig'].add_subplot(gs[3:4, :])
     pyplot.xticks(rotation='45')
     ax2.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax2.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
-    ax2.plot(ax_dict['ax1_x1'], ax_dict['ax2_y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5, label=ax_dict['ax2_legend'])
+    ax2.plot(ax_dict['x'], ax_dict['y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5, label=ax_dict['y_legend'])
     ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))
-    ax2.legend(shadow=True)
-    ax2.set_title(ax_dict['ax2_title'], fontsize='15')
-    ax2.set_xlabel(ax_dict['ax2_xlabel'])
-    ax2.set_ylabel(ax_dict['ax2_ylabel'])
+    ax2.legend(shadow=True, ncol=1, fontsize=15)
+    ax2.set_title(ax_dict['title'], fontsize='15')
+    ax2.set_xlabel(ax_dict['x_label'])
+    ax2.set_ylabel(ax_dict['y_label'])
     ax2.grid(which='both', axis='both')
 
 
@@ -57,16 +58,16 @@ def make_ax3(ax_dict):
     """
     gs = ax_dict['fig'].add_gridspec(5, 5)
     hfmt = dates.DateFormatter('%m/%d')
-    ax3 = ax_dict['fig'].add_subplot(gs[4:, :4])
+    ax3 = ax_dict['fig'].add_subplot(gs[4:, :])
     pyplot.xticks([], rotation='45')
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax3.xaxis.set_major_formatter(hfmt)
-    ax3.plot(ax_dict['ax1_x1'], ax_dict['ax3_y'], marker='o', linestyle='-', color='green', markersize=1.5, linewidth=1, label=ax_dict['ax3_legend'])
+    ax3.plot(ax_dict['x'], ax_dict['y'], marker='o', linestyle='-', color='green', markersize=1.5, linewidth=1, label=ax_dict['y_legend'])
     ax3.axis(ymin=29.50, ymax=30.35, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))
-    ax3.legend(shadow=True)
-    ax3.set_title(ax_dict['ax3_title'], fontsize='15')
-    ax3.set_xlabel(ax_dict['ax3_xlabel'])
-    ax3.set_ylabel(ax_dict['ax3_ylabel'])
+    ax3.legend(shadow=True, ncol=1, fontsize=15)
+    ax3.set_title(ax_dict['title'], fontsize='15')
+    ax3.set_xlabel(ax_dict['x_label'])
+    ax3.set_ylabel(ax_dict['y_label'])
     ax3.grid(which='both', axis='both')
 
 
@@ -110,8 +111,7 @@ def one_week():
     temperature_2 = np.array([temperature])
     fds_2 = fds_2[temperature_2 > 80]  # filter out if temperature is less than 80
     heat_index_2 = heat_index_2[temperature_2 > 80]
-    xlabel = "Date"
-    ylabel = "degree F"
+
 
     query_report = 'SELECT id, OurWeather_DateTime, Outdoor_Temperature, Outdoor_Humidity, Barometric_Pressure, Current_Wind_Speed, Current_Wind_Direction FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
     last_report = []
@@ -137,7 +137,6 @@ def one_week():
         last_wind_direction.append(record[6])
 
 
-
     compass = {
         0.0: 'North',
         22.5: 'North',
@@ -158,73 +157,81 @@ def one_week():
         360: 'North',
     }
 
-    fig = pyplot.figure(num="My Figure", facecolor='green')
+    if temperature[-1] >= 80:
+        try:
+            hx = f"Heat Index, {heat_index_2[-1]:.1f}\u2109"
+        except:
+            e = sys.exc_info()[0]
+            print(f"the error is {e}")
+            print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
+            hx = f"Heat Index, ---\u2109"
+            logger.exception(str(e))
+    else:
+        hx = f"Heat Index, ---\u2109"
 
-    ax_dict = {
+    fig = make_fig(time_now, last_report[-1])  # scope of fig is one_day()
+
+    wind_dict = {
+        'y': wind,
+        'x': fds,
         'fig': fig,
-
-        'ax1_title': "Temperature",
-        'ax1_x1': fds,
-        'ax1_y1': temperature,
-        'ax1_legend1': "Temperature, \u2109",
-        'ax1_x2': fds_2,
-        'ax1_y2': heat_index_2,
-        'ax1_legend2': "Heat Index, \u2109",
-        'ax1_x3': None,
-        'ax1_y3': humid,
-        'ax1_legend3': "% Humidity",
-        'ax1_xlabel': None,
-        'ax1_ylabel': None,
-
-        'ax2_title': "Wind Speed",
-        'ax2_x': None,
-        'ax2_y': wind,
-        'ax2_legend': "Wind, MPH",
-        'ax2_xlabel': None,
-        'ax2_ylabel': None,
-
-        'ax3_title': "Barometric Pressure",
-        'ax3_x': None,
-        'ax3_y': baro,
-        'ax3_legend': "Barometric Pressure, inch Hg",
-        'ax3_xlabel': xlabel,
-        'ax3_ylabel': None,
-
-
+        'title': None,
+        'x_label': None,
+        'y_label': None,
+        'y_legend': f"Wind is {last_wind_speed[-1]:.0f} MPH \nfrom the {compass[last_wind_direction[-1]]}",
     }
 
-    make_ax1(ax_dict)
-    make_ax2(ax_dict)
-    make_ax3(ax_dict)
+    bp_dict = {
+        'y': baro,
+        'x': fds,
+        'fig': fig,
+        'title': None,
+        'x_label': None,
+        'y_label': None,
+        'y_legend': f"Barometric Pressure {last_pressure[-1]:.2f} inch Hg",
+    }
 
-    try:
-        pyplot.figtext(0.75, 0.85, f"{time_now}\nTemperature now: {last_temperature[0]:.1f} \nHigh: {max(temperature):.1f} \nLow: {min(temperature):.1f} \nHumidity {last_humidity[0]:.0f}%", fontsize=20, horizontalalignment='left', verticalalignment='top')
-    except IndexError:
-        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-    if temperature[-1] > 80:
-        pyplot.figtext(0.75, 0.65, f"The Heat Index is: {heat_index_2[-1]:.1f}", fontsize=15)
-    try:
-        pyplot.figtext(0.75, 0.40, f"Wind is {last_wind_speed[0]*0.6214:.0f} MPH from the {compass[last_wind_direction[0]]}", fontsize=15, horizontalalignment='left', verticalalignment='top')
-    except IndexError:
-        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-    try:
-        pyplot.figtext(0.75, 0.20, f"Barometric pressure is {last_pressure[0]:.2f} inches Hg", fontsize=15, horizontalalignment='left', verticalalignment='top')
-    except IndexError:
-        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-    pyplot.figtext(0.75, 0.10, f"(Last report time: {last_report[0]})", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    temp_dict = {
+        'y1': temperature,
+        'x1': fds,
+        'y2': heat_index_2,
+        'x2': fds_2,
+        'y3': humid,
+        'x3': fds,
+        'fig': fig,
+        'title': None,
+        'x_label': None,
+        'y_label': None,
+        'y1_legend': f"Temperature, {last_temperature[-1]:.1f} \u2109",
+        'y2_legend': hx,
+        'y3_legend': f"Humidity {last_humidity[-1]:.0f}%",
+    }
+
+    make_ax1(temp_dict)
+    make_ax2(wind_dict)
+    make_ax3(bp_dict)
+
 
     pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
-    mng = pyplot.get_current_fig_manager()
+    show_fig(fig)
 
-    mng.full_screen_toggle()  # full screen no outline
-
-    pyplot.show(block=False)
-    pyplot.pause(60)
-    pyplot.close(fig="My Figure")
-
-    cursor.close()
     db_connection.close()
     gc.collect()
+
+
+def show_fig(fig):
+    mng = pyplot.get_current_fig_manager()
+    mng.full_screen_toggle()  # full screen no outline
+    pyplot.show(block=False)
+    pyplot.pause(60)
+    pyplot.close(fig=103)
+
+
+def make_fig(time_now, lrtime):
+    figure = pyplot.figure(num=103, facecolor='green')  # scope of figure is make_fig()
+    pyplot.figtext(0.75, 0.95, f"{time_now}\n", fontsize=20, horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.75, 0.05, f"(Last report time: {lrtime})", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    return figure
 
 
 if __name__ == '__main__':
