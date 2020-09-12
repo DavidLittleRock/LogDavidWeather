@@ -20,7 +20,7 @@ def get_temperature_data(fig):
     #    ax_dict = {}
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     cursor = db_connection.cursor()
-    query = 'SELECT Date, Temp, HI, Humid FROM OneWeek WHERE MOD(ID, 5) = 0 ORDER BY Date ASC'  # SELECT every 10th
+    query = 'SELECT Date, Temp FROM OneMonth WHERE MOD(ID, 7) = 0 ORDER BY Date ASC'  # SELECT every 10th
     try:
         cursor.execute(query)
         result = cursor.fetchall()
@@ -28,7 +28,7 @@ def get_temperature_data(fig):
         e = sys.exc_info()[0]
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-        result = ((0, 0, 0, 0,),)
+        result = ((0, 0,),)
 
     query_report = 'SELECT id, OurWeather_DateTime, Outdoor_Temperature FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
 
@@ -45,22 +45,12 @@ def get_temperature_data(fig):
 
     time = []
     temperature = []
-    heat_index = []
-    humid = []
 
     for record in result:
         time.append(record[0])
-        temperature.append(record[1])
-        heat_index.append(record[2])
-        humid.append(record[3])
+        temperature.append(record[1])  # ax_x1
 
-    fds = [dates.date2num(d) for d in time]
-    fds_2 = np.array([fds])
-    heat_index_2 = np.array([heat_index])
-    temperature_2 = np.array([temperature])
-    fds_2 = fds_2[temperature_2 > 80]  # filter out if temperature is less than 80
-    heat_index_2 = heat_index_2[temperature_2 > 80]
-    logger.debug(f"heat_index_2: {heat_index_2}")
+    fds = [dates.date2num(d) for d in time]  # ax_y
 
     last_report = []
     last_temperature = []
@@ -69,35 +59,22 @@ def get_temperature_data(fig):
         last_report.append(record[1])
         last_temperature.append(record[2] * 9 / 5 + 32)
 
-    if temperature[-1] >= 80:
-        try:
-            hx = f"Heat Index, {heat_index_2[-1]:.1f}\u2109"
-        except:
-            e = sys.exc_info()[0]
-            print(f"the error is {e}")
-            print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-            hx = f"Heat Index, ---\u2109"
-            logger.exception(str(e))
-    else:
-        hx = f"Heat Index, ---\u2109"
-
     temp_dict = {
         'y1': temperature,
         'x1': fds,
-        'y2': heat_index_2,
-        'x2': fds_2,
-        'y3': humid,
-        'x3': fds,
+        'y2': None,
+        'x2': None,
+        'y3': None,
+        'x3': None,
         'fig': fig,
         'title': None,
         'x_label': None,
         'y_label': None,
         'y1_legend': f"Temperature, {last_temperature[-1]:.1f} \u2109",
-        'y2_legend': hx,
-        'y3_legend': f"Humidity {humid[-1]:.0f}%",
+        'y2_legend': None,
+        'y3_legend': None,
         'last_report': last_report[-1],
     }
-
 
     gc.collect()
 
@@ -111,7 +88,7 @@ def get_wind(fig):
     database_table = Settings.database_table
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     cursor = db_connection.cursor()
-    query = 'SELECT Date, Wind, Wind_Direction FROM OneWeek WHERE MOD(ID, 5) = 0 ORDER BY Date ASC'  # SELECT every 10th
+    query = 'SELECT Date, Wind, Wind_Direction FROM OneMonth WHERE MOD(ID, 7) = 0 ORDER BY Date ASC'  # SELECT every 10th
     try:
         cursor.execute(query)
         result = cursor.fetchall()
@@ -202,7 +179,7 @@ def get_bp_data(fig):
     #    ax_dict = {}
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     cursor = db_connection.cursor()
-    query = 'SELECT Date, BP FROM OneWeek WHERE MOD(ID, 5) = 0 ORDER BY Date ASC'  # SELECT every 10th
+    query = 'SELECT Date, BP FROM OneMonth WHERE MOD(ID, 7) = 0 ORDER BY Date ASC'  # SELECT every 10th
     try:
         cursor.execute(query)
         result = cursor.fetchall()
@@ -263,7 +240,7 @@ def get_rain(fig):
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     cursor = db_connection.cursor()
 
-    query = 'SELECT Date, SUM(Rain_Change) FROM OneWeek GROUP BY Day(Date) ORDER BY Date ASC'
+    query = 'SELECT Date, SUM(Rain_Change) FROM OneMonth GROUP BY Day(Date) ORDER BY Date ASC'
     try:
         cursor.execute(query)
         result_rain = cursor.fetchall()
@@ -279,11 +256,9 @@ def get_rain(fig):
     for record in result_rain:
         time_rain.append(record[0])
         rain.append(record[1] / 22.5)
-    #    x6 = time_rain
-    #    y6 = rain
+#    x6 = time_rain
+#    y6 = rain
     rain_total = sum(rain)
-    print(rain)
-    print(rain_total)
 
     rain_dict = {
         'y1': rain,
@@ -315,20 +290,15 @@ def make_ax1(ax_dict):
     ax1.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax1.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
-    ax1.plot(ax_dict['x1'], ax_dict['y1'], marker='o', linestyle='-', color='blue', markersize=2.0,
-             label=ax_dict['y1_legend'])
-    if ax_dict['y2'] is not None:
-        ax1.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='', color='red', markersize=2.0,
-                 label=ax_dict['y2_legend'])
-    if ax_dict['y3'] is not None:
-        ax1.plot(ax_dict['x3'], ax_dict['y3'], marker='.', linestyle='', color='orange', label=ax_dict['y3_legend'])
-    ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now())) - 7,
-             xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceeding 7 days
+    ax1.plot(ax_dict['x1'], ax_dict['y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['y1_legend'])
+    ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceeding 30 days
     ax1.legend(shadow=True, ncol=1, fontsize=15)
     ax1.set_title(ax_dict['title'], fontsize='15')
     ax1.set_xlabel(ax_dict['x_label'])
     ax1.set_ylabel(ax_dict['y_label'])
     ax1.grid(which='both', axis='both')
+    ax1.set_facecolor('#edf7f7')
+    pyplot.figtext(0.75, 0.05, f"(Last report time: {ax_dict['last_report']})", fontsize=15, horizontalalignment='left', verticalalignment='top')
 
 
 # wind
@@ -341,11 +311,8 @@ def make_ax2(ax_dict):  # wind
     ax2.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax2.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
-    ax2.plot(ax_dict['x'], ax_dict['y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5,
-             label=ax_dict['y_legend'])
-    ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 7, xmax=(dates.date2num(datetime.now())))
-#    ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now()))-7, xmax=(dates.date2num(datetime.now())))
-
+    ax2.plot(ax_dict['x'], ax_dict['y'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5, label=ax_dict['y_legend'])
+    ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
     ax2.legend(shadow=True, ncol=1, fontsize=15)
     ax2.set_title(ax_dict['title'], fontsize='15')
     ax2.set_xlabel(ax_dict['x_label'])
@@ -362,9 +329,8 @@ def make_ax3(ax_dict):  # barometric pressure
     pyplot.xticks([], rotation='45')
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax3.xaxis.set_major_formatter(hfmt)
-    ax3.plot(ax_dict['x'], ax_dict['y'], marker='o', linestyle='-', color='green', markersize=1, linewidth=0.5,
-             label=ax_dict['y_legend'])
-    ax3.axis(ymin=29.50, ymax=30.35, xmin=(dates.date2num(datetime.now())) - 7, xmax=(dates.date2num(datetime.now())))
+    ax3.plot(ax_dict['x'], ax_dict['y'], marker='o', linestyle='-', color='green', markersize=1, linewidth=0.5, label=ax_dict['y_legend'])
+    ax3.axis(ymin=29.50, ymax=30.35, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
     ax3.legend(shadow=True, ncol=1, fontsize=15)
     ax3.set_title(ax_dict['title'], fontsize='15')
     ax3.set_xlabel(ax_dict['x_label'])
@@ -384,8 +350,9 @@ def make_ax4(ax_dict):
 
     ax_dict['y1'] = [0 for u in ax_dict['y1'] if u <= 0.01]
 
-    ax4.bar(ax_dict['x1'], ax_dict['y1'], color='blue', width=0.99, label=ax_dict['y1_legend'], align='edge')
-    ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now())) - 7, xmax=(dates.date2num(datetime.now())))
+
+    ax4.bar(ax_dict['x1'], ax_dict['y1'],  color='blue', width=0.99, label=ax_dict['y1_legend'], align='edge')
+    ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
     ax4.legend(shadow=True, ncol=1, fontsize=15)
     ax4.set_title(ax_dict['title'], fontsize='15')
     ax4.grid(which='both', axis='both')
@@ -394,7 +361,8 @@ def make_ax4(ax_dict):
 
 def one_month():
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
-    #    time = datetime.strftime(datetime.now(), '%H:%M, %A')
+#    time = datetime.strftime(datetime.now(), '%H:%M, %A')
+
 
     """
     db_config = read_db_config()
@@ -484,8 +452,8 @@ def one_month():
         last_pressure.append(record[4] / 3386.4)
         last_wind_speed.append(record[5] * 0.621)
         last_wind_direction.append(record[6])
-
-
+        
+        
 
     compass = {
         0.0: 'North',
@@ -506,7 +474,7 @@ def one_month():
         337.5: 'North',
         360: 'North',
     }"""
-    #    fig = make_fig(time_now, time[-1])  # scope of fig is one_day()
+#    fig = make_fig(time_now, time[-1])  # scope of fig is one_day()
     fig = make_fig(time_now)  # scope of fig is one_day()
 
     temp_dict = get_temperature_data(fig)
@@ -521,13 +489,13 @@ def one_month():
     make_ax2(wind_dict)
     make_ax3(bp_dict)
     make_ax4(rain_dict)
+    pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
 
     show_fig(fig)
 
-    pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
 
-    #    cursor.close()
-    #    db_connection.close()
+#    cursor.close()
+#    db_connection.close()
     gc.collect()
 
 
@@ -541,9 +509,8 @@ def show_fig(fig):
 
 def make_fig(time_now):
     figure = pyplot.figure(num="My Figure", facecolor='green')  # scope of figure is make_fig()
-    pyplot.figtext(0.75, 0.95, f"7 Days --  {time_now}\n", fontsize=20, horizontalalignment='left',
-                   verticalalignment='top')
-    #    pyplot.figtext(0.75, 0.05, f"(Last report time: {lrtime})", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.75, 0.95, f"30 Days --  {time_now}\n", fontsize=20, horizontalalignment='left', verticalalignment='top')
+#    pyplot.figtext(0.75, 0.05, f"(Last report time: {lrtime})", fontsize=15, horizontalalignment='left', verticalalignment='top')
     return figure
 
 

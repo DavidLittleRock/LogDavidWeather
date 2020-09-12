@@ -282,8 +282,8 @@ def get_rain(fig):
     #    x6 = time_rain
     #    y6 = rain
     rain_total = sum(rain)
-    print(rain)
-    print(rain_total)
+#    print(rain)
+#    print(rain_total)
 
     rain_dict = {
         'y1': rain,
@@ -357,7 +357,7 @@ def make_ax2(ax_dict):  # wind
 # barometric pressure
 def make_ax3(ax_dict):  # barometric pressure
     gs = ax_dict['fig'].add_gridspec(10, 5)
-    hfmt = dates.DateFormatter('%m/\n%d')
+    hfmt = dates.DateFormatter('%m/%d')
     ax3 = ax_dict['fig'].add_subplot(gs[8:, :])
     pyplot.xticks([], rotation='45')
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
@@ -392,7 +392,7 @@ def make_ax4(ax_dict):
     ax4.set_facecolor('#edf7f7')
 
 
-def one_month():
+def one_week():
     time_now = datetime.strftime(datetime.now(), '%H:%M, %A')
     #    time = datetime.strftime(datetime.now(), '%H:%M, %A')
 
@@ -521,10 +521,10 @@ def one_month():
     make_ax2(wind_dict)
     make_ax3(bp_dict)
     make_ax4(rain_dict)
+    pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
 
     show_fig(fig)
 
-    pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph.png')
 
     #    cursor.close()
     #    db_connection.close()

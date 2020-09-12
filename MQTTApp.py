@@ -11,6 +11,9 @@ import Settings
 import OneDay
 import OneWeek
 import OneMonth
+import OneDayA
+import OneWeekA
+import OneMonthA
 import TestGraph
 import gc
 
@@ -32,7 +35,10 @@ def mqtt_app():
  #       TestGraph.one_day()
         OneMonth.one_month()
         OneDay.one_day()
-
+        OneWeekA.one_week()
+ #       TestGraph.one_day()
+        OneMonthA.one_month()
+        OneDayA.one_day()
 
 def on_log(client, userdata, level, buff):
     print(level)
