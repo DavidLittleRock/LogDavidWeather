@@ -483,7 +483,7 @@ RAIN
     ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
     ax4.grid(which='major', color='#666666', linewidth=1.2)
     ax4.legend(loc='upper left', bbox_to_anchor=(1.0, 1.6), shadow=True, ncol=1, fontsize=15)
-#    ax4.set_facecolor('#edf7f7')
+    ax4.set_facecolor('#edf7f7')
 
 
 def one_day():

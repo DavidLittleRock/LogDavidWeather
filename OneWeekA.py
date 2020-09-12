@@ -329,6 +329,8 @@ def make_ax1(ax_dict):
     ax1.set_xlabel(ax_dict['x_label'])
     ax1.set_ylabel(ax_dict['y_label'])
     ax1.grid(which='both', axis='both')
+    ax1.set_facecolor('#edf7f7')
+    pyplot.figtext(0.75, 0.10, f"(Last report time: {ax_dict['last_report']})", fontsize=15, horizontalalignment='left', verticalalignment='top')
 
 
 # wind
@@ -381,8 +383,17 @@ def make_ax4(ax_dict):
     pyplot.xticks([], rotation='45')
     ax4.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax4.xaxis.set_major_formatter(hfmt)
+#    print(ax_dict['y1'])
+    i = 0
+    for u in ax_dict['y1']:
+        if u < 0.01:
+            ax_dict['y1'][i] = 0.0
+            i += 1
+        else:
+            i += 1
+            continue
 
-    ax_dict['y1'] = [0 for u in ax_dict['y1'] if u <= 0.01]
+#    print(ax_dict['y1'])
 
     ax4.bar(ax_dict['x1'], ax_dict['y1'], color='blue', width=0.99, label=ax_dict['y1_legend'], align='edge')
     ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now())) - 7, xmax=(dates.date2num(datetime.now())))
@@ -567,4 +578,4 @@ if __name__ == '__main__':
     # add the handlers to logger
     logger.addHandler(fh)
     logger.addHandler(ch)
-    one_month()
+    one_week()

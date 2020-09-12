@@ -347,10 +347,17 @@ def make_ax4(ax_dict):
     pyplot.xticks([], rotation='45')
     ax4.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax4.xaxis.set_major_formatter(hfmt)
+#    print(ax_dict['y1'])
+    i = 0
+    for u in ax_dict['y1']:
+        if u < 0.01:
+            ax_dict['y1'][i] = 0.0
+            i += 1
+        else:
+            i += 1
+            continue
 
-    ax_dict['y1'] = [0 for u in ax_dict['y1'] if u <= 0.01]
-
-
+#    print(ax_dict['y1'])
     ax4.bar(ax_dict['x1'], ax_dict['y1'],  color='blue', width=0.99, label=ax_dict['y1_legend'], align='edge')
     ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now()))-30, xmax=(dates.date2num(datetime.now())))
     ax4.legend(shadow=True, ncol=1, fontsize=15)
