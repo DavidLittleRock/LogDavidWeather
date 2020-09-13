@@ -38,7 +38,7 @@ def mqtt_app():
         OneWeekA.one_week()
  #       TestGraph.one_day()
         OneMonthA.one_month()
- #       OneDayA.one_day()
+        OneDayA.one_day()
 
 def on_log(client, userdata, level, buff):
     print(level)
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     fh.setLevel(logging.DEBUG)
     # create a handler to write to console
     ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
+    ch.setLevel(logging.WARNING)
     # create a formatter and add to handlers
     formatter = logging.Formatter('%(asctime)s - Level Name: %(levelname)s\n  - Message: %(message)s \n  - Function: %(funcName)s - Line: %(lineno)s - Module: %(module)s')
     fh.setFormatter(formatter)

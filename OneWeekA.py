@@ -323,14 +323,14 @@ def make_ax1(ax_dict):
     if ax_dict['y3'] is not None:
         ax1.plot(ax_dict['x3'], ax_dict['y3'], marker='.', linestyle='', color='orange', label=ax_dict['y3_legend'])
     ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now())) - 7,
-             xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceeding 7 days
+             xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceding 7 days
     ax1.legend(shadow=True, ncol=1, fontsize=15)
     ax1.set_title(ax_dict['title'], fontsize='15')
     ax1.set_xlabel(ax_dict['x_label'])
     ax1.set_ylabel(ax_dict['y_label'])
     ax1.grid(which='both', axis='both')
     ax1.set_facecolor('#edf7f7')
-    pyplot.figtext(0.75, 0.05, f"(Last report time: {ax_dict['last_report']})", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.75, 0.05, f"(Last report time: {ax_dict['last_report']})", fontsize=15, verticalalignment='top', horizontalalignment='left')
 
 
 # wind

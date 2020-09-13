@@ -267,6 +267,7 @@ def get_rain(fig):
     cursor = db_connection.cursor()
 
     query = 'SELECT Date, Rain_Change FROM OneDay ORDER BY Date ASC'  # this rain will be 48 Hours, not usefull
+    result = ((0, 0,),)
 
     try:
         cursor.execute(query)  # execute a query to select all rows
@@ -278,7 +279,6 @@ def get_rain(fig):
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
         logger.exception(str(e))
-        result = ((0, 0,),)
     time = []
     rain_change = []
     record: tuple
@@ -290,6 +290,7 @@ def get_rain(fig):
 
 
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY)) ORDER BY Date ASC'  # Yesterday 00:00 to 00:00
+    result_rain_yesterday = ((0, 0,),)
 
     try:
         cursor.execute(query)
@@ -299,7 +300,6 @@ def get_rain(fig):
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
         logger.exception(str(e))
-        result_rain_yesterday = ((0, 0,),)
     time_rain_yesterday = []
     rain_change_yesterday = []
     rain_total_yesterday = []
@@ -310,6 +310,7 @@ def get_rain(fig):
     fds_rain_yesterday = [dates.date2num(d) for d in time_rain_yesterday]  # ax_y
 
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'  # Today start 00:00 to now
+    result_rain_today = ((0, 0,),)
 
     try:
         cursor.execute(query)
@@ -319,7 +320,6 @@ def get_rain(fig):
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
         logger.exception(str(e))
-        result_rain_today = ((0, 0,),)
     time_rain_today = []
     rain_change_today = []
     rain_total_today = []
@@ -330,6 +330,7 @@ def get_rain(fig):
     fds_rain_today = [dates.date2num(d) for d in time_rain_today]  # ax_y
 
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR) ORDER BY Date ASC'  # 24 hr rain
+    result_rain_24 = ((0, 0,),)
 
     try:
         cursor.execute(query)
@@ -339,7 +340,6 @@ def get_rain(fig):
         print(f"the error is {e}")
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
         logger.exception(str(e))
-        result_rain_24 = ((0, 0,),)
     time_rain_24 = []
     rain_change_24 = []
     rain_total_24 = []
