@@ -330,7 +330,7 @@ def make_ax1(ax_dict):
     ax1.set_ylabel(ax_dict['y_label'])
     ax1.grid(which='both', axis='both')
     ax1.set_facecolor('#edf7f7')
-    pyplot.figtext(0.75, 0.10, f"(Last report time: {ax_dict['last_report']})", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.75, 0.05, f"(Last report time: {ax_dict['last_report']})", fontsize=15, horizontalalignment='left', verticalalignment='top')
 
 
 # wind
