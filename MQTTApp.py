@@ -35,10 +35,10 @@ def mqtt_app():
  #       TestGraph.one_day()
 #        OneMonth.one_month()
  #       OneDay.one_day()
-        OneWeekA.one_week()
+   #     OneWeekA.one_week()
  #       TestGraph.one_day()
-        OneMonthA.one_month()
-        OneDayA.one_day()
+   #     OneMonthA.one_month()
+ #       OneDayA.one_day()
 
 def on_log(client, userdata, level, buff):
     print(level)
