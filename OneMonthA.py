@@ -8,8 +8,11 @@ import pymysql as mdb
 import Settings
 from python_mysql_dbconfig import read_db_config
 import logging
+from WeatherAppLog import get_a_logger
 
-logger = logging.getLogger('ml')
+# logger = logging.getLogger('ml')
+logger = get_a_logger(__name__)
+
 
 
 def get_temperature_data(fig):
@@ -522,6 +525,8 @@ def make_fig(time_now):
 
 
 if __name__ == '__main__':
+
+    """
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     # set up logging to a file
@@ -541,4 +546,6 @@ if __name__ == '__main__':
     # add the handlers to logger
     logger.addHandler(fh)
     logger.addHandler(ch)
+    """
+
     one_month()

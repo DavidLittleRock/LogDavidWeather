@@ -8,8 +8,10 @@ import pymysql as mdb
 import Settings
 from python_mysql_dbconfig import read_db_config
 import logging
+from WeatherAppLog import get_a_logger
 
-logger = logging.getLogger('ml')
+# logger = logging.getLogger('ml')
+logger = get_a_logger(__name__)
 
 
 def get_temperature_data(fig):
@@ -298,14 +300,13 @@ def get_rain(fig):
         'title': None,
         'x_label': None,
         'y_label': None,
-        'y1_legend': f"Rain {rain_total:.1f} inches this month",
+        'y1_legend': f"Rain {rain_total:.1f} inches",
         #        'y2_legend': f"Rain today, {rain_total_today[-1]:.1f} inch",
         #        'y3_legend': f"Rain yesterday, {rain_total_yesterday[-1]:.1f} inch",
         #        'y4_legend': f"Rain 24 hours {rain_total_24[-1]:.1f} inch",
     }
 
     return rain_dict
-
 
 # temperature
 def make_ax1(ax_dict):
@@ -391,7 +392,7 @@ def make_ax4(ax_dict):
             i += 1
         else:
             i += 1
-            continue
+
 
 #    print(ax_dict['y1'])
 
@@ -559,6 +560,7 @@ def make_fig(time_now):
 
 
 if __name__ == '__main__':
+    """
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     # set up logging to a file
@@ -578,4 +580,5 @@ if __name__ == '__main__':
     # add the handlers to logger
     logger.addHandler(fh)
     logger.addHandler(ch)
+    """
     one_week()

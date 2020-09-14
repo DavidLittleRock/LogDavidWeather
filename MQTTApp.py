@@ -19,11 +19,12 @@ import gc
 
 import sys
 from python_mysql_dbconfig import read_db_config
+from WeatherAppLog import get_a_logger
 
 
 database_table = Settings.database_table
 
-
+logger = get_a_logger(__name__)
 
 
 def mqtt_app():
@@ -31,14 +32,10 @@ def mqtt_app():
     mqtt_client()
     while True:
         time.sleep(0.1)
-#        OneWeek.one_week()
  #       TestGraph.one_day()
-#        OneMonth.one_month()
- #       OneDay.one_day()
-   #     OneWeekA.one_week()
- #       TestGraph.one_day()
-   #     OneMonthA.one_month()
- #       OneDayA.one_day()
+        OneWeekA.one_week()
+        OneMonthA.one_month()
+        OneDayA.one_day()
 
 def on_log(client, userdata, level, buff):
     print(level)
@@ -148,6 +145,8 @@ def write_to_data(list_to_write: list) -> object:
 
 
 if __name__ == "__main__":
+
+    """
     logger = logging.getLogger('ml')
     logger.setLevel(logging.DEBUG)
     # set up logging to a file
@@ -157,13 +156,17 @@ if __name__ == "__main__":
     fh.setLevel(logging.DEBUG)
     # create a handler to write to console
     ch = logging.StreamHandler()
-    ch.setLevel(logging.WARNING)
+    ch.setLevel(logging.DEBUG)
     # create a formatter and add to handlers
     formatter = logging.Formatter('%(asctime)s - Level Name: %(levelname)s\n  - Message: %(message)s \n  - Function: %(funcName)s - Line: %(lineno)s - Module: %(module)s')
-    fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
+    chformatter = logging.Formatter('%(asctime)s - Level: %(levelname)s\n'
+                                    '  - Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n'
+                                    '  - Message: %(message)s \n')
+
+    fh.setFormatter(chformatter)
+    ch.setFormatter(chformatter)
     # add the handlers to logger
     logger.addHandler(fh)
     logger.addHandler(ch)
-
+"""
     mqtt_app()

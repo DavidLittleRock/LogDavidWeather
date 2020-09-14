@@ -11,9 +11,10 @@ from datetime import datetime
 import pymysql as mdb
 import logging
 from python_mysql_dbconfig import read_db_config
+from WeatherAppLog import get_a_logger
 
-logger = logging.getLogger('ml')
-
+# logger = logging.getLogger('ml')
+logger = get_a_logger(__name__)
 
 def get_temperature_data(fig):
     db_config = read_db_config()
@@ -258,6 +259,7 @@ def get_bp_data(fig):
 
 
 def get_rain(fig):
+    logger.debug("start get_rain")
     db_config = read_db_config()
     # make connection to database
     db_connection = mdb.connect(**db_config)
@@ -307,7 +309,13 @@ def get_rain(fig):
         time_rain_yesterday.append(record[0])
         rain_change_yesterday.append(record[1] / 22.5)
         rain_total_yesterday.append(sum(rain_change_yesterday))
-    fds_rain_yesterday = [dates.date2num(d) for d in time_rain_yesterday]  # ax_y
+    fds_rain_yesterday = [dates.date2num(d) for d in time_rain_yesterday]
+
+    if len(rain_total_yesterday) <= 0:
+        logger.debug("rain_total_yesterday is len 0")
+        rain_total_yesterday = [0]
+
+    logger.debug(f"rain_total_yesterday = {rain_total_yesterday}")
 
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'  # Today start 00:00 to now
     result_rain_today = ((0, 0,),)
@@ -327,7 +335,14 @@ def get_rain(fig):
         time_rain_today.append(record[0])
         rain_change_today.append(record[1] / 22.5)
         rain_total_today.append(sum(rain_change_today))
-    fds_rain_today = [dates.date2num(d) for d in time_rain_today]  # ax_y
+    fds_rain_today = [dates.date2num(d) for d in time_rain_today]
+
+    if len(rain_total_today) <= 0:
+        logger.debug("rain_total_today is len 0")
+        rain_total_today = [0]
+
+
+    logger.debug(f"rain_total_today = {rain_total_today}")
 
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR) ORDER BY Date ASC'  # 24 hr rain
     result_rain_24 = ((0, 0,),)
@@ -347,7 +362,14 @@ def get_rain(fig):
         time_rain_24.append(record[0])
         rain_change_24.append(record[1] / 22.5)
         rain_total_24.append(sum(rain_change_24))
-    fds_rain_24 = [dates.date2num(d) for d in time_rain_24]  # ax_y
+    fds_rain_24 = [dates.date2num(d) for d in time_rain_24]
+
+    if len(rain_total_24) <= 0:
+        logger.debug("rain_total_24 is len 0")
+        rain_total_24 = [0]
+
+
+
     logger.debug(f"rain_total_24: {rain_total_24}")
 
     rain_dict = {
@@ -368,7 +390,7 @@ def get_rain(fig):
         'y3_legend': f"Rain yesterday, {rain_total_yesterday[-1]:.1f} inch",
         'y4_legend': f"Rain 24 hours {rain_total_24[-1]:.1f} inch",
     }
-
+    logger.debug("end of get_rain")
     return rain_dict
 
 
@@ -470,6 +492,7 @@ RAIN
     ax4.xaxis.set_major_locator(dates.HourLocator(interval=6))
     ax4.xaxis.set_minor_locator(dates.HourLocator(interval=1))
     ax4.xaxis.set_major_formatter(hfmt)
+#    print(ax_dict['y1'])
     ax4.bar(ax_dict['x1'], ax_dict['y1'],  color='blue', width=0.005, label=ax_dict['y1_legend'])
     if len(ax_dict['y2']) > 0:
         ax4.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='--', color='green', markersize=1, linewidth=2, label=ax_dict['y2_legend'])
@@ -477,7 +500,7 @@ RAIN
         ax4.plot(ax_dict['x3'], ax_dict['y3'], marker='o', linestyle='--', color='orange', markersize=1, linewidth=2, label=ax_dict['y3_legend'])
     if len(ax_dict['y4']) > 0:
         ax4.plot(ax_dict['x4'], ax_dict['y4'], marker='o', linestyle='--', color='blue', markersize=1, linewidth=2, label=ax_dict['y4_legend'])
-    ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
+    ax4.axis(ymin=0, ymax= max(ax_dict['y1']), xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax4.set_title(ax_dict['title'], fontsize='15')
     ax4.grid(which='both', axis='both')
     ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
@@ -649,7 +672,10 @@ def one_day():
     make_ax1(temp_dict)
     make_ax2(wind_dict)
     make_ax3(bp_dict)
+    logger.debug(f"rain_dict = {rain_dict}")
+    logger.debug("call make_ax4(rain_dict)")
     make_ax4(rain_dict)
+    logger.debug("after make_ax4")
 
 
     pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph1.png')
@@ -677,23 +703,30 @@ def make_fig(time_now):
 
 
 if __name__ == '__main__':
-    logger = logging.getLogger(__name__)
+
+    """
+    logger = logging.getLogger('__name__')
     logger.setLevel(logging.DEBUG)
     # set up logging to a file
     # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', filename='/temp/MQTTApp.log', filemode='w')
     # define a
     # create a file handler to log to a file
     fh = logging.FileHandler('MQTTApp.log')
-    fh.setLevel(logging.DEBUG)
+    fh.setLevel(logging.CRITICAL)
     # create a handler to write to console
     ch = logging.StreamHandler()
-    ch.setLevel(logging.WARNING)
+    ch.setLevel(logging.DEBUG)
     # create a formatter and add to handlers
     formatter = logging.Formatter(
         '%(asctime)s - Level Name: %(levelname)s\n  - Message: %(message)s \n  - Function: %(funcName)s - Line: %(lineno)s - Module: %(module)s')
+    chformatter = logging.Formatter('%(asctime)s - Level: %(levelname)s\n'
+                                    '  - Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n'
+                                    '  - Message: %(message)s \n')
     fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
+    ch.setFormatter(chformatter)
     # add the handlers to logger
     logger.addHandler(fh)
     logger.addHandler(ch)
+    """
+
     one_day()
