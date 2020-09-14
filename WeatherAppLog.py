@@ -11,7 +11,7 @@ def get_a_logger(name):
     fh.setFormatter(chformatter)
 
     ch = logging.StreamHandler()
-    ch.setLevel(logging.WARNING)
+    ch.setLevel(logging.DEBUG)
     ch.setFormatter(chformatter)
 
     logger = logging.getLogger('ml')
