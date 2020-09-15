@@ -33,9 +33,9 @@ def mqtt_app():
     while True:
         time.sleep(0.1)
  #       TestGraph.one_day()
- #       OneWeekA.one_week()
- #       OneMonthA.one_month()
- #       OneDayA.one_day()
+        OneWeekA.one_week()
+        OneMonthA.one_month()
+        OneDayA.one_day()
 
 def on_log(client, userdata, level, buff):
     print(level)

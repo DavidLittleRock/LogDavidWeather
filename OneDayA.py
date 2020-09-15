@@ -313,9 +313,10 @@ def get_rain(fig):
 
     if len(rain_total_yesterday) <= 0:
         logger.debug("rain_total_yesterday is len 0")
-        rain_total_yesterday = [0]
-
-    logger.debug(f"rain_total_yesterday = {rain_total_yesterday}")
+        rain_legend_yesterday = f"Rain yesterday, --- inch"
+    else:
+        rain_legend_yesterday = f"Rain yesterday, {rain_total_yesterday[-1]:.1f} inch"
+        logger.debug(f"rain_total_yesterday = {rain_total_yesterday}")
 
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'  # Today start 00:00 to now
     result_rain_today = ((0, 0,),)
@@ -339,10 +340,10 @@ def get_rain(fig):
 
     if len(rain_total_today) <= 0:
         logger.debug("rain_total_today is len 0")
-        rain_total_today = [0]
-
-
-    logger.debug(f"rain_total_today = {rain_total_today}")
+        rain_legend_today = f"Rain today, --- inch"
+    else:
+        rain_legend_today = f"Rain today, {rain_total_today[-1]:.1f} inch"
+        logger.debug(f"rain_total_today = {rain_total_today}")
 
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR) ORDER BY Date ASC'  # 24 hr rain
     result_rain_24 = ((0, 0,),)
@@ -366,11 +367,10 @@ def get_rain(fig):
 
     if len(rain_total_24) <= 0:
         logger.debug("rain_total_24 is len 0")
-        rain_total_24 = [0]
-
-
-
-    logger.debug(f"rain_total_24: {rain_total_24}")
+        rain_legend_24 = f"Rain 24 hours --- inch"
+    else:
+        rain_legend_24 = f"Rain 24 hours {rain_total_24[-1]:.1f} inch"
+        logger.debug(f"rain_total_24: {rain_total_24}")
 
     rain_dict = {
         'y1': rain_change,
@@ -386,9 +386,9 @@ def get_rain(fig):
         'x_label': None,
         'y_label': None,
         'y1_legend': "Rain, inches",
-        'y2_legend': f"Rain today, {rain_total_today[-1]:.1f} inch",
-        'y3_legend': f"Rain yesterday, {rain_total_yesterday[-1]:.1f} inch",
-        'y4_legend': f"Rain 24 hours {rain_total_24[-1]:.1f} inch",
+        'y2_legend': rain_legend_today,  # need to test and build outside
+        'y3_legend': rain_legend_yesterday,
+        'y4_legend': rain_legend_24,
     }
     logger.debug("end of get_rain")
     return rain_dict
@@ -420,7 +420,7 @@ def make_ax1(ax_dict):
     ax1.grid(which='major', color='#666666', linewidth=1.2)
     logger.debug('did make_ax1')
     ax1.set_facecolor('#edf7f7')
-    pyplot.figtext(0.75, 0.10, f"(Last report time: {ax_dict['last_report']})", fontsize=15, horizontalalignment='left', verticalalignment='top')
+    pyplot.figtext(0.75, 0.05, f"(Last report time: {ax_dict['last_report']})", fontsize=15, horizontalalignment='left', verticalalignment='top')
 
 
 # wind

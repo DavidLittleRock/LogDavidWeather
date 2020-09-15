@@ -14,7 +14,7 @@ def get_a_logger(name):
     ch.setLevel(logging.DEBUG)
     ch.setFormatter(chformatter)
 
-    logger = logging.getLogger('ml')
+    logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     logger.addHandler(fh)
     logger.addHandler(ch)
