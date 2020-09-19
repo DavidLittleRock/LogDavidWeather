@@ -687,12 +687,21 @@ def one_day():
 
 
 def show_fig(fig):
+
+
+
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
+
+
+    pyplot.close(fig=104)
+    pyplot.close(fig=103)
+
+
+
     pyplot.show(block=False)
-    pyplot.pause(60)
-    pyplot.clf()
-    pyplot.close(fig=102)
+    pyplot.pause(3)
+#    pyplot.clf()
 
 
 def make_fig(time_now):

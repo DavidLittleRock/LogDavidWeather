@@ -544,15 +544,25 @@ def one_week():
 
 
 def show_fig(fig):
+#    fx = pyplot.gcf()
+
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
+
+
+    pyplot.close(fig=102)
+    pyplot.close(fig=104)
+
     pyplot.show(block=False)
-    pyplot.pause(60)
-    pyplot.close(fig="My Figure")
+
+
+
+    pyplot.pause(3)
+#    pyplot.close(fig=103)
 
 
 def make_fig(time_now):
-    figure = pyplot.figure(num="My Figure", facecolor='green')  # scope of figure is make_fig()
+    figure = pyplot.figure(num=103, facecolor='green')  # scope of figure is make_fig()
     pyplot.figtext(0.75, 0.95, f"7 Days --  {time_now}\n", fontsize=20, horizontalalignment='left',
                    verticalalignment='top')
     #    pyplot.figtext(0.75, 0.05, f"(Last report time: {lrtime})", fontsize=15, horizontalalignment='left', verticalalignment='top')
