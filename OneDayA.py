@@ -404,7 +404,7 @@ def make_ax1(ax_dict):
     ax1.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(rotation='45')
     ax1.plot(ax_dict['x1'], ax_dict['y1'], marker='o', linestyle='-', color='blue', markersize=2.0, label=ax_dict['y1_legend'])
-    if ax_dict['y2'] is not None:
+    if ax_dict['y2'] is not None and len(ax_dict['y2']) > 0:
         logger.debug(f"temp = {ax_dict['y1'][-1]}")
         ax1.plot(ax_dict['x2'], ax_dict['y2'], marker=6, linestyle='', color='red', markersize=4.0, label=ax_dict['y2_legend'])
     if ax_dict['y3'] is not None:
@@ -492,15 +492,14 @@ RAIN
     ax4.xaxis.set_major_locator(dates.HourLocator(interval=6))
     ax4.xaxis.set_minor_locator(dates.HourLocator(interval=1))
     ax4.xaxis.set_major_formatter(hfmt)
-#    print(ax_dict['y1'])
     ax4.bar(ax_dict['x1'], ax_dict['y1'],  color='blue', width=0.005, label=ax_dict['y1_legend'])
     if len(ax_dict['y2']) > 0:
-        ax4.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='--', color='green', markersize=1, linewidth=2, label=ax_dict['y2_legend'])
+        ax4.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='--', color='green', markersize=1, linewidth=4, label=ax_dict['y2_legend'])
     if len(ax_dict['y3']) > 0:
         ax4.plot(ax_dict['x3'], ax_dict['y3'], marker='o', linestyle='--', color='orange', markersize=1, linewidth=2, label=ax_dict['y3_legend'])
     if len(ax_dict['y4']) > 0:
-        ax4.plot(ax_dict['x4'], ax_dict['y4'], marker='o', linestyle='--', color='blue', markersize=1, linewidth=2, label=ax_dict['y4_legend'])
-    ax4.axis(ymin=0, ymax= max(ax_dict['y1']), xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
+        ax4.plot(ax_dict['x4'], ax_dict['y4'], marker='o', linestyle='-', color='blue', markersize=1, linewidth=1, label=ax_dict['y4_legend'])
+    ax4.axis(ymin=0, ymax=max(ax_dict['y4']), xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax4.set_title(ax_dict['title'], fontsize='15')
     ax4.grid(which='both', axis='both')
     ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
@@ -700,7 +699,7 @@ def show_fig(fig):
 
 
     pyplot.show(block=False)
-    pyplot.pause(3)
+    pyplot.pause(10)
 #    pyplot.clf()
 
 

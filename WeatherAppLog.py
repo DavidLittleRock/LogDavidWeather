@@ -7,7 +7,7 @@ def get_a_logger(name):
                                     '  - Message: %(message)s \n')
 
     fh = logging.FileHandler('MQTTApp.log')
-    fh.setLevel(logging.DEBUG)
+    fh.setLevel(logging.INFO)
     fh.setFormatter(chformatter)
 
     ch = logging.StreamHandler()

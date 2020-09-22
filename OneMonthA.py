@@ -511,17 +511,14 @@ def one_month():
 
 def show_fig(fig):
 
-
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
 
     pyplot.close(fig=103)
     pyplot.close(fig=102)
 
-
-
     pyplot.show(block=False)
-    pyplot.pause(3)
+    pyplot.pause(10)
 
 
 def make_fig(time_now):

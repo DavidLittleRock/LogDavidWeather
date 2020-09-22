@@ -318,7 +318,7 @@ def make_ax1(ax_dict):
     pyplot.xticks(rotation='45')
     ax1.plot(ax_dict['x1'], ax_dict['y1'], marker='o', linestyle='-', color='blue', markersize=2.0,
              label=ax_dict['y1_legend'])
-    if ax_dict['y2'] is not None:
+    if ax_dict['y2'] is not None and len(ax_dict['y2']) > 0:
         ax1.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='', color='red', markersize=2.0,
                  label=ax_dict['y2_legend'])
     if ax_dict['y3'] is not None:
@@ -544,21 +544,16 @@ def one_week():
 
 
 def show_fig(fig):
-#    fx = pyplot.gcf()
 
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
-
 
     pyplot.close(fig=102)
     pyplot.close(fig=104)
 
     pyplot.show(block=False)
 
-
-
-    pyplot.pause(3)
-#    pyplot.close(fig=103)
+    pyplot.pause(10)
 
 
 def make_fig(time_now):

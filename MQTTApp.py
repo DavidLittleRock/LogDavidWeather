@@ -31,11 +31,10 @@ def mqtt_app():
 
     mqtt_client()
     while True:
-        time.sleep(0.1)
+        time.sleep(0.01)
  #       TestGraph.one_day()
 
         OneDayA.one_day()
-
         OneWeekA.one_week()
         OneMonthA.one_month()
 
