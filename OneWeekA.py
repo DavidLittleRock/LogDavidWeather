@@ -397,7 +397,7 @@ def make_ax4(ax_dict):
 #    print(ax_dict['y1'])
 
     ax4.bar(ax_dict['x1'], ax_dict['y1'], color='blue', width=0.99, label=ax_dict['y1_legend'], align='edge')
-    ax4.axis(ymin=0, xmin=(dates.date2num(datetime.now())) - 7, xmax=(dates.date2num(datetime.now())))
+    ax4.axis(ymin=0, ymax=(max(ax_dict['y1'])+1)//1, xmin=(dates.date2num(datetime.now())) - 7, xmax=(dates.date2num(datetime.now())))
     ax4.legend(shadow=True, ncol=1, fontsize=15)
     ax4.set_title(ax_dict['title'], fontsize='15')
     ax4.grid(which='both', axis='both')

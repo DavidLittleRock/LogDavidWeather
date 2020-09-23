@@ -21,7 +21,7 @@ import sys
 from python_mysql_dbconfig import read_db_config
 from WeatherAppLog import get_a_logger
 
-
+# TODO use argparser to specify debug and desk/pi
 database_table = Settings.database_table
 
 logger = get_a_logger(__name__)

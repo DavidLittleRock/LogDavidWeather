@@ -500,7 +500,7 @@ RAIN
         ax4.plot(ax_dict['x3'], ax_dict['y3'], marker='o', linestyle='--', color='orange', markersize=1, linewidth=2, label=ax_dict['y3_legend'])
     if len(ax_dict['y4']) > 0:  # 24
         ax4.plot(ax_dict['x4'], ax_dict['y4'], marker='o', linestyle='-', color='blue', markersize=1, linewidth=1, label=ax_dict['y4_legend'])
-    ax4.axis(ymin=0, ymax=max(ax_dict['y4']), xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
+    ax4.axis(ymin=0, ymax=(max(ax_dict['y4'])+1)//1, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax4.set_title(ax_dict['title'], fontsize='15')
     ax4.grid(which='both', axis='both')
     ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
