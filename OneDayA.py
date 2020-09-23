@@ -377,8 +377,8 @@ def get_rain(fig):
         'x1': fds,
         'y2': rain_total_today,
         'x2': fds_rain_today,
-        'x3': rain_total_yesterday,
-        'y3': fds_rain_yesterday,
+        'y3': rain_total_yesterday,
+        'x3': fds_rain_yesterday,
         'y4': rain_total_24,
         'x4': fds_rain_24,
         'fig': fig,
@@ -493,11 +493,11 @@ RAIN
     ax4.xaxis.set_minor_locator(dates.HourLocator(interval=1))
     ax4.xaxis.set_major_formatter(hfmt)
     ax4.bar(ax_dict['x1'], ax_dict['y1'],  color='blue', width=0.005, label=ax_dict['y1_legend'])
-    if len(ax_dict['y2']) > 0:
+    if len(ax_dict['y2']) > 0:  # today
         ax4.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='--', color='green', markersize=1, linewidth=4, label=ax_dict['y2_legend'])
-    if len(ax_dict['y3']) > 0:
+    if len(ax_dict['y3']) > 0:  # yesterday
         ax4.plot(ax_dict['x3'], ax_dict['y3'], marker='o', linestyle='--', color='orange', markersize=1, linewidth=2, label=ax_dict['y3_legend'])
-    if len(ax_dict['y4']) > 0:
+    if len(ax_dict['y4']) > 0:  # 24
         ax4.plot(ax_dict['x4'], ax_dict['y4'], marker='o', linestyle='-', color='blue', markersize=1, linewidth=1, label=ax_dict['y4_legend'])
     ax4.axis(ymin=0, ymax=max(ax_dict['y4']), xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax4.set_title(ax_dict['title'], fontsize='15')
@@ -687,19 +687,14 @@ def one_day():
 
 def show_fig(fig):
 
-
-
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
-
 
     pyplot.close(fig=104)
     pyplot.close(fig=103)
 
-
-
     pyplot.show(block=False)
-    pyplot.pause(10)
+    pyplot.pause(30)
 #    pyplot.clf()
 
 

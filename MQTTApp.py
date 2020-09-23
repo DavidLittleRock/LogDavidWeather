@@ -73,8 +73,6 @@ def mqtt_client():
     broker_port = Settings.broker_port
     client = mqtt.Client(client_id='myweather2pi', clean_session=False, userdata=None, transport='tcp')
 
-
-
     client.on_message = on_message
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
