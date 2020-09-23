@@ -496,6 +496,7 @@ RAIN
     if len(ax_dict['y2']) > 0:  # today
         ax4.plot(ax_dict['x2'], ax_dict['y2'], marker='o', linestyle='--', color='green', markersize=1, linewidth=4, label=ax_dict['y2_legend'])
     if len(ax_dict['y3']) > 0:  # yesterday
+        logger.debug(f"rain yesterday : {ax_dict['y3']}")
         ax4.plot(ax_dict['x3'], ax_dict['y3'], marker='o', linestyle='--', color='orange', markersize=1, linewidth=2, label=ax_dict['y3_legend'])
     if len(ax_dict['y4']) > 0:  # 24
         ax4.plot(ax_dict['x4'], ax_dict['y4'], marker='o', linestyle='-', color='blue', markersize=1, linewidth=1, label=ax_dict['y4_legend'])
@@ -694,7 +695,7 @@ def show_fig(fig):
     pyplot.close(fig=103)
 
     pyplot.show(block=False)
-    pyplot.pause(30)
+    pyplot.pause(15)
 #    pyplot.clf()
 
 
