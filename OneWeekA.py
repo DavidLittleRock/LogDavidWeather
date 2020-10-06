@@ -323,8 +323,7 @@ def make_ax1(ax_dict):
                  label=ax_dict['y2_legend'])
     if ax_dict['y3'] is not None:
         ax1.plot(ax_dict['x3'], ax_dict['y3'], marker='.', linestyle='', color='orange', label=ax_dict['y3_legend'])
-    ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now())) - 7,
-             xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceding 7 days
+    ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now())) - 7, xmax=(dates.date2num(datetime.now())))  # set a rolling x asis for preceding 7 days
     ax1.legend(shadow=True, ncol=1, fontsize=15)
     ax1.set_title(ax_dict['title'], fontsize='15')
     ax1.set_xlabel(ax_dict['x_label'])

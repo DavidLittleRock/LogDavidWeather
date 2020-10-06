@@ -500,7 +500,7 @@ RAIN
         ax4.plot(ax_dict['x3'], ax_dict['y3'], marker='o', linestyle='--', color='orange', markersize=1, linewidth=2, label=ax_dict['y3_legend'])
     if len(ax_dict['y4']) > 0:  # 24
         ax4.plot(ax_dict['x4'], ax_dict['y4'], marker='o', linestyle='-', color='blue', markersize=1, linewidth=1, label=ax_dict['y4_legend'])
-    ax4.axis(ymin=0, ymax=(max(ax_dict['y4'])+1)//1, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
+    ax4.axis(ymin=0, ymax=((max(max(ax_dict['y4']), max(ax_dict['y3']), max(ax_dict['y2'])))+1)//1, xmin=(dates.date2num(datetime.now()))-1, xmax=(dates.date2num(datetime.now())))
     ax4.set_title(ax_dict['title'], fontsize='15')
     ax4.grid(which='both', axis='both')
     ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
@@ -658,16 +658,18 @@ def one_day():
         hx = f"Heat Index, ---\u2109"
 """
 
-    fig = make_fig(time_now)  # scope of fig is one_day()
+    fig_day = make_fig(time_now)  # scope of fig is one_day()
+    print(fig_day)
+    pyplot.show()
 
 
-    bp_dict = get_bp_data(fig)
+    bp_dict = get_bp_data(fig_day)
 
-    wind_dict = get_wind(fig)
+    wind_dict = get_wind(fig_day)
 
-    temp_dict = get_temperature_data(fig)
+    temp_dict = get_temperature_data(fig_day)
 
-    rain_dict = get_rain(fig)
+    rain_dict = get_rain(fig_day)
 
     make_ax1(temp_dict)
     make_ax2(wind_dict)
@@ -679,12 +681,12 @@ def one_day():
 
 
     pyplot.savefig('/var/www/html/TempHeatIndexSevenDayGraph1.png')
-    show_fig(fig)
+    show_fig(fig_day)
 
 #    cursor.close()
 #    db_connection.close()
     gc.collect()
-
+ #   return fig_day
 
 def show_fig(fig):
 
@@ -695,7 +697,7 @@ def show_fig(fig):
     pyplot.close(fig=103)
 
     pyplot.show(block=False)
-    pyplot.pause(15)
+    pyplot.pause(60)
 #    pyplot.clf()
 
 

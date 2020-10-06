@@ -16,27 +16,29 @@ import OneWeekA
 import OneMonthA
 import TestGraph
 import gc
+from matplotlib import pyplot
 
 import sys
 from python_mysql_dbconfig import read_db_config
 from WeatherAppLog import get_a_logger
 
 # TODO use argparser to specify debug and desk/pi
+
+
 database_table = Settings.database_table
 
 logger = get_a_logger(__name__)
 
 
 def mqtt_app():
-
     mqtt_client()
     while True:
         time.sleep(0.01)
- #       TestGraph.one_day()
+#        TestGraph.one_day()
+   #     OneDayA.one_day()
+    #   OneWeekA.one_week()
+    #    OneMonthA.one_month()
 
-        OneDayA.one_day()
-        OneWeekA.one_week()
-        OneMonthA.one_month()
 
 def on_log(client, userdata, level, buff):
     print(level)
