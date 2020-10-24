@@ -24,17 +24,23 @@ from WeatherAppLog import get_a_logger
 
 # TODO use argparser to specify debug and desk/pi
 
-
+Settings.new_data = False
+print(f"More new data: {Settings.new_data}")
 database_table = Settings.database_table
 
 logger = get_a_logger(__name__)
 
 
 def mqtt_app():
+ #   global new_data
     mqtt_client()
     while True:
         time.sleep(0.01)
-#        TestGraph.one_day()
+        if Settings.new_data:
+ #           Settings.new_data = False
+            logger.debug(f"call to one_day")
+            TestGraph.one_day()
+
    #     OneDayA.one_day()
     #   OneWeekA.one_week()
     #    OneMonthA.one_month()
@@ -60,12 +66,16 @@ def on_message(self, userdata, message):
     :param message: the message string from Mosquitto MQTT
     :type message: str
     """
+ #   global new_data
     logger.info("In on_message")
     full_payload = message.payload.decode()
     index = full_payload.index("MQTT")
     data_string = full_payload[index + 18:-2]
     data_list = data_string.split(',')  # split the string to a list
     write_to_data(data_list)
+ #   TestGraph.one_day()  # call to display with  new data
+    Settings.new_data = True
+    logger.debug(f"new data set to True")
 
 
 def mqtt_client():
@@ -74,6 +84,7 @@ def mqtt_client():
     broker_url = Settings.broker_url
     broker_port = Settings.broker_port
     client = mqtt.Client(client_id='myweather2pi', clean_session=False, userdata=None, transport='tcp')
+    client.subscribe('OurWeather', qos=2)
 
     client.on_message = on_message
     client.on_subscribe = on_subscribe
@@ -95,7 +106,7 @@ def on_connect(self, userdata, flags, rc):
     logger.info(f"Connected to mosquitto {rc} with client_id")
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
-    client.subscribe('OurWeather', qos=2)
+#    client.subscribe('OurWeather', qos=2)
 
 
 def on_disconnect(self, userdata, rc):

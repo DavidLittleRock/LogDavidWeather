@@ -366,7 +366,7 @@ def make_ax3(ax_dict):  # barometric pressure
     ax3.xaxis.set_major_formatter(hfmt)
     ax3.plot(ax_dict['x'], ax_dict['y'], marker='o', linestyle='-', color='green', markersize=1, linewidth=0.5,
              label=ax_dict['y_legend'])
-    ax3.axis(ymin=29.50, ymax=30.35, xmin=(dates.date2num(datetime.now())) - 7, xmax=(dates.date2num(datetime.now())))
+    ax3.axis(ymin=29.50, ymax=30.41, xmin=(dates.date2num(datetime.now())) - 7, xmax=(dates.date2num(datetime.now())))
     ax3.legend(shadow=True, ncol=1, fontsize=15)
     ax3.set_title(ax_dict['title'], fontsize='15')
     ax3.set_xlabel(ax_dict['x_label'])
