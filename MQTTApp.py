@@ -98,7 +98,7 @@ def mqtt_client():
  #   client = mqtt.Client(client_id='weather2desk', clean_session=False, userdata=None, transport='tcp')
 
     try:
-        client = mqtt.Client(client_id='weather2desk2', clean_session=False, userdata=None, transport='tcp')
+        client = mqtt.Client(client_id='weather2pi4', clean_session=False, userdata=None, transport='tcp')
         logger.debug("mqtt client created")
     except:
         e = sys.exc_info()[0]

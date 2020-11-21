@@ -264,9 +264,11 @@ def make_fig_1(ax_dict):
     ax1.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1, fontsize=15)
     ax1.set_xlabel('')
     ax1.set_ylabel('')
-    ax1.grid(which='both', axis='both')
     ax1.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax1.grid(which='major', color='#666666', linewidth=1.2)
+    ax1.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax1.set_facecolor('#edf7f7')
+
+    ax1.grid(True, which='both', axis='both')
 
     logger.debug('did make_ax1')
 
@@ -288,9 +290,10 @@ def make_fig_1(ax_dict):
     ax2.set_xlabel('')
 
     ax2.set_ylabel('MPH')
-    ax2.grid(which='both', axis='both')
     ax2.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
     ax2.grid(which='major', color='#666666', linewidth=1.2)
+    ax2.grid(True, which='both', axis='both')
+
     ax2.set_facecolor('#edf7f7')
 
 
@@ -312,9 +315,10 @@ def make_fig_1(ax_dict):
     ax3.set_title('', fontsize='15')
     ax3.set_xlabel('')
     ax3.set_ylabel('mmHg')
-    ax3.grid(which='both', axis='both')
     ax3.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax3.grid(which='major', color='#666666', linewidth=1.2)
+    ax3.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax3.grid(True, which='both', axis='both')
+
     ax3.set_facecolor('#edf7f7')
 
 
@@ -347,9 +351,10 @@ def make_fig_1(ax_dict):
     ax4.set_title('', fontsize='15')
     ax4.set_xlabel('')
     ax4.set_ylabel("inches")
-    ax4.grid(which='both', axis='both')
     ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax4.grid(which='major', color='#666666', linewidth=1.2)
+    ax4.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax4.grid(True, which='both', axis='both')
+
     ax4.legend(loc='upper left', bbox_to_anchor=(1.0, 1.6), shadow=True, ncol=1, fontsize=15)
     ax4.set_facecolor('#edf7f7')
 
@@ -395,9 +400,10 @@ def make_fig_2(ax_dict):
     ax1.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1, fontsize=15)
     ax1.set_xlabel('')
     ax1.set_ylabel('')
-    ax1.grid(which='both', axis='both')
     ax1.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax1.grid(which='major', color='#666666', linewidth=1.2)
+    ax1.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax1.grid(b=True, which='both', axis='both')
+
     logger.debug('did make_ax1')
     ax1.set_facecolor('#edf7f7')
 
@@ -419,9 +425,11 @@ def make_fig_2(ax_dict):
     ax2.set_xlabel('')
 
     ax2.set_ylabel('MPH')
-    ax2.grid(which='both', axis='both')
+    ax2.grid(b=True, which='both', axis='both')
     ax2.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax2.grid(which='major', color='#666666', linewidth=1.2)
+    ax2.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax2.grid(b=True, which='both', axis='both')
+
     ax2.set_facecolor('#edf7f7')
 
 # ax3  BP
@@ -442,9 +450,10 @@ def make_fig_2(ax_dict):
     ax3.set_title('', fontsize='15')
     ax3.set_xlabel('')
     ax3.set_ylabel('mmHg')
-    ax3.grid(which='both', axis='both')
     ax3.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax3.grid(which='major', color='#666666', linewidth=1.2)
+    ax3.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax3.grid(b=True, which='both', axis='both')
+
     ax3.set_facecolor('#edf7f7')
 
 # ax4 RAIN
@@ -472,9 +481,10 @@ def make_fig_2(ax_dict):
     ax4.set_title('', fontsize='15')
     ax4.set_xlabel('')
     ax4.set_ylabel("inches")
-    ax4.grid(which='both', axis='both')
     ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax4.grid(which='major', color='#666666', linewidth=1.2)
+    ax4.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax4.grid(b=True, which='both', axis='both')
+
     ax4.set_facecolor('#edf7f7')
 
     mng = pyplot.get_current_fig_manager()
@@ -521,9 +531,10 @@ def make_fig_3(ax_dict):
     ax1.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1, fontsize=15)
     ax1.set_xlabel('')
     ax1.set_ylabel('')
-    ax1.grid(which='both', axis='both')
     ax1.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax1.grid(which='major', color='#666666', linewidth=1.2)
+    ax1.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax1.grid(b=True, which='both', axis='both')
+
     logger.debug('did make_ax1')
     ax1.set_facecolor('#edf7f7')
 
@@ -545,9 +556,10 @@ def make_fig_3(ax_dict):
     ax2.set_xlabel('')
 
     ax2.set_ylabel('MPH')
-    ax2.grid(which='both', axis='both')
     ax2.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax2.grid(which='major', color='#666666', linewidth=1.2)
+    ax2.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax2.grid(b=True, which='both', axis='both')
+
     ax2.set_facecolor('#edf7f7')
 
 # ax3  BP
@@ -568,9 +580,10 @@ def make_fig_3(ax_dict):
     ax3.set_title('', fontsize='15')
     ax3.set_xlabel('')
     ax3.set_ylabel('mmHg')
-    ax3.grid(which='both', axis='both')
     ax3.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax3.grid(which='major', color='#666666', linewidth=1.2)
+    ax3.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax3.grid(b=True, which='both', axis='both')
+
     ax3.set_facecolor('#edf7f7')
 
 # ax4 RAIN
@@ -597,9 +610,10 @@ def make_fig_3(ax_dict):
     ax4.set_title('', fontsize='15')
     ax4.set_xlabel('')
     ax4.set_ylabel("inches")
-    ax4.grid(which='both', axis='both')
     ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax4.grid(which='major', color='#666666', linewidth=1.2)
+    ax4.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax4.grid(b=True, which='both', axis='both')
+
     ax4.set_facecolor('#edf7f7')
 
     mng = pyplot.get_current_fig_manager()
@@ -638,7 +652,7 @@ if __name__ == "__main__":
         while not new_data:
             pyplot.figure(101)
             pyplot.show(block=False)
-            pyplot.pause(10)
+            pyplot.pause(20)
 
             pyplot.figure(102)
             pyplot.show(block=False)
