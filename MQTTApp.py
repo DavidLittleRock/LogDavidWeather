@@ -98,8 +98,9 @@ def mqtt_client():
  #   client = mqtt.Client(client_id='weather2desk', clean_session=False, userdata=None, transport='tcp')
 
     try:
-        client = mqtt.Client(client_id='weather2pi4', clean_session=False, userdata=None, transport='tcp')
-        logger.debug("mqtt client created")
+        client_id = 'weather2desk'
+        client = mqtt.Client(client_id, clean_session=False, userdata=None, transport='tcp')
+        logger.debug(f"mqtt client created: id {Settings.mqtt_client_id}")
     except:
         e = sys.exc_info()[0]
         print(f"client create failed\n\tthe error is {e}")
@@ -136,7 +137,7 @@ def mqtt_client():
 
 
 def on_connect(self, userdata, flags, rc):
-    logger.info(f"Connected to mosquitto {rc} with client_id {Settings.mqtt_client_id}")
+    logger.info(f"Connected to mosquitto {rc} with client_id: {Settings.mqtt_client_id}")
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.

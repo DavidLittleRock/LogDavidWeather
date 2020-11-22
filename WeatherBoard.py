@@ -8,6 +8,9 @@ import gc
 from matplotlib import pyplot
 from datetime import datetime
 from matplotlib import dates
+from PIL import Image
+import matplotlib
+
 
 database_table = Settings.database_table
 logger = get_a_logger(__name__)
@@ -74,20 +77,22 @@ def get_data():
     try:
         my_cursor.execute(query)
         result = my_cursor.fetchall()  # a tuple ((id,),)
-        logger.debug(f"last row id = {result}\n\ttype: {type(result)}")
+#        logger.debug(f"last row id = {result}\n\ttype: {type(result)}")
         logger.debug(f"row [0]: {result[0]}\n\ttype: {type(result[0])}")
         logger.debug(f"item[0][0]: {result[0][0]}\n\ttype: {type(result[0][0])}")
         logger.debug(f"item[0][2]: {result[0][1]} \n\ttype: {type(result[0][1])}")
     except:
         e = sys.exc_info()[0]
         print(f"The error is {e}")
-        result = ((0,),)
+        result = ((0,0, ),)
 
     # QUERY FOR # 30 DAY RAIN
     query = 'SELECT Date, SUM(Rain_Change) FROM OneMonth GROUP BY Day(Date) ORDER BY Date ASC'
     try:
         my_cursor.execute(query)
         result_rain_30 = my_cursor.fetchall()
+        logger.debug(f"rain_result_30 query : {result_rain_30}; \n\tif 0, 0 then nothing returned")
+
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -95,14 +100,14 @@ def get_data():
         result_rain_30 = ((0, 0),)
 
     # QUERY one day rain BAR
-    query = 'SELECT Date, Rain_Change FROM OneDay ORDER BY Date ASC'  # this rain will be 48 Hours, not usefull
-#    result_rain_bar = ((0, 0,),)
+    query = 'SELECT Date, Rain_Change FROM OneDay ORDER BY Date ASC'
+    result_rain_bar = ((0, 0,),)
 
     try:
         my_cursor.execute(query)  # execute a query to select all rows
         result_rain_bar = my_cursor.fetchall()
-#        print(result)
-#        print(type(result))
+        logger.debug(f"rain_result_bar query : {result_rain_bar}; \n\tif 0, 0 then nothing returned")
+
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -111,11 +116,12 @@ def get_data():
 
     # QUERY rain TODAY
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'  # Today start 00:00 to now
-#    result_rain_today = ((0, 0,),)
+    result_rain_today = ((0, 0,),)
 
     try:
         my_cursor.execute(query)
         result_rain_today = my_cursor.fetchall()
+        logger.debug(f"rain_result_today query : {result_rain_today}; \n\tif 0, 0 then nothing returned")
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -129,6 +135,8 @@ def get_data():
     try:
         my_cursor.execute(query)
         result_rain_yesterday = my_cursor.fetchall()
+        logger.debug(f"rain_result_yesterday query : {result_rain_yesterday}; \n\tif 0, 0 then nothing returned")
+
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -137,11 +145,13 @@ def get_data():
 
 # QUERY rain 24
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR) ORDER BY Date ASC'  # 24 hr rain
-#    result_rain_24 = ((0, 0,),)
+    result_rain_24 = ((0, 0,),)
 
     try:
         my_cursor.execute(query)
         result_rain_24 = my_cursor.fetchall()
+        logger.debug(f"rain_result_24 query : {result_rain_24}; \n\tif 0, 0 then nothing returned")
+
     except:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -264,11 +274,12 @@ def make_fig_1(ax_dict):
     ax1.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1, fontsize=15)
     ax1.set_xlabel('')
     ax1.set_ylabel('')
-    ax1.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax1.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    ax1.grid(b=True, which='minor', axis='both', color='#999999', alpha=0.5, linestyle='--')
+    ax1.grid(b=True, which='major', axis='both', color='#666666', linewidth=1.2, linestyle='-')
     ax1.set_facecolor('#edf7f7')
+# TODO set all grids like this
 
-    ax1.grid(True, which='both', axis='both')
+#    ax1.grid(True, which='both', axis='both')
 
     logger.debug('did make_ax1')
 
@@ -334,18 +345,20 @@ def make_fig_1(ax_dict):
     #  if (ax_dict['title'] == '1 day'):
     ax4.bar(ax_dict['time_rain_bar'], ax_dict['rain_change_bar'], color='blue', width=0.005, label="Rain inches")
     if len(ax_dict['rain_total_today']) > 0:  # today
+        logger.debug(f"Rain today: {ax_dict['rain_total_today']}")
+
         ax4.plot(ax_dict['time_rain_today'], ax_dict['rain_total_today'], marker='o', linestyle='--', color='green', markersize=1, linewidth=4,
-                 label=f"Rain {dict_result['rain_total_today'][-1]} inches today")
+                 label=f"Rain {ax_dict['rain_total_today'][-1]:.1f} inches today")
     else:
-        ax_dict['rain_total_today'] = 0.0  # if nothing in rain today then set a 0.0
+        ax_dict['rain_total_today'][0] = 0.0  # if nothing in rain today then set a 0.0
         logger.debug(f"rain today set to 0 because len was 0")
-    if len(ax_dict['rain_change_yesterday']) > 0:  # yesterday
-        logger.debug(f"rain yesterday : {ax_dict['rain_change_yesterday']}")
-        ax4.plot(ax_dict['time_rain_yesterday'], ax_dict['rain_change_yesterday'], marker='o', linestyle='--', color='orange', markersize=1, linewidth=2,
-                 label=f"Rain {dict_result['rain_total_yesterday'][-1]} inches yesterday")
+    if len(ax_dict['rain_total_yesterday']) > 0:  # yesterday
+        logger.debug(f"rain yesterday : {ax_dict['rain_total_yesterday']}")
+        ax4.plot(ax_dict['time_rain_yesterday'], ax_dict['rain_total_yesterday'], marker='o', linestyle='--', color='orange', markersize=1, linewidth=2,
+                 label=f"Rain {dict_result['rain_total_yesterday'][-1]:.1f} inches yesterday")
     if len(ax_dict['rain_total_24']) > 0:  # 24
         ax4.plot(ax_dict['time_rain_24'], ax_dict['rain_total_24'], marker='o', linestyle='-', color='blue', markersize=1, linewidth=1,
-                 label=f"Rain {dict_result['rain_total_24'][-1]} inches in 24 hours")
+                 label=f"Rain {dict_result['rain_total_24'][-1]:.1f} inches in 24 hours")
     ax4.axis(ymin=0, ymax=((max(max(ax_dict['rain_total_24']), max(ax_dict['rain_total_today']), max(ax_dict['rain_total_yesterday']))) + 1) // 1,
              xmin=(dates.date2num(datetime.now())) - 1, xmax=(dates.date2num(datetime.now())))
     ax4.set_title('', fontsize='15')
@@ -357,6 +370,9 @@ def make_fig_1(ax_dict):
 
     ax4.legend(loc='upper left', bbox_to_anchor=(1.0, 1.6), shadow=True, ncol=1, fontsize=15)
     ax4.set_facecolor('#edf7f7')
+
+    pyplot.savefig(fname="one_day.png", format='png')
+ #   pyplot.close()
 
 
 def make_fig_2(ax_dict):
@@ -611,8 +627,8 @@ def make_fig_3(ax_dict):
     ax4.set_xlabel('')
     ax4.set_ylabel("inches")
     ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
-    ax4.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
-    ax4.grid(b=True, which='both', axis='both')
+    ax4.grid(b=True, which='major', color='#666666', linewidth=1.2, linestyle='-', axis='both')
+ #   ax4.grid(b=True, which='both', axis='both')
 
     ax4.set_facecolor('#edf7f7')
 
@@ -621,6 +637,8 @@ def make_fig_3(ax_dict):
 
 
 def check_for_new(used_id):
+# return False if used_id == get_last_id(), no new data
+
     last_id = get_last_id()
     if last_id != used_id:
         used_id = last_id
@@ -646,22 +664,31 @@ if __name__ == "__main__":
         make_fig_2(dict_result)
 
         make_fig_3(dict_result)
+
         used_id = get_last_id()
         new_data = False
 
         while not new_data:
+
             pyplot.figure(101)
             pyplot.show(block=False)
-            pyplot.pause(20)
+            pyplot.pause(60)
+   #         pyplot.clf()
+#            pyplot.figure
+#            pyplot.draw()
 
             pyplot.figure(102)
             pyplot.show(block=False)
-            pyplot.pause(10)
-
+            pyplot.pause(60)
             pyplot.figure(103)
             pyplot.show(block=False)
-            pyplot.pause(10)
+            pyplot.pause(60)
 
-            used_id, new_data, dict_result = check_for_new(used_id)
+#            used_id, new_data, dict_result = check_for_new(used_id)
+#            if check_for_new(used_id):
+            if used_id != get_last_id():
+                dict_result = get_data()
+                new_data = True
 
         pyplot.close(fig='all')
+

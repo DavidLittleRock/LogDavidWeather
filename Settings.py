@@ -6,5 +6,5 @@ hostname = 'localhost'
 broker_url = '192.168.1.84'
 broker_port = 1883
 new_data = True
-mqtt_client_id = 'weather2desk'
+mqtt_client_id = "'weather2desk'"
 log_level = 'DEBUG'
