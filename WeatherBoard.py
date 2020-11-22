@@ -10,6 +10,7 @@ from datetime import datetime
 from matplotlib import dates
 from PIL import Image
 import matplotlib
+import time
 
 
 database_table = Settings.database_table
@@ -238,7 +239,7 @@ def get_data():
 
 def make_fig_1(ax_dict):
 # figure
-    figure_1 = pyplot.figure(num=101, facecolor='green')
+    figure_1 = pyplot.figure(num='one', facecolor='green')
     pyplot.suptitle("One Day Graph", fontsize='15', fontweight='bold')
     gs = figure_1.add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
@@ -371,12 +372,16 @@ def make_fig_1(ax_dict):
     ax4.legend(loc='upper left', bbox_to_anchor=(1.0, 1.6), shadow=True, ncol=1, fontsize=15)
     ax4.set_facecolor('#edf7f7')
 
-    pyplot.savefig(fname="one_day.png", format='png')
+#    pyplot.savefig(fname="one_day.png", format='png')
+
+
+    mng = pyplot.get_current_fig_manager()
+    mng.full_screen_toggle()  # full screen no outline
  #   pyplot.close()
 
 
 def make_fig_2(ax_dict):
-    figure_2 = pyplot.figure(num=102, facecolor='green')
+    figure_2 = pyplot.figure(num='two', facecolor='green')
     pyplot.suptitle("7 Days", fontsize='15', fontweight='bold')
     gs = figure_2.add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
@@ -508,7 +513,7 @@ def make_fig_2(ax_dict):
 
 
 def make_fig_3(ax_dict):
-    figure_3 = pyplot.figure(num=103, facecolor='green')
+    figure_3 = pyplot.figure(num='three', facecolor='green')
     pyplot.suptitle("30 Days", fontsize='15', fontweight='bold')
     gs = figure_3.add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
@@ -667,22 +672,23 @@ if __name__ == "__main__":
 
         used_id = get_last_id()
         new_data = False
-
+        pyplot.figure(num='one')
         while not new_data:
-
-            pyplot.figure(101)
-            pyplot.show(block=False)
-            pyplot.pause(60)
+            pyplot.figure(num='one')
+   #         pyplot.show(block=False)
+            pyplot.pause(5.0)
    #         pyplot.clf()
 #            pyplot.figure
 #            pyplot.draw()
+ #           time.sleep(10)
+            pyplot.figure(num='two')
+#            pyplot.show(block=False)
+            pyplot.pause(5.0)
+ #           time.sleep(10)
 
-            pyplot.figure(102)
-            pyplot.show(block=False)
-            pyplot.pause(60)
-            pyplot.figure(103)
-            pyplot.show(block=False)
-            pyplot.pause(60)
+            pyplot.figure(num='three')
+#            pyplot.show(block=False)
+            pyplot.pause(5.0)
 
 #            used_id, new_data, dict_result = check_for_new(used_id)
 #            if check_for_new(used_id):
