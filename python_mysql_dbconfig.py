@@ -7,13 +7,15 @@ logger = get_a_logger(__name__)
 refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/
 """
 
+
 def read_db_config(filename='config.ini', section='mysql'):
     """
     Read database configuration file and return a dictionary object
     Args:
         filename (): name of the configuration file
         section (): section on the database configuration
-    Returns: a dictionary of database parameters
+    Returns: a dictionary of database parameters,
+    the key must match expected name of the database arguments
     host =
     database =
     user =

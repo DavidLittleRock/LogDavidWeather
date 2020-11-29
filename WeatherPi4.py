@@ -259,7 +259,7 @@ def get_data():
 
     # QUERY one day rain BAR
     query = 'SELECT Date, Rain_Change FROM OneDay ORDER BY Date ASC'
-    result_rain_bar = ((0, 0,),)
+#    result_rain_bar = ((0, 0,),)
 
     try:
         my_cursor.execute(query)  # execute a query to select all rows
@@ -275,12 +275,13 @@ def get_data():
     # QUERY rain TODAY
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'
     # Today start 00:00 to now
-    result_rain_today = ((0, 0,),)
+ #   result_rain_today = ((0, 0,),)
 
     try:
         my_cursor.execute(query)
         result_rain_today = my_cursor.fetchall()
-        logger.debug(f"rain_result_today query : {result_rain_today}; \n\tif 0, 0 then nothing returned")
+
+        logger.debug(f"rain_result_today query : {result_rain_today}\n\t {len(result_rain_today)}; \n\tif 0, 0 then nothing returned")
     except Exception:
         e = sys.exc_info()[0]
         print(f"the error is {e}")
@@ -290,7 +291,7 @@ def get_data():
     #  QUERY one day rain YESTERDAY
     query = ('SELECT Date, Rain_Change FROM OneMonth WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY))'
              ' ORDER BY Date ASC')  # Yesterday 00:00 to 00:00
-    result_rain_yesterday = ((0, 0,),)
+#    result_rain_yesterday = ((0, 0,),)
 
     try:
         my_cursor.execute(query)
@@ -307,7 +308,7 @@ def get_data():
     query = ('SELECT Date, Rain_Change FROM OneDay WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR)'
              ' ORDER BY Date ASC')
     # 24 hr rain
-    result_rain_24 = ((0, 0,),)
+ #   result_rain_24 = ((0, 0,),)
 
     try:
         my_cursor.execute(query)
@@ -359,29 +360,56 @@ def get_data():
         dict_result['bp'].append(record[6])
         dict_result['time_hi'].append(record[0])
 
-    for record in result_rain_30:
-        dict_result['time_rain_30'].append(record[0])
-        dict_result['rain_30'].append(record[1] / 22.5)
-        dict_result['rain_30_sum'].append(sum(dict_result['rain_30']))
+    if len(result_rain_30) > 0:
+        for record in result_rain_30:
+            dict_result['time_rain_30'].append(record[0])
+            dict_result['rain_30'].append(record[1] / 22.5)
+            dict_result['rain_30_sum'].append(sum(dict_result['rain_30']))
+    else:
+        print(len(result_rain_yesterday))
+        dict_result['time_rain_30'].append(0)
+        dict_result['rain_30'].append(0)
+        dict_result['rain_30_sum'].append(0)
 
-    for record in result_rain_yesterday:
-        dict_result['time_rain_yesterday'].append(record[0])
-        dict_result['rain_change_yesterday'].append(record[1] / 22.5)
-        dict_result['rain_total_yesterday'].append(sum(dict_result['rain_change_yesterday']))
+    if len(result_rain_yesterday) > 0:
+        for record in result_rain_yesterday:
+            dict_result['time_rain_yesterday'].append(record[0])
+            dict_result['rain_change_yesterday'].append(record[1] / 22.5)
+            dict_result['rain_total_yesterday'].append(sum(dict_result['rain_change_yesterday']))
+    else:
+        print(len(result_rain_yesterday))
+        dict_result['time_rain_yesterday'].append(0)
+        dict_result['rain_change_yesterday'].append(0)
+        dict_result['rain_total_yesterday'].append(0)
+    if len(result_rain_bar) > 0:
+        for record in result_rain_bar:
+            dict_result['time_rain_bar'].append(record[0])
+            dict_result['rain_change_bar'].append(record[1] / 22.5)
+    else:
+        dict_result['time_rain_bar'].append(0)
+        dict_result['rain_change_bar'].append(0)
 
-    for record in result_rain_bar:
-        dict_result['time_rain_bar'].append(record[0])
-        dict_result['rain_change_bar'].append(record[1] / 22.5)
+    if len(result_rain_today) > 0:
+        for record in result_rain_today:
+            dict_result['time_rain_today'].append(record[0])
+            dict_result['rain_change_today'].append(record[1] / 22.5)
+            dict_result['rain_total_today'].append(sum(dict_result['rain_change_today']))
+    else:
+        print(len(result_rain_today))
+        dict_result['time_rain_today'].append(0)
+        dict_result['rain_change_today'].append(0)
+        dict_result['rain_total_today'].append(0)
 
-    for record in result_rain_today:
-        dict_result['time_rain_today'].append(record[0])
-        dict_result['rain_change_today'].append(record[1] / 22.5)
-        dict_result['rain_total_today'].append(sum(dict_result['rain_change_today']))
-
-    for record in result_rain_24:
-        dict_result['time_rain_24'].append(record[0])
-        dict_result['rain_change_24'].append(record[1] / 22.5)
-        dict_result['rain_total_24'].append(sum(dict_result['rain_change_24']))
+    if len(result_rain_24) > 0:
+        for record in result_rain_24:
+            dict_result['time_rain_24'].append(record[0])
+            dict_result['rain_change_24'].append(record[1] / 22.5)
+            dict_result['rain_total_24'].append(sum(dict_result['rain_change_24']))
+    else:
+        print(len(result_rain_24))
+        dict_result['time_rain_24'].append(0)
+        dict_result['rain_change_24'].append(0)
+        dict_result['rain_total_24'].append(0)
 
     #    convert each list to a numpy array
     for k in dict_result:
