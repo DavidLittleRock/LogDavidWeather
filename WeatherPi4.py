@@ -15,7 +15,9 @@ from matplotlib import pyplot
 
 import Settings
 from WeatherAppLog import get_a_logger
-from python_mysql_dbconfig import read_db_config
+# from python_mysql_dbconfig import read_db_config
+
+import sqlfile
 
 # TODO use argparser to specify debug and desk/pi
 
@@ -38,8 +40,7 @@ write message data to SQL
 def on_log(client, userdata, level, buff):
     print(level)
     print(buff)
-
-
+    pass
 #   return database_password
 #   raise dd
 
@@ -67,7 +68,7 @@ def on_message(self, userdata, message):
     write_to_data(data_list)
     #   TestGraph.one_day()  # call to display with  new data
     Settings.new_data = True
-    logger.debug(f"new data set to True")
+    logger.debug(f"new data set to True because new message data")
 
 
 def mqtt_client():
@@ -143,21 +144,12 @@ def write_to_data(list_to_write):
         list_to_write ():
     """
     logger.info(f"in write_to_data()")
-    try:
-        db_config = read_db_config()
-        logger.debug(f"connection to database with {db_config}")
-        db_connection = mdb.connect(**db_config)
-        if db_connection.open:
-            logger.debug(f"db connect open; success")
-        my_cursor = db_connection.cursor()
-    except Exception:
-        # print("fail to connect to database")
-        e = sys.exc_info()[0]
-        logger.exception(str(e))
+
+    db_connection = sqlfile.create_db_connection()
 
     device_id = 6
-    try:
-        query = 'INSERT INTO ' + database_table + (
+
+    query = 'INSERT INTO ' + database_table + (
                 ' (timestamp, deviceid, Outdoor_Temperature, Outdoor_Humidity, Barometric_Pressure, Current_Wind_Speed,'
                 'Current_Wind_Gust, Current_Wind_Direction, Wind_Speed_Maximum, Wind_Gust_Maximum, '
                 'OurWeather_DateTime, Lightning_Time, Lightning_Distance, Lightning_Count, Rain_Total, '
@@ -167,161 +159,61 @@ def write_to_data(list_to_write):
                     float(list_to_write[3]), float(list_to_write[4]), float(list_to_write[5]), float(list_to_write[7]),
                     float(list_to_write[8]), list_to_write[9], list_to_write[10], int(list_to_write[11]),
                     int(list_to_write[12]), float(list_to_write[6]), float(list_to_write[13])))
-        logger.info(f"Successful write to database:\n\t {query}")
-        my_cursor.execute(query)
-        db_connection.commit()
-        db_connection.close()
-        if not db_connection.open:
-            logger.debug(f"db connection is now closed")
-    except Exception:
-        #  print("fail to write to database")
-        e = sys.exc_info()[0]
-        #    print(f"the error is {e}")
-        #    print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-        logger.exception(str(e))
 
+    sqlfile.execute_query(db_connection, query)
 
-def open_db_connection():
-    # this will open a new connection to SQL
-    try:
-        db_config = read_db_config()
-        db_connection = mdb.connect(**db_config)
-        if db_connection.open:
-            logger.debug(f"db connect open; success with:\n\t{db_config}")
-        my_cursor = db_connection.cursor()
-        return my_cursor, db_connection
-    except Exception:
-        # print("fail to connect to database")
-        e = sys.exc_info()[0]
-        logger.exception(str(e))
-
-
-def close_db_connection(my_cursor, db_connection):
-    # close the SQL connection
-    my_cursor.close()
-    db_connection.close()
-    if not db_connection.open:
-        logger.debug(f"db connection closed successfully")
+    sqlfile.close_db_connection(db_connection)
 
 
 def get_last_id():
-    my_cursor, db_connection = open_db_connection()  # open db connection
 
+    db_connection = sqlfile.create_db_connection()
     query = 'SELECT id FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
 
-    try:
-        my_cursor.execute(query)
-        result = my_cursor.fetchall()  # a tuple ((id,),)
-        # FIXME change from fetchall to get one line
-        logger.debug(f"last row id = {result}\n\ttype: {type(result)}")
-    except Exception:
-        e = sys.exc_info()[0]
-        print(f"The error is {e}")
-        result = ((0,),)
+    result = sqlfile.read_query(db_connection, query)
 
     row_id = result[0][0]
     logger.debug(f"row_id to return: {row_id}; \n\ttype: {type(row_id)}")
-    close_db_connection(my_cursor, db_connection)  # close the db connection
-
+    sqlfile.close_db_connection(db_connection)  # close the db connection
     return row_id
 
 
 def get_data():
     #  TODO make chill factor, in SQL or here?
-    my_cursor, db_connection = open_db_connection()  # open db connection
-    # DO QUERY
+    logger.debug("from get_data")
+    db_connection = sqlfile.create_db_connection()
+
     query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP FROM OneMonth ORDER BY Date ASC'
 
-    try:
-        my_cursor.execute(query)
-        result = my_cursor.fetchall()  # a tuple ((id,),)
-        #        logger.debug(f"last row id = {result}\n\type: {type(result)}")
-        logger.debug(f"row [0]: {result[0]}\n\ttype: {type(result[0])}")
-        logger.debug(f"item[0][0]: {result[0][0]}\n\ttype: {type(result[0][0])}")
-        logger.debug(f"item[0][2]: {result[0][1]} \n\ttype: {type(result[0][1])}")
-    except Exception:
-        e = sys.exc_info()[0]
-        print(f"The error is {e}")
-        result = ((0, 0,),)
+    result = sqlfile.read_query(db_connection, query)
 
     # QUERY FOR # 30 DAY RAIN
     query = 'SELECT Date, SUM(Rain_Change) FROM OneMonth GROUP BY Day(Date) ORDER BY Date ASC'
-    try:
-        my_cursor.execute(query)
-        result_rain_30 = my_cursor.fetchall()
-        logger.debug(f"rain_result_30 query : {result_rain_30}; \n\tif 0, 0 then nothing returned")
-
-    except Exception:
-        e = sys.exc_info()[0]
-        print(f"the error is {e}")
-        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-        result_rain_30 = ((0, 0),)
+    result_rain_30 = sqlfile.read_query(db_connection, query)
 
     # QUERY one day rain BAR
     query = 'SELECT Date, Rain_Change FROM OneDay ORDER BY Date ASC'
 #    result_rain_bar = ((0, 0,),)
-
-    try:
-        my_cursor.execute(query)  # execute a query to select all rows
-        result_rain_bar = my_cursor.fetchall()
-        logger.debug(f"rain_result_bar query : {result_rain_bar}; \n\tif 0, 0 then nothing returned")
-
-    except Exception:
-        e = sys.exc_info()[0]
-        print(f"the error is {e}")
-        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-        logger.exception(str(e))
+    result_rain_bar = sqlfile.read_query(db_connection, query)
 
     # QUERY rain TODAY
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'
     # Today start 00:00 to now
- #   result_rain_today = ((0, 0,),)
-
-    try:
-        my_cursor.execute(query)
-        result_rain_today = my_cursor.fetchall()
-
-        logger.debug(f"rain_result_today query : {result_rain_today}\n\t {len(result_rain_today)}; \n\tif 0, 0 then nothing returned")
-    except Exception:
-        e = sys.exc_info()[0]
-        print(f"the error is {e}")
-        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-        logger.exception(str(e))
+    result_rain_today = sqlfile.read_query(db_connection, query)
 
     #  QUERY one day rain YESTERDAY
     query = ('SELECT Date, Rain_Change FROM OneMonth WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY))'
              ' ORDER BY Date ASC')  # Yesterday 00:00 to 00:00
 #    result_rain_yesterday = ((0, 0,),)
-
-    try:
-        my_cursor.execute(query)
-        result_rain_yesterday = my_cursor.fetchall()
-        logger.debug(f"rain_result_yesterday query : {result_rain_yesterday}; \n\tif 0, 0 then nothing returned")
-
-    except Exception:
-        e = sys.exc_info()[0]
-        print(f"the error is {e}")
-        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-        logger.exception(str(e))
+    result_rain_yesterday = sqlfile.read_query(db_connection, query)
 
     # QUERY rain 24
     query = ('SELECT Date, Rain_Change FROM OneDay WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR)'
              ' ORDER BY Date ASC')
     # 24 hr rain
- #   result_rain_24 = ((0, 0,),)
+    result_rain_24 = sqlfile.read_query(db_connection, query)
 
-    try:
-        my_cursor.execute(query)
-        result_rain_24 = my_cursor.fetchall()
-        logger.debug(f"rain_result_24 query : {result_rain_24}; \n\tif 0, 0 then nothing returned")
-
-    except Exception:
-        e = sys.exc_info()[0]
-        print(f"the error is {e}")
-        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-        logger.exception(str(e))
-
-    close_db_connection(my_cursor, db_connection)  # close the db connection
+    sqlfile.close_db_connection(db_connection)  # close the db connection
     # Move results into dict of lists
     # TODO wind direction
     dict_result = {
@@ -865,10 +757,6 @@ def mqtt_app():
 
     while True:
         time.sleep(1)
-        if Settings.new_data:
-            Settings.new_data = False
-            logger.debug(f"call to one_day")
-        #      TestGraph.one_day()
 
         make_fig_1(dict_result)
 
@@ -877,34 +765,35 @@ def mqtt_app():
         make_fig_3(dict_result)
 
         used_id = get_last_id()
-        new_data = False
+        new_data = False   # do I need this and line 762 above?
+        logger.debug(f"Reset new_data back to False")
+
         pyplot.figure(num='one')
         while not new_data:
             pyplot.figure(num='one')
             #         pyplot.show(block=False)
-            pyplot.pause(5.0)
+            pyplot.pause(15.0)
             #         pyplot.clf()
             #            pyplot.figure
             #            pyplot.draw()
             #           time.sleep(10)
             pyplot.figure(num='two')
             #            pyplot.show(block=False)
-            pyplot.pause(5.0)
-            #           time.sleep(10)
+            pyplot.pause(15.0)
 
             pyplot.figure(num='three')
             #            pyplot.show(block=False)
-            pyplot.pause(5.0)
+            pyplot.pause(15.0)
 
             #            used_id, new_data, dict_result = check_for_new(used_id)
             #            if check_for_new(used_id):
             if used_id != get_last_id():
                 dict_result = get_data()
                 new_data = True
+                logger.debug("set new_data to True to trigger break out of new data loop")
 
         pyplot.close(fig='all')
 
 
 if __name__ == "__main__":
     mqtt_app()
-# push

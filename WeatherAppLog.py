@@ -8,7 +8,7 @@ def get_a_logger(name):
   #  coloredlogs.install(level='DEBUG')
   #  coloredlogs.DEFAULT_LOG_LEVEL = 50
     coloredlogs.adjust_level(logger=logger, level=10)
-    coloredlogs.DEFAULT_LOG_FORMAT = '%(asctime)s - Level: %(levelname)s\n  - Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n  - Message: %(message)s \n'
+    coloredlogs.DEFAULT_LOG_FORMAT = '%(asctime)s - Level: %(levelname)s\n  - Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n  - Message: %(message)s \n --logger name: %(name)s'
 
     coloredlogs.DEFAULT_LEVEL_STYLES = {'critical': {'bold': True, 'color': 'red'},
                                         'debug': {'color': 'green'},

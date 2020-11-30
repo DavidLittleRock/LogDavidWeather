@@ -11,6 +11,8 @@ refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/
 def read_db_config(filename='config.ini', section='mysql'):
     """
     Read database configuration file and return a dictionary object
+    refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/
+
     Args:
         filename (): name of the configuration file
         section (): section on the database configuration
