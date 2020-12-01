@@ -126,9 +126,6 @@ def on_connect(self, userdata, flags, rc):
     # reconnect then subscriptions will be renewed.
 
 
-#  client.subscribe('OurWeather', qos=2)
-
-
 def on_disconnect(self, userdata, rc):
     logger.info(f'disconnected with rc {rc}')
 
@@ -183,7 +180,7 @@ def get_data():
     logger.debug("from get_data")
     db_connection = sqlfile.create_db_connection()
 
-    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP FROM OneMonth ORDER BY Date ASC'
+    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC FROM OneMonth ORDER BY Date ASC'
 
     result = sqlfile.read_query(db_connection, query)
 
@@ -240,6 +237,9 @@ def get_data():
         'rain_change_24': [],
         'rain_total_24': [],
         'rain_7': [],
+        'wind_chill': [],
+        'time_wind_chill': [],
+        'wind_for_wc': [],
     }
 
     for record in result:  # make a list for each measure
@@ -251,6 +251,9 @@ def get_data():
         dict_result['wind_d'].append(record[5])
         dict_result['bp'].append(record[6])
         dict_result['time_hi'].append(record[0])
+        dict_result['wind_chill'].append(record[7])
+        dict_result['time_wind_chill'].append(record[0])
+        dict_result['wind_for_wc'].append(record[4])
 
     if len(result_rain_30) > 0:
         for record in result_rain_30:
@@ -310,6 +313,12 @@ def get_data():
     dict_result['hi'] = dict_result['hi'][dict_result['temp'] > 80]  # filter hi for temp > 80
     dict_result['time_hi'] = dict_result['time_hi'][dict_result['temp'] > 80]
 
+    dict_result['wind_chill'] = dict_result['wind_chill'][dict_result['temp'] < 50]
+    dict_result['time_wind_chill'] = dict_result['time_wind_chill'][dict_result['temp'] < 50]
+    dict_result['wind_for_wc'] = dict_result['wind_for_wc'][dict_result['temp'] < 50]
+    dict_result['wind_chill'] = dict_result['wind_chill'][dict_result['wind_for_wc'] > 3]
+    dict_result['time_wind_chill'] = dict_result['time_wind_chill'][dict_result['wind_for_wc'] > 3]
+
     #  filter 30 day rain to 7 days
     dict_result['rain_7'] = dict_result['rain_30'][
         dates.date2num(dict_result['time_rain_30']) > dates.date2num(datetime.now()) - 7]
@@ -326,13 +335,17 @@ def make_fig_1(ax_dict):
     gs = figure_1.add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
 
+    dayx = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now())-1]
+    max_temp = max(dayx)
+    min_temp = min(dayx)
+
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
 
     # ax1  TEMP
     ax1 = figure_1.add_subplot(gs[:5, :4])
-    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='blue', markersize=2.0,
-             label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109")
+    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='black', markersize=2.0,
+             label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp}) ")
     if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
         if ax_dict['time'][-1] == ax_dict['time_hi'][-1]:  # if the last reading has a Heat Index
             logger.debug(f"temp = {ax_dict['temp'][-1]}")
@@ -353,6 +366,11 @@ def make_fig_1(ax_dict):
     if ax_dict['humid'] is not None:
         ax1.plot(ax_dict['time'], ax_dict['humid'], marker='.', linestyle='', color='orange',
                  label=f"Humidity {ax_dict['humid'][-1]:.0f}%")
+
+    if ax_dict['wind_chill'] is not None:
+        ax1.plot(ax_dict['time_wind_chill'], ax_dict['wind_chill'], marker='v', linestyle='', color='blue',
+                 label='Wind chill')
+
     ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now())) - 1,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
 
@@ -361,6 +379,7 @@ def make_fig_1(ax_dict):
     ax1.set_title('', fontsize='10', fontweight='normal')
     ax1.xaxis.set_major_formatter(hfmt)
     ax1.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1, fontsize=15)
+
     ax1.set_xlabel('')
     ax1.set_ylabel('')
     ax1.grid(b=True, which='minor', axis='both', color='#999999', alpha=0.5, linestyle='--')
@@ -375,7 +394,7 @@ def make_fig_1(ax_dict):
     # ax2  WIND
     ax2 = figure_1.add_subplot(gs[6:8, :4])
 
-    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5,
+    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='-', color='black', markersize=2, linewidth=0.5,
              label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 1,
@@ -468,18 +487,19 @@ def make_fig_1(ax_dict):
     mng.full_screen_toggle()  # full screen no outline
 
 
-#   pyplot.close()
-
-
 def make_fig_2(ax_dict):
     figure_2 = pyplot.figure(num='two', facecolor='green')
     pyplot.suptitle("7 Days", fontsize='15', fontweight='bold')
     gs = figure_2.add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
 
+    dayx = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 7]
+    max_temp = max(dayx)
+    min_temp = min(dayx)
+
     ax1 = figure_2.add_subplot(gs[:5, :4])
-    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='blue', markersize=2.0,
-             label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109")
+    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='black', markersize=1.5,
+             label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp})")
     if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
         if ax_dict['time'][-1] == ax_dict['time_hi'][-1]:  # if the last reading has a Heat Index
             logger.debug(f"temp = {ax_dict['temp'][-1]}")
@@ -497,6 +517,10 @@ def make_fig_2(ax_dict):
     else:  # if no heat index in 30 day
         # do not print Heat Index line
         pass
+
+    if ax_dict['wind_chill'] is not None:
+        ax1.plot(ax_dict['time_wind_chill'], ax_dict['wind_chill'], marker='v', linestyle='', color='blue',
+                 label='Wind chill', markersize='3.0')
     # block out humid plot
     #    if ax_dict['humid'] is not None:
     #        ax1.plot(ax_dict['time'], ax_dict['humid'], marker='.', linestyle='', color='orange',
@@ -522,8 +546,8 @@ def make_fig_2(ax_dict):
     # ax2  WIND
     ax2 = figure_2.add_subplot(gs[6:8, :4])
 
-    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5,
-             label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH")
+    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='-', color='black', markersize='1.0',
+             linewidth=0.5, label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 7,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
@@ -610,9 +634,13 @@ def make_fig_3(ax_dict):
     gs = figure_3.add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
 
+    dayx = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 30]
+    max_temp = max(dayx)
+    min_temp = min(dayx)
+
     ax1 = figure_3.add_subplot(gs[:5, :4])
-    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='blue', markersize=2.0,
-             label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109")
+    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='black', markersize=1.0,
+             label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp})")
     if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
         if ax_dict['time'][-1] == ax_dict['time_hi'][-1]:  # if the last reading has a Heat Index
             logger.debug(f"temp = {ax_dict['temp'][-1]}")
@@ -634,6 +662,10 @@ def make_fig_3(ax_dict):
     #        ax1.plot(ax_dict['time'], ax_dict['humid'], marker='.', linestyle='', color='orange',
     #                 label=f"Humidity {ax_dict['humid'][-1]:.0f}%")
 
+    if ax_dict['wind_chill'] is not None:
+        ax1.plot(ax_dict['time_wind_chill'], ax_dict['wind_chill'], marker='v', linestyle='', color='blue',
+                 label='Wind chill', markersize='2.0')
+
     ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now())) - 30,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 7 days
     ax1.xaxis.set_major_locator(dates.DayLocator(interval=1))
@@ -654,7 +686,7 @@ def make_fig_3(ax_dict):
     # ax2  WIND
     ax2 = figure_3.add_subplot(gs[6:8, :4])
 
-    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='-', color='blue', markersize=2, linewidth=0.5,
+    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize=2, linewidth=0.5,
              label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 30,
@@ -772,18 +804,15 @@ def mqtt_app():
         while not new_data:
             pyplot.figure(num='one')
             #         pyplot.show(block=False)
-            pyplot.pause(15.0)
-            #         pyplot.clf()
-            #            pyplot.figure
-            #            pyplot.draw()
-            #           time.sleep(10)
+            pyplot.pause(75.0)
+
             pyplot.figure(num='two')
             #            pyplot.show(block=False)
-            pyplot.pause(15.0)
+            pyplot.pause(75.0)
 
             pyplot.figure(num='three')
             #            pyplot.show(block=False)
-            pyplot.pause(15.0)
+            pyplot.pause(75.0)
 
             #            used_id, new_data, dict_result = check_for_new(used_id)
             #            if check_for_new(used_id):
