@@ -346,28 +346,33 @@ def make_fig_1(ax_dict):
     ax1 = figure_1.add_subplot(gs[:5, :4])
     ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='black', markersize=2.0,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp}) ")
-    if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
-        if ax_dict['time'][-1] == ax_dict['time_hi'][-1]:  # if the last reading has a Heat Index
-            logger.debug(f"temp = {ax_dict['temp'][-1]}")
-            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
-                     label=f"Heat Index {ax_dict['hi'][-1]:.1f}\u2109")
-            print(f"time hi: {ax_dict['time_hi'][-1]} \ntype {type(ax_dict['time_hi'][-1])}")
-            print(f"datetime {datetime.now()}")
-        elif dates.date2num(ax_dict['time_hi'][-1]) > (dates.date2num(datetime.now())) - 1:
-            #  if there is a heat index in 1 day
-            print("ok")
-            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
-                     label=f"Heat Index \u2109")
-        else:  # if no heat index in this day
-            pass
-    else:  # if no heat index in 30 day
-        # do not print Heat Index line
-        pass
+
+#    if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
+#        if ax_dict['time'][-1] == ax_dict['time_hi'][-1]:  # if the last reading has a Heat Index
+#            logger.debug(f"temp = {ax_dict['temp'][-1]}")
+#            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
+#                     label=f"Heat Index {ax_dict['hi'][-1]:.1f}\u2109")
+#            print(f"time hi: {ax_dict['time_hi'][-1]} \ntype {type(ax_dict['time_hi'][-1])}")
+#            print(f"datetime {datetime.now()}")
+#        elif dates.date2num(ax_dict['time_hi'][-1]) > (dates.date2num(datetime.now())) - 1:
+#            #  if there is a heat index in 1 day
+#            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
+#                     label=f"Heat Index \u2109")
+#        else:  # if no heat index in this day
+#            pass
+#    else:  # if no heat index in 30 day
+#        # do not print Heat Index line
+#        pass
+
+    if len(ax_dict['hi']) > 0 and dates.date2num(ax_dict['time_hi'][-1]) > (dates.date2num(datetime.now())) - 1:
+        ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red',
+                 label='Heat Index')
+
     if ax_dict['humid'] is not None:
         ax1.plot(ax_dict['time'], ax_dict['humid'], marker='.', linestyle='', color='orange',
                  label=f"Humidity {ax_dict['humid'][-1]:.0f}%")
 
-    if ax_dict['wind_chill'] is not None:
+    if ax_dict['wind_chill'] is not None and dates.date2num(ax_dict['time_wind_chill'][-1]) > (dates.date2num(datetime.now())) - 1:
         ax1.plot(ax_dict['time_wind_chill'], ax_dict['wind_chill'], marker='v', linestyle='', color='blue',
                  label='Wind chill')
 
@@ -500,23 +505,29 @@ def make_fig_2(ax_dict):
     ax1 = figure_2.add_subplot(gs[:5, :4])
     ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='black', markersize=1.5,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp})")
-    if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
-        if ax_dict['time'][-1] == ax_dict['time_hi'][-1]:  # if the last reading has a Heat Index
-            logger.debug(f"temp = {ax_dict['temp'][-1]}")
-            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
-                     label=f"Heat Index {ax_dict['hi'][-1]:.1f}\u2109")
-            print(f"time hi: {ax_dict['time_hi'][-1]} \ntype {type(ax_dict['time_hi'][-1])}")
-            print(f"datetime {datetime.now()}")
-        elif dates.date2num(ax_dict['time_hi'][-1]) > (
-                dates.date2num(datetime.now())) - 1:  # if there is a heat index in 1 day
-            print("ok")
-            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
-                     label=f"Heat Index \u2109")
-        else:  # if no heat index in this day
-            pass
-    else:  # if no heat index in 30 day
-        # do not print Heat Index line
-        pass
+
+#    if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
+#        if ax_dict['time'][-1] == ax_dict['time_hi'][-1]:  # if the last reading has a Heat Index
+#            logger.debug(f"temp = {ax_dict['temp'][-1]}")
+#            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
+#                     label=f"Heat Index {ax_dict['hi'][-1]:.1f}\u2109")
+#            print(f"time hi: {ax_dict['time_hi'][-1]} \ntype {type(ax_dict['time_hi'][-1])}")
+#            print(f"datetime {datetime.now()}")
+#        elif dates.date2num(ax_dict['time_hi'][-1]) > (
+#                dates.date2num(datetime.now())) - 1:  # if there is a heat index in 1 day
+#            print("ok")
+#            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
+#                     label=f"Heat Index \u2109")
+#        else:  # if no heat index in this day
+#            pass
+#    else:  # if no heat index in 30 day
+#        # do not print Heat Index line
+#        pass
+
+    if len(ax_dict['hi']) > 0 and dates.date2num(ax_dict['time_hi'][-1]) > (dates.date2num(datetime.now())) - 7:
+        ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red',
+                 label='Heat Index')
+
 
     if ax_dict['wind_chill'] is not None:
         ax1.plot(ax_dict['time_wind_chill'], ax_dict['wind_chill'], marker='v', linestyle='', color='blue',
@@ -641,23 +652,29 @@ def make_fig_3(ax_dict):
     ax1 = figure_3.add_subplot(gs[:5, :4])
     ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='black', markersize=1.0,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp})")
-    if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
-        if ax_dict['time'][-1] == ax_dict['time_hi'][-1]:  # if the last reading has a Heat Index
-            logger.debug(f"temp = {ax_dict['temp'][-1]}")
-            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
-                     label=f"Heat Index {ax_dict['hi'][-1]:.1f}\u2109")
-            print(f"time hi: {ax_dict['time_hi'][-1]} \ntype {type(ax_dict['time_hi'][-1])}")
-            print(f"datetime {datetime.now()}")
-        elif dates.date2num(ax_dict['time_hi'][-1]) > (
-                dates.date2num(datetime.now())) - 1:  # if there is a heat index in 1 day
-            print("ok")
-            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
-                     label=f"Heat Index \u2109")
-        else:  # if no heat index in this day
-            pass
-    else:  # if no heat index in 30 day
-        # do not print Heat Index line
-        pass
+
+#    if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
+#        if ax_dict['time'][-1] == ax_dict['time_hi'][-1]:  # if the last reading has a Heat Index
+#            logger.debug(f"temp = {ax_dict['temp'][-1]}")
+#            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
+#                     label=f"Heat Index {ax_dict['hi'][-1]:.1f}\u2109")
+#            print(f"time hi: {ax_dict['time_hi'][-1]} \ntype {type(ax_dict['time_hi'][-1])}")
+#            print(f"datetime {datetime.now()}")
+#        elif dates.date2num(ax_dict['time_hi'][-1]) > (
+#                dates.date2num(datetime.now())) - 1:  # if there is a heat index in 1 day
+#            print("ok")
+#            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
+#                     label=f"Heat Index \u2109")
+#        else:  # if no heat index in this day
+#            pass
+#    else:  # if no heat index in 30 day
+#        # do not print Heat Index line
+#        pass
+
+    if len(ax_dict['hi']) > 0 and dates.date2num(ax_dict['time_hi'][-1]) > (dates.date2num(datetime.now())) - 30:
+        ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red',
+                 label='Heat Index', markersize='1')
+
     #    if ax_dict['humid'] is not None:
     #        ax1.plot(ax_dict['time'], ax_dict['humid'], marker='.', linestyle='', color='orange',
     #                 label=f"Humidity {ax_dict['humid'][-1]:.0f}%")
