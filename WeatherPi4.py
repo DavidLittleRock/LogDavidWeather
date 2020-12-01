@@ -180,7 +180,7 @@ def get_data():
     logger.debug("from get_data")
     db_connection = sqlfile.create_db_connection()
 
-    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC FROM OneMonth ORDER BY Date ASC'
+    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust FROM OneMonth ORDER BY Date ASC'
 
     result = sqlfile.read_query(db_connection, query)
 
@@ -240,6 +240,7 @@ def get_data():
         'wind_chill': [],
         'time_wind_chill': [],
         'wind_for_wc': [],
+        'gust': [],
     }
 
     for record in result:  # make a list for each measure
@@ -254,6 +255,7 @@ def get_data():
         dict_result['wind_chill'].append(record[7])
         dict_result['time_wind_chill'].append(record[0])
         dict_result['wind_for_wc'].append(record[4])
+        dict_result['gust'].append(record[8])
 
     if len(result_rain_30) > 0:
         for record in result_rain_30:
@@ -329,6 +331,27 @@ def get_data():
 
 
 def make_fig_1(ax_dict):
+
+    compass = {
+        0.0: 'North',
+        22.5: 'North',
+        45: 'Northeast',
+        67.5: 'East',
+        90: 'East',
+        112.5: 'East',
+        135: 'Southeast',
+        157.5: 'South',
+        180: 'South',
+        202.5: 'South',
+        225: 'Southwest',
+        247.5: 'West',
+        270: 'West',
+        292.5: 'West',
+        315: 'Northwest',
+        337.5: 'North',
+        360: 'North',
+    }
+
     # figure
     figure_1 = pyplot.figure(num='one', facecolor='green')
     pyplot.suptitle("One Day Graph", fontsize='15', fontweight='bold')
@@ -397,10 +420,17 @@ def make_fig_1(ax_dict):
     logger.debug('did make_ax1')
 
     # ax2  WIND
+
+    # gust period
+
+    gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 0.25]
+    max_gust = max(gust_period)
+
+
     ax2 = figure_1.add_subplot(gs[6:8, :4])
 
     ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='-', color='black', markersize=2, linewidth=0.5,
-             label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH")
+             label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 1,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
@@ -493,6 +523,26 @@ def make_fig_1(ax_dict):
 
 
 def make_fig_2(ax_dict):
+
+    compass = {
+        0.0: 'North',
+        22.5: 'North',
+        45: 'Northeast',
+        67.5: 'East',
+        90: 'East',
+        112.5: 'East',
+        135: 'Southeast',
+        157.5: 'South',
+        180: 'South',
+        202.5: 'South',
+        225: 'Southwest',
+        247.5: 'West',
+        270: 'West',
+        292.5: 'West',
+        315: 'Northwest',
+        337.5: 'North',
+        360: 'North',
+    }
     figure_2 = pyplot.figure(num='two', facecolor='green')
     pyplot.suptitle("7 Days", fontsize='15', fontweight='bold')
     gs = figure_2.add_gridspec(10, 5)
@@ -557,8 +607,11 @@ def make_fig_2(ax_dict):
     # ax2  WIND
     ax2 = figure_2.add_subplot(gs[6:8, :4])
 
+    gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 0.5]
+    max_gust = max(gust_period)
+
     ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='-', color='black', markersize='1.0',
-             linewidth=0.5, label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH")
+             linewidth=0.5, label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 7,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
@@ -640,6 +693,26 @@ def make_fig_2(ax_dict):
 
 
 def make_fig_3(ax_dict):
+
+    compass = {
+        0.0: 'North',
+        22.5: 'North',
+        45: 'Northeast',
+        67.5: 'East',
+        90: 'East',
+        112.5: 'East',
+        135: 'Southeast',
+        157.5: 'South',
+        180: 'South',
+        202.5: 'South',
+        225: 'Southwest',
+        247.5: 'West',
+        270: 'West',
+        292.5: 'West',
+        315: 'Northwest',
+        337.5: 'North',
+        360: 'North',
+    }
     figure_3 = pyplot.figure(num='three', facecolor='green')
     pyplot.suptitle("30 Days", fontsize='15', fontweight='bold')
     gs = figure_3.add_gridspec(10, 5)
@@ -703,8 +776,11 @@ def make_fig_3(ax_dict):
     # ax2  WIND
     ax2 = figure_3.add_subplot(gs[6:8, :4])
 
+    gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 1]
+    max_gust = max(gust_period)
+
     ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize=2, linewidth=0.5,
-             label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH")
+             label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 30,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
