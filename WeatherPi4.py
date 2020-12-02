@@ -10,6 +10,7 @@ from datetime import datetime
 import numpy as np
 import paho.mqtt.client as mqtt
 import pymysql as mdb
+import matplotlib
 from matplotlib import dates
 from matplotlib import pyplot
 
