@@ -9,8 +9,8 @@ from datetime import datetime
 
 import numpy as np
 import paho.mqtt.client as mqtt
-import pymysql as mdb
-import matplotlib
+# import pymysql as mdb
+# import matplotlib
 from matplotlib import dates
 from matplotlib import pyplot
 
@@ -82,7 +82,7 @@ def mqtt_client():
     #   client = mqtt.Client(client_id='weather2desk', clean_session=False, userdata=None, transport='tcp')
 
     try:
-        client_id = 'weather2desk'
+        client_id = 'weather2pi4'
         client = mqtt.Client(client_id, clean_session=False, userdata=None, transport='tcp')
         logger.debug(f"mqtt client created: id {Settings.mqtt_client_id}")
     except Exception:
@@ -426,7 +426,7 @@ def make_fig_1(ax_dict):
 
     gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 0.25]
     max_gust = max(gust_period)
-
+#    max_gust = 5
 
     ax2 = figure_1.add_subplot(gs[6:8, :4])
 
@@ -455,7 +455,7 @@ def make_fig_1(ax_dict):
     ax3 = figure_1.add_subplot(gs[8:, :4])  # ax3 is local scope but modifies fig that was passed in as argument
     pyplot.xticks([], rotation='45')
 
-    ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='-', color='green', markersize=1.5, linewidth=1,
+    ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='-', color='green', markersize=2.0, linewidth=1,
              label=f"BP {ax_dict['bp'][-1]:.2f} mmHg")
 
     ax3.axis(ymin=29.50, ymax=30.60, xmin=(dates.date2num(datetime.now())) - 1,
@@ -464,6 +464,9 @@ def make_fig_1(ax_dict):
     ax3.xaxis.set_minor_locator(dates.HourLocator(interval=1))
     hfmt = dates.DateFormatter('%m/%d \n %H:%M')
     ax3.xaxis.set_major_formatter(hfmt)
+    pyplot.xticks(fontsize=15)
+
+
 
     ax3.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1, fontsize=15)
     ax3.set_title('', fontsize='15')
@@ -610,8 +613,9 @@ def make_fig_2(ax_dict):
 
     gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 0.5]
     max_gust = max(gust_period)
+ #   max_gust = 6
 
-    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='-', color='black', markersize='1.0',
+    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize='1.0',
              linewidth=0.5, label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 7,
@@ -646,6 +650,7 @@ def make_fig_2(ax_dict):
     ax3.xaxis.set_minor_locator(dates.HourLocator(interval=6))
     hfmt = dates.DateFormatter('%m/%d\n%A')
     ax3.xaxis.set_major_formatter(hfmt)
+    pyplot.xticks(fontsize=15)
 
     ax3.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1, fontsize=15)
     ax3.set_title('', fontsize='15')
@@ -779,8 +784,9 @@ def make_fig_3(ax_dict):
 
     gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 1]
     max_gust = max(gust_period)
+#    max_gust = 7
 
-    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize=2, linewidth=0.5,
+    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize=1.5, linewidth=0.5,
              label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 30,
