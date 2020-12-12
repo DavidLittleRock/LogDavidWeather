@@ -8,6 +8,7 @@ from configparser import ConfigParser
 from WeatherAppLog import get_a_logger
 
 logger = get_a_logger(__name__)
+logger.setLevel(20)
 
 
 def create_server_connection(host_name, user_name, user_password):
@@ -42,16 +43,16 @@ def create_db_connection_x(host_name, user_name, user_password, db_name):
 def create_db_connection():
     connection = None
 #    logger = get_a_logger(__name__)
-    log = logger
+#    log = logger
 
     try:
-        log.debug("start create_db_connection")
+        logger.debug("start create_db_connection")
         db_config = read_db_config()
         connection = mdb.connect(**db_config)
         if connection.open:
-            log.debug(f"db connect open; success with:\n\t{db_config}")
+            logger.debug(f"db connect open; success with:\n\t{db_config}")
     except Error as err:
-        log.debug(f"Error: '{err}'")
+        logger.debug(f"Error: '{err}'")
     return connection
 
 

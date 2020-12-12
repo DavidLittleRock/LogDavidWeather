@@ -4,11 +4,24 @@ import coloredlogs
 
 
 def get_a_logger(name):
+#    coloredlogs.install(level='DEBUG')
+
     logger = logging.getLogger(name)
-  #  coloredlogs.install(level='DEBUG')
   #  coloredlogs.DEFAULT_LOG_LEVEL = 50
-    coloredlogs.adjust_level(logger=logger, level=10)
-    coloredlogs.DEFAULT_LOG_FORMAT = '%(asctime)s - Level: %(levelname)s\n  - Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n  - Message: %(message)s \n --logger name: %(name)s'
+    coloredlogs.adjust_level(logger=logger, level=20)
+    """
+    Log levels
+    Critical    50
+    Error       40
+    Warning     30
+    Info        20 **
+    Debug       10
+    Notset      0
+    """
+    coloredlogs.DEFAULT_LOG_FORMAT = ('%(asctime)s - Level: %(levelname)s\n  '
+                                      '- Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n  '
+                                      '- Message: %(message)s \n  '
+                                      '--logger name: %(name)s')
 
     coloredlogs.DEFAULT_LEVEL_STYLES = {'critical': {'bold': True, 'color': 'red'},
                                         'debug': {'color': 'green'},
@@ -19,19 +32,13 @@ def get_a_logger(name):
 
     coloredlogs.DEFAULT_FIELD_STYLES = {'asctime': {'color': 'black'},
                                         'hostname': {'color': 'magenta'},
-                                        'levelname': {'bold': True, 'color': 'black'},
+                                        'levelname': {'bold': True},
                                         'name': {'color': 'blue'},
                                         'programname': {'color': 'cyan'},
-                                        'username': {'color': 'yellow'}
+                                        'username': {'color': 'yellow'},
+                                        'module': {'color': 'white'}
                                         }
 
-
- #   coloredlogs.DEFAULT_LOG_LEVEL = 10
-
- #   formatter = logging.Formatter('%(asctime)s - Level Name: %(levelname)s\n  - Message: %(message)s \n  - Function: %(funcName)s - Line: %(lineno)s - Module: %(module)s')
- #   chformatter = coloredlogs.ColoredFormatter('%(asctime)s - Level: %(levelname)s\n'
- #                                   '  - Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n'
- #                                   '  - Message: %(message)s \n')
     chformatter = coloredlogs.ColoredFormatter()
 
  #   fh = logging.FileHandler('MQTTApp.log')
@@ -42,8 +49,6 @@ def get_a_logger(name):
     ch.setLevel(logging.DEBUG)
     ch.setFormatter(chformatter)
 
-
-#    logger.setLevel(logging.DEBUG)
  #   logger.addHandler(fh)
     logger.addHandler(ch)
 

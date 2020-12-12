@@ -27,6 +27,7 @@ print(f"More new data: {Settings.new_data}")
 database_table = Settings.database_table
 
 logger = get_a_logger(__name__)
+logger.setLevel(20)
 # coloredlogs.install(level='DEBUG', logger=logger)
 
 """
@@ -82,8 +83,8 @@ def mqtt_client():
     #   client = mqtt.Client(client_id='weather2desk', clean_session=False, userdata=None, transport='tcp')
 
     try:
-        client_id = 'weather2pi4'
-        client = mqtt.Client(client_id, clean_session=False, userdata=None, transport='tcp')
+  #      client_id = 'weather2pi4'
+        client = mqtt.Client(client_id=Settings.mqtt_client_id, clean_session=False, userdata=None, transport='tcp')
         logger.debug(f"mqtt client created: id {Settings.mqtt_client_id}")
     except Exception:
         e = sys.exc_info()[0]
@@ -115,8 +116,6 @@ def mqtt_client():
         print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
         logger.exception(str(e))
 
-    #   client.on_subscribe = on_subscribe
-    #  client.on_disconnect = on_disconnect
     client.loop_start()
 
 
@@ -360,8 +359,14 @@ def make_fig_1(ax_dict):
     hfmt = dates.DateFormatter('')
 
     dayx = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now())-1]
-    max_temp = max(dayx)
-    min_temp = min(dayx)
+
+    try:
+        max_temp = max(dayx)
+        min_temp = min(dayx)
+    except ValueError as ve:
+        logger.error(f"Value Error: {ve}\n\tno data in ax_temp so will set max_temp and min_temp to 0")
+        max_temp = 0
+        min_temp = 0
 
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
@@ -425,8 +430,11 @@ def make_fig_1(ax_dict):
     # gust period
 
     gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 0.25]
-    max_gust = max(gust_period)
-#    max_gust = 5
+    try:
+        max_gust = max(gust_period)
+    except ValueError as ve:
+        logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
+        max_gust = 0
 
     ax2 = figure_1.add_subplot(gs[6:8, :4])
 
@@ -612,8 +620,11 @@ def make_fig_2(ax_dict):
     ax2 = figure_2.add_subplot(gs[6:8, :4])
 
     gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 0.5]
-    max_gust = max(gust_period)
- #   max_gust = 6
+    try:
+        max_gust = max(gust_period)
+    except ValueError as ve:
+        logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
+        max_gust = 0
 
     ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize='1.0',
              linewidth=0.5, label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
@@ -783,8 +794,11 @@ def make_fig_3(ax_dict):
     ax2 = figure_3.add_subplot(gs[6:8, :4])
 
     gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 1]
-    max_gust = max(gust_period)
-#    max_gust = 7
+    try:
+        max_gust = max(gust_period)
+    except ValueError as ve:
+        logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
+        max_gust = 0
 
     ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize=1.5, linewidth=0.5,
              label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
@@ -908,11 +922,15 @@ def mqtt_app():
 
             pyplot.figure(num='two')
             #            pyplot.show(block=False)
+            pyplot.pause(60.0)
+
+            pyplot.figure(num='one')
+            #         pyplot.show(block=False)
             pyplot.pause(75.0)
 
             pyplot.figure(num='three')
             #            pyplot.show(block=False)
-            pyplot.pause(75.0)
+            pyplot.pause(60.0)
 
             #            used_id, new_data, dict_result = check_for_new(used_id)
             #            if check_for_new(used_id):
