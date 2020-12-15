@@ -12,7 +12,8 @@ def send_email(message):
     host = "smtp.gmail.com"
     port = 587
     username = "DavidWeatherStation@gmail.com"
-    password = "Weather123"
+    password = "x"
+    # Weather123
     toname = "David.king.lr@gmail.com"  # or can to_list = ["ddd"]
     email_conn = smtplib.SMTP(host, port)
     email_conn.ehlo()
