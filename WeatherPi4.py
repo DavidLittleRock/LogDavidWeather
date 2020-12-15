@@ -19,6 +19,7 @@ from WeatherAppLog import get_a_logger
 # from python_mysql_dbconfig import read_db_config
 
 import sqlfile
+from send_email import send_email
 
 # TODO use argparser to specify debug and desk/pi
 
@@ -27,7 +28,7 @@ print(f"More new data: {Settings.new_data}")
 database_table = Settings.database_table
 
 logger = get_a_logger(__name__)
-logger.setLevel(20)
+# logger.setLevel(20)
 # coloredlogs.install(level='DEBUG', logger=logger)
 
 """
@@ -68,29 +69,22 @@ def on_message(self, userdata, message):
     data_list = data_string.split(',')  # split the string to a list
     logger.debug(f"data list to send to database: \n\t{data_list}")
     write_to_data(data_list)
-    #   TestGraph.one_day()  # call to display with  new data
     Settings.new_data = True
     logger.debug(f"new data set to True because new message data")
 
 
 def mqtt_client():
     logger.info(f"Start in mqtt_client()")
-
     broker_url = Settings.broker_url
     logger.debug(f"MQTT broker url: {broker_url}")
     broker_port = Settings.broker_port
     logger.debug(f"MQTT broker port: {broker_port}")
-    #   client = mqtt.Client(client_id='weather2desk', clean_session=False, userdata=None, transport='tcp')
-
     try:
-  #      client_id = 'weather2pi4'
         client = mqtt.Client(client_id=Settings.mqtt_client_id, clean_session=False, userdata=None, transport='tcp')
         logger.debug(f"mqtt client created: id {Settings.mqtt_client_id}")
-    except Exception:
-        e = sys.exc_info()[0]
-        print(f"client create failed\n\tthe error is {e}")
-        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-        logger.exception(str(e))
+    except Exception as ex:
+        logger.exception(ex)
+        send_email(f"The error is: {ex}.")
 
     #   client.loop_start()
 
@@ -101,27 +95,21 @@ def mqtt_client():
     client.on_connect = on_connect
     try:
         client.connect(broker_url, broker_port)
-    except Exception:
-        e = sys.exc_info()[0]
-        print(f"connect failed\n\tthe error is {e}")
-        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-        logger.exception(str(e))
-    #  client.subscribe('OurWeather', qos=2)
+    except Exception as ex:
+        logger.exception(ex)
+        send_email(f"The error is: {ex}.")
 
     try:
         client.subscribe('OurWeather', qos=2)
-    except Exception:
-        e = sys.exc_info()[0]
-        print(f"subscribe failed \n\tthe error is {e}")
-        print(f"The error is {sys.exc_info()[0]} : {sys.exc_info()[1]}.")
-        logger.exception(str(e))
+    except Exception as ex:
+        logger.exception(ex)
+        send_email(f"The error is: {ex}.")
 
     client.loop_start()
 
 
 def on_connect(self, userdata, flags, rc):
     logger.info(f"Connected to mosquitto {rc} with client_id: {Settings.mqtt_client_id}")
-
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
 
@@ -140,13 +128,13 @@ def write_to_data(list_to_write):
     Args:
         list_to_write ():
     """
-    logger.info(f"in write_to_data()")
+    logger.debug(f"in write_to_data()")
 
     db_connection = sqlfile.create_db_connection()
 
     device_id = 6
-
-    query = 'INSERT INTO ' + database_table + (
+    try:
+        query = 'INSERT INTO ' + database_table + (
                 ' (timestamp, deviceid, Outdoor_Temperature, Outdoor_Humidity, Barometric_Pressure, Current_Wind_Speed,'
                 'Current_Wind_Gust, Current_Wind_Direction, Wind_Speed_Maximum, Wind_Gust_Maximum, '
                 'OurWeather_DateTime, Lightning_Time, Lightning_Distance, Lightning_Count, Rain_Total, '
@@ -156,19 +144,19 @@ def write_to_data(list_to_write):
                     float(list_to_write[3]), float(list_to_write[4]), float(list_to_write[5]), float(list_to_write[7]),
                     float(list_to_write[8]), list_to_write[9], list_to_write[10], int(list_to_write[11]),
                     int(list_to_write[12]), float(list_to_write[6]), float(list_to_write[13])))
+    except IndexError as ie:
+        logger.error(f"failed to build query to write to database,\n\tlength should be 14; {len(list_to_write)}\n\t"
+                     f"list to write: {list_to_write}\n\t Error: {ie}")
+        send_email(f"The error is: {ie}.")
 
     sqlfile.execute_query(db_connection, query)
-
     sqlfile.close_db_connection(db_connection)
 
 
 def get_last_id():
-
     db_connection = sqlfile.create_db_connection()
     query = 'SELECT id FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
-
     result = sqlfile.read_query(db_connection, query)
-
     row_id = result[0][0]
     logger.debug(f"row_id to return: {row_id}; \n\ttype: {type(row_id)}")
     sqlfile.close_db_connection(db_connection)  # close the db connection
@@ -179,29 +167,21 @@ def get_data():
     #  TODO make chill factor, in SQL or here?
     logger.debug("from get_data")
     db_connection = sqlfile.create_db_connection()
-
     query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust FROM OneMonth ORDER BY Date ASC'
-
     result = sqlfile.read_query(db_connection, query)
-
     # QUERY FOR # 30 DAY RAIN
     query = 'SELECT Date, SUM(Rain_Change) FROM OneMonth GROUP BY Day(Date) ORDER BY Date ASC'
     result_rain_30 = sqlfile.read_query(db_connection, query)
-
     # QUERY one day rain BAR
     query = 'SELECT Date, Rain_Change FROM OneDay ORDER BY Date ASC'
-#    result_rain_bar = ((0, 0,),)
     result_rain_bar = sqlfile.read_query(db_connection, query)
-
     # QUERY rain TODAY
     query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'
     # Today start 00:00 to now
     result_rain_today = sqlfile.read_query(db_connection, query)
-
     #  QUERY one day rain YESTERDAY
     query = ('SELECT Date, Rain_Change FROM OneMonth WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY))'
              ' ORDER BY Date ASC')  # Yesterday 00:00 to 00:00
-#    result_rain_yesterday = ((0, 0,),)
     result_rain_yesterday = sqlfile.read_query(db_connection, query)
 
     # QUERY rain 24
@@ -209,7 +189,6 @@ def get_data():
              ' ORDER BY Date ASC')
     # 24 hr rain
     result_rain_24 = sqlfile.read_query(db_connection, query)
-
     sqlfile.close_db_connection(db_connection)  # close the db connection
     # Move results into dict of lists
     # TODO wind direction
@@ -263,7 +242,7 @@ def get_data():
             dict_result['rain_30'].append(record[1] / 22.5)
             dict_result['rain_30_sum'].append(sum(dict_result['rain_30']))
     else:
-        print(len(result_rain_yesterday))
+        logger.debug(len(result_rain_yesterday))
         dict_result['time_rain_30'].append(0)
         dict_result['rain_30'].append(0)
         dict_result['rain_30_sum'].append(0)
@@ -274,10 +253,11 @@ def get_data():
             dict_result['rain_change_yesterday'].append(record[1] / 22.5)
             dict_result['rain_total_yesterday'].append(sum(dict_result['rain_change_yesterday']))
     else:
-        print(len(result_rain_yesterday))
+        logger.debug(len(result_rain_yesterday))
         dict_result['time_rain_yesterday'].append(0)
         dict_result['rain_change_yesterday'].append(0)
         dict_result['rain_total_yesterday'].append(0)
+
     if len(result_rain_bar) > 0:
         for record in result_rain_bar:
             dict_result['time_rain_bar'].append(record[0])
@@ -292,7 +272,7 @@ def get_data():
             dict_result['rain_change_today'].append(record[1] / 22.5)
             dict_result['rain_total_today'].append(sum(dict_result['rain_change_today']))
     else:
-        print(len(result_rain_today))
+        logger.debug(len(result_rain_today))
         dict_result['time_rain_today'].append(0)
         dict_result['rain_change_today'].append(0)
         dict_result['rain_total_today'].append(0)
@@ -303,7 +283,7 @@ def get_data():
             dict_result['rain_change_24'].append(record[1] / 22.5)
             dict_result['rain_total_24'].append(sum(dict_result['rain_change_24']))
     else:
-        print(len(result_rain_24))
+        logger.debug(len(result_rain_24))
         dict_result['time_rain_24'].append(0)
         dict_result['rain_change_24'].append(0)
         dict_result['rain_total_24'].append(0)
@@ -367,13 +347,14 @@ def make_fig_1(ax_dict):
         logger.error(f"Value Error: {ve}\n\tno data in ax_temp so will set max_temp and min_temp to 0")
         max_temp = 0
         min_temp = 0
+        send_email(f"The error is: {ve}.")
 
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
 
     # ax1  TEMP
     ax1 = figure_1.add_subplot(gs[:5, :4])
-    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='black', markersize=2.0,
+    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='', color='black', markersize=2.0,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp}) ")
 
 #    if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
@@ -419,9 +400,6 @@ def make_fig_1(ax_dict):
     ax1.grid(b=True, which='minor', axis='both', color='#999999', alpha=0.5, linestyle='--')
     ax1.grid(b=True, which='major', axis='both', color='#666666', linewidth=1.2, linestyle='-')
     ax1.set_facecolor('#edf7f7')
-    # TODO set all grids like this
-
-    #    ax1.grid(True, which='both', axis='both')
 
     logger.debug('did make_ax1')
 
@@ -435,6 +413,7 @@ def make_fig_1(ax_dict):
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
         max_gust = 0
+        send_email(f"The error is: {ve}.")
 
     ax2 = figure_1.add_subplot(gs[6:8, :4])
 
@@ -463,7 +442,7 @@ def make_fig_1(ax_dict):
     ax3 = figure_1.add_subplot(gs[8:, :4])  # ax3 is local scope but modifies fig that was passed in as argument
     pyplot.xticks([], rotation='45')
 
-    ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='-', color='green', markersize=2.0, linewidth=1,
+    ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='', color='green', markersize=2.0, linewidth=1,
              label=f"BP {ax_dict['bp'][-1]:.2f} mmHg")
 
     ax3.axis(ymin=29.50, ymax=30.60, xmin=(dates.date2num(datetime.now())) - 1,
@@ -473,8 +452,6 @@ def make_fig_1(ax_dict):
     hfmt = dates.DateFormatter('%m/%d \n %H:%M')
     ax3.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(fontsize=15)
-
-
 
     ax3.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), shadow=True, ncol=1, fontsize=15)
     ax3.set_title('', fontsize='15')
@@ -565,7 +542,7 @@ def make_fig_2(ax_dict):
     min_temp = min(dayx)
 
     ax1 = figure_2.add_subplot(gs[:5, :4])
-    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='black', markersize=1.5,
+    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='', color='black', markersize=1.5,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp})")
 
 #    if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
@@ -589,7 +566,6 @@ def make_fig_2(ax_dict):
     if len(ax_dict['hi']) > 0 and dates.date2num(ax_dict['time_hi'][-1]) > (dates.date2num(datetime.now())) - 7:
         ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red',
                  label='Heat Index')
-
 
     if ax_dict['wind_chill'] is not None:
         ax1.plot(ax_dict['time_wind_chill'], ax_dict['wind_chill'], marker='v', linestyle='', color='blue',
@@ -625,6 +601,7 @@ def make_fig_2(ax_dict):
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
         max_gust = 0
+        send_email(f"The error is: {ve}.")
 
     ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize='1.0',
              linewidth=0.5, label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
@@ -637,9 +614,7 @@ def make_fig_2(ax_dict):
 
     ax2.legend(loc='upper left', bbox_to_anchor=(1.0, 0.9), shadow=True, ncol=1, fontsize=15)
     ax2.set_title('', fontsize='15')
-
     ax2.set_xlabel('')
-
     ax2.set_ylabel('MPH')
     ax2.grid(b=True, which='both', axis='both')
     ax2.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
@@ -652,7 +627,7 @@ def make_fig_2(ax_dict):
     ax3 = figure_2.add_subplot(gs[8:, :4])  # ax3 is local scope but modifies fig that was passed in as argument
     pyplot.xticks([], rotation='45')
 
-    ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='-', color='green', markersize=1.5, linewidth=1,
+    ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='', color='green', markersize=1.5, linewidth=1,
              label=f"BP {ax_dict['bp'][-1]:.2f} mmHg")
 
     ax3.axis(ymin=29.50, ymax=30.60, xmin=(dates.date2num(datetime.now())) - 7,
@@ -740,7 +715,7 @@ def make_fig_3(ax_dict):
     min_temp = min(dayx)
 
     ax1 = figure_3.add_subplot(gs[:5, :4])
-    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='-', color='black', markersize=1.0,
+    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='', color='black', markersize=1.0,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp})")
 
 #    if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
@@ -799,6 +774,11 @@ def make_fig_3(ax_dict):
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
         max_gust = 0
+        send_email(f"The error is: {ve}.")
+    except Exception as ex:
+#        send_email(str(logger.error(f"{ex}")))
+        logger.error(f"{ex}")
+        send_email(f"{ex}")
 
     ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize=1.5, linewidth=0.5,
              label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
@@ -811,9 +791,7 @@ def make_fig_3(ax_dict):
 
     ax2.legend(loc='upper left', bbox_to_anchor=(1.0, 0.9), shadow=True, ncol=1, fontsize=15)
     ax2.set_title('', fontsize='15')
-
     ax2.set_xlabel('')
-
     ax2.set_ylabel('MPH')
     ax2.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
     ax2.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
@@ -825,7 +803,7 @@ def make_fig_3(ax_dict):
     ax3 = figure_3.add_subplot(gs[8:, :4])  # ax3 is local scope but modifies fig that was passed in as argument
     pyplot.xticks(rotation='45')
 
-    ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='-', color='green', markersize=1.5, linewidth=1,
+    ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='', color='green', markersize=1.5, linewidth=1,
              label=f"BP {ax_dict['bp'][-1]:.2f} mmHg")
 
     ax3.axis(ymin=29.50, ymax=30.60, xmin=(dates.date2num(datetime.now())) - 30,
@@ -882,7 +860,6 @@ def make_fig_3(ax_dict):
 
 def check_for_new(used_id):
     # return False if used_id == get_last_id(), no new data
-
     last_id = get_last_id()
     if last_id != used_id:
         used_id = last_id
@@ -898,8 +875,10 @@ def check_for_new(used_id):
 def mqtt_app():
     #   global new_data
     mqtt_client()
-
     dict_result = get_data()
+    logger.warning("Test warning")
+    logger.debug("test debug")
+    logger.error("ERROR test")
 
     while True:
         time.sleep(1)

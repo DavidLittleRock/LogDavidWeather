@@ -1,14 +1,19 @@
 import logging
 import Settings
 import coloredlogs
-
+import logging.handlers
+import smtplib
 
 def get_a_logger(name):
-#    coloredlogs.install(level='DEBUG')
 
     logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+#    logger.propagate = False
+#    coloredlogs.install(level='DEBUG', logger=logger)
+#    coloredlogs.propagate = False
+
   #  coloredlogs.DEFAULT_LOG_LEVEL = 50
-    coloredlogs.adjust_level(logger=logger, level=20)
+#    coloredlogs.adjust_level(logger=logger, level=20)
     """
     Log levels
     Critical    50
@@ -18,10 +23,12 @@ def get_a_logger(name):
     Debug       10
     Notset      0
     """
+    """
     coloredlogs.DEFAULT_LOG_FORMAT = ('%(asctime)s - Level: %(levelname)s\n  '
                                       '- Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n  '
                                       '- Message: %(message)s \n  '
                                       '--logger name: %(name)s')
+                                      """
 
     coloredlogs.DEFAULT_LEVEL_STYLES = {'critical': {'bold': True, 'color': 'red'},
                                         'debug': {'color': 'green'},
@@ -30,7 +37,8 @@ def get_a_logger(name):
                                         'warning': {'color': 'yellow'}
                                         }
 
-    coloredlogs.DEFAULT_FIELD_STYLES = {'asctime': {'color': 'black'},
+
+    coloredlogs.DEFAULT_FIELD_STYLES = {'asctime': {'color': 'blue'},
                                         'hostname': {'color': 'magenta'},
                                         'levelname': {'bold': True},
                                         'name': {'color': 'blue'},
@@ -39,17 +47,35 @@ def get_a_logger(name):
                                         'module': {'color': 'white'}
                                         }
 
-    chformatter = coloredlogs.ColoredFormatter()
 
- #   fh = logging.FileHandler('MQTTApp.log')
-  #  fh.setLevel(logging.DEBUG)  # CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET
-  #  fh.setFormatter(chformatter)
+    chcformatter = coloredlogs.ColoredFormatter(fmt=('%(asctime)s - Level: %(levelname)s\n  '
+                                      '- Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n  '
+                                      '- Message: %(message)s \n  '
+                                      '--logger name: %(name)s'))
+
+    chformatter = logging.Formatter('%(asctime)s - Level: %(levelname)s\n  '
+                                                    '- Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n  '
+                                                    '- Message: %(message)s \n  '
+                                                    '--logger name: %(name)s')
+#    coloredlogs.install(level='DEBUG', logger=logger)
+#    coloredlogs.propagate = False
+
 
     ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(chformatter)
-
- #   logger.addHandler(fh)
+    ch.setLevel(logging.INFO)
+    ch.setFormatter(chcformatter)
     logger.addHandler(ch)
+
+
+    trfh = logging.handlers.TimedRotatingFileHandler(filename='./LOGS/Weather.log',  when='H', interval=1, backupCount=6)
+    trfh.setLevel(logging.DEBUG)
+    trfh.setFormatter(chformatter)
+    logger.addHandler(trfh)
+
+    securex = ()
+    smtph = logging.handlers.SMTPHandler(('smtp.gmail.com', 587), 'DavidWeatherStation@gmail.com', ['david.king.lr@gmail.com'], 'error', credentials=('DavidWeatherStation@gmail.com', 'Weather123'), secure=None)
+    smtph.setLevel(logging.ERROR)
+    smtph.setFormatter(chformatter)
+#    logger.addHandler(smtph)
 
     return logger
