@@ -32,6 +32,7 @@ def create_database(connection, query):
         sqlogger.error(f"Error: {err}")
         send_email(f"Error: {err}")
 
+
 def create_db_connection_x(host_name, user_name, user_password, db_name):
     connection = None
     try:
@@ -112,9 +113,9 @@ def read_db_config(filename='config.ini', section='mysql'):
     # get section, default to mysql
     db_kwargs = {}
     if parser.has_section(section):
-        items = parser.items(section)
-        for item in items:
-            db_kwargs[item[0]] = item[1]
+        items = parser.items(section)  # parser makes a list of tuples
+        for item in items:   # for each tuple in the list
+            db_kwargs[item[0]] = item[1]   # make a dict with key = first thing in tuple and value is second
     else:
         raise Exception(f'{section} not found in the {filename} file')
     sqlogger.debug(f"read_db_config() was successful with db_kwargs: \n\t{db_kwargs}")

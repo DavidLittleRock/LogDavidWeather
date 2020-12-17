@@ -20,7 +20,7 @@ from WeatherAppLog import get_a_logger
 
 import sqlfile
 from send_email import send_email
-
+from configparser import ConfigParser
 # TODO use argparser to specify debug and desk/pi
 
 Settings.new_data = False
@@ -68,9 +68,40 @@ def on_message(self, userdata, message):
     data_string = full_payload[index + 18:-2]
     data_list = data_string.split(',')  # split the string to a list
     logger.debug(f"data list to send to database: \n\t{data_list}")
-    write_to_data(data_list)
+
+    # validate(data_list)
+    # validate_input(data_list)
+
+    # write_to_data(data_list)
+
+    if validate_input(data_list):
+        write_to_data(data_list)
+
     Settings.new_data = True
     logger.debug(f"new data set to True because new message data")
+
+
+def validate_input(data_list):
+    # print(data_list)
+    temperature = data_list[0]
+    pressure = data_list[2]
+    valid = True
+    try:
+        if float(temperature) < -10.0 or float(temperature) > 50.0:
+            valid = False
+            raise ValueError("Temperature is out of range, ")
+    except ValueError as ve:
+        logger.error(f"{ve}\n\t Temp was: {temperature}")
+        send_email(f"{ve}\n\t Temp was: {temperature}")
+
+    try:
+        if float(pressure) < 90000 or float(pressure) > 119000:
+            valid = False
+            raise ValueError("pressure is out of range, ")
+    except ValueError as ve:
+        logger.error(f"{ve}\n\t pressure was: {pressure}")
+        send_email(f"{ve}\n\t pressure was: {pressure}")
+    return valid
 
 
 def mqtt_client():
@@ -413,7 +444,7 @@ def make_fig_1(ax_dict):
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
         max_gust = 0
-        send_email(f"The error is: {ve}.")
+        send_email(f"The error is: {ve}. There is no data in the ax_dict['gust'] so is ste to 0 for fig 1.")
 
     ax2 = figure_1.add_subplot(gs[6:8, :4])
 
@@ -601,7 +632,7 @@ def make_fig_2(ax_dict):
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
         max_gust = 0
-        send_email(f"The error is: {ve}.")
+        send_email(f"The error is: {ve}. There is no data in ax_dict['gust'] so will be set to 0. Fig 2.")
 
     ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize='1.0',
              linewidth=0.5, label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
@@ -774,11 +805,10 @@ def make_fig_3(ax_dict):
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
         max_gust = 0
-        send_email(f"The error is: {ve}.")
+        send_email(f"The error is: {ve}. There is no data in ax_dict['gust'] so is set to 0 in fig 3")
     except Exception as ex:
-#        send_email(str(logger.error(f"{ex}")))
         logger.error(f"{ex}")
-        send_email(f"{ex}")
+        send_email(f"{ex}, Fig 3, gust")
 
     ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize=1.5, linewidth=0.5,
              label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
@@ -872,6 +902,8 @@ def check_for_new(used_id):
         return used_id, new_data, dict_result
 
 
+
+
 def mqtt_app():
     #   global new_data
     mqtt_client()
@@ -879,6 +911,7 @@ def mqtt_app():
     logger.warning("Test warning")
     logger.debug("test debug")
     logger.error("ERROR test")
+    send_email("This is a test message at start of program.")
 
     while True:
         time.sleep(1)
@@ -892,6 +925,12 @@ def mqtt_app():
         used_id = get_last_id()
         new_data = False   # do I need this and line 762 above?
         logger.debug(f"Reset new_data back to False")
+#        if not new_data:
+#            try:
+#                raise ValueError("value bad")
+#            except ValueError as ve:
+#                logger.error(f"{ve}")
+
 
         pyplot.figure(num='one')
         while not new_data:
@@ -919,6 +958,8 @@ def mqtt_app():
                 logger.debug("set new_data to True to trigger break out of new data loop")
 
         pyplot.close(fig='all')
+
+
 
 
 if __name__ == "__main__":
