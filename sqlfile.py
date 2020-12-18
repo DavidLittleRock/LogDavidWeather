@@ -7,6 +7,7 @@ from pymysql import Error
 from configparser import ConfigParser
 from WeatherAppLog import get_a_logger
 from send_email import send_email
+from python_config import read_config
 
 sqlogger = get_a_logger(__name__)
 # logger.setLevel(20)
@@ -49,7 +50,7 @@ def create_db_connection():
 
     try:
         sqlogger.debug("start create_db_connection")
-        db_config = read_db_config()
+        db_config = read_config()
         connection = mdb.connect(**db_config)
         if connection.open:
             sqlogger.debug(f"db connect open; success with:\n\t{db_config}")
@@ -91,7 +92,7 @@ def read_query(connection, query):
         send_email(f"Error: {err}")
 
 
-def read_db_config(filename='config.ini', section='mysql'):
+def read_db_config_x(filename='config.ini', section='mysql'):
     """
     Read database configuration file and return a dictionary object
     refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/

@@ -14,18 +14,20 @@ import paho.mqtt.client as mqtt
 from matplotlib import dates
 from matplotlib import pyplot
 
-import Settings
+# import Settings
 from WeatherAppLog import get_a_logger
-# from python_mysql_dbconfig import read_db_config
+from python_config import read_config
 
 import sqlfile
 from send_email import send_email
 from configparser import ConfigParser
 # TODO use argparser to specify debug and desk/pi
 
-Settings.new_data = False
-print(f"More new data: {Settings.new_data}")
-database_table = Settings.database_table
+
+database_table_t = read_config(section='sqltable')
+database_table = database_table_t['database_table']
+#  print(database_table)
+
 
 logger = get_a_logger(__name__)
 # logger.setLevel(20)
@@ -61,8 +63,7 @@ def on_message(self, userdata, message):
     :param message: the message string from Mosquitto MQTT
     :type message: str
     """
-    #   global new_data
-    #  logger.info(f"In on_message()")
+    logger.debug(f"In on_message()")
     full_payload = message.payload.decode()
     index = full_payload.index("MQTT")
     data_string = full_payload[index + 18:-2]
@@ -76,9 +77,6 @@ def on_message(self, userdata, message):
 
     if validate_input(data_list):
         write_to_data(data_list)
-
-    Settings.new_data = True
-    logger.debug(f"new data set to True because new message data")
 
 
 def validate_input(data_list):
@@ -105,14 +103,23 @@ def validate_input(data_list):
 
 
 def mqtt_client():
+
+    mqtt_config = read_config(section='mqtt')
+
     logger.info(f"Start in mqtt_client()")
-    broker_url = Settings.broker_url
+
+#    broker_url = Settings.broker_url
+    broker_url = mqtt_config['broker_url']
+
     logger.debug(f"MQTT broker url: {broker_url}")
-    broker_port = Settings.broker_port
+#    broker_port = Settings.broker_port
+    broker_port = int(mqtt_config['broker_port'])
+
     logger.debug(f"MQTT broker port: {broker_port}")
     try:
-        client = mqtt.Client(client_id=Settings.mqtt_client_id, clean_session=False, userdata=None, transport='tcp')
-        logger.debug(f"mqtt client created: id {Settings.mqtt_client_id}")
+        client = mqtt.Client(client_id=mqtt_config['mqtt_client_id'], clean_session=False, userdata=None, transport='tcp')
+#        client = mqtt.Client(client_id=Settings.mqtt_client_id, clean_session=False, userdata=None, transport='tcp')
+        logger.debug(f"mqtt client created: id {mqtt_config['mqtt_client_id']}")
     except Exception as ex:
         logger.exception(ex)
         send_email(f"The error is: {ex}.")
@@ -131,7 +138,7 @@ def mqtt_client():
         send_email(f"The error is: {ex}.")
 
     try:
-        client.subscribe('OurWeather', qos=2)
+        client.subscribe(mqtt_config['mqtt_client_id'], qos=2)
     except Exception as ex:
         logger.exception(ex)
         send_email(f"The error is: {ex}.")
@@ -140,7 +147,9 @@ def mqtt_client():
 
 
 def on_connect(self, userdata, flags, rc):
-    logger.info(f"Connected to mosquitto {rc} with client_id: {Settings.mqtt_client_id}")
+    mqtt_config = read_config(section='mqtt')
+
+    logger.info(f"Connected to mosquitto {rc} with client_id: {mqtt_config['mqtt_client_id']}")
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
 
@@ -888,7 +897,7 @@ def make_fig_3(ax_dict):
     mng.full_screen_toggle()  # full screen no outline
 
 
-def check_for_new(used_id):
+def check_for_new_x(used_id):
     # return False if used_id == get_last_id(), no new data
     last_id = get_last_id()
     if last_id != used_id:
@@ -902,16 +911,13 @@ def check_for_new(used_id):
         return used_id, new_data, dict_result
 
 
-
-
 def mqtt_app():
-    #   global new_data
     mqtt_client()
     dict_result = get_data()
-    logger.warning("Test warning")
-    logger.debug("test debug")
-    logger.error("ERROR test")
-    send_email("This is a test message at start of program.")
+#    logger.warning("Test warning")
+#    logger.debug("test debug")
+#    logger.error("ERROR test")
+#    send_email("This is a test message at start of program.")
 
     while True:
         time.sleep(1)
@@ -923,14 +929,13 @@ def mqtt_app():
         make_fig_3(dict_result)
 
         used_id = get_last_id()
-        new_data = False   # do I need this and line 762 above?
+        new_data = False
         logger.debug(f"Reset new_data back to False")
 #        if not new_data:
 #            try:
 #                raise ValueError("value bad")
 #            except ValueError as ve:
 #                logger.error(f"{ve}")
-
 
         pyplot.figure(num='one')
         while not new_data:
@@ -950,8 +955,6 @@ def mqtt_app():
             #            pyplot.show(block=False)
             pyplot.pause(60.0)
 
-            #            used_id, new_data, dict_result = check_for_new(used_id)
-            #            if check_for_new(used_id):
             if used_id != get_last_id():
                 dict_result = get_data()
                 new_data = True

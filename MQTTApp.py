@@ -20,7 +20,7 @@ import gc
 from matplotlib import pyplot
 
 import sys
-from python_mysql_dbconfig import read_db_config
+from python_config import read_db_config
 from WeatherAppLog import get_a_logger
 
 # TODO use argparser to specify debug and desk/pi

@@ -3,6 +3,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from configparser import ConfigParser
 from WeatherAppLog import get_a_logger
+from python_config import read_config
 """
 30 days of python
 """
@@ -42,7 +43,7 @@ def read_email_config(filename='config.ini', section='sendmail'):
 def send_email(message):
 
     #    toname = toname  # or can to_list = ["ddd"]
-    em_config = read_email_config()
+    em_config = read_config(section='sendmail')
     #  em_config = {'host': '', 'port': '', 'username': '', 'password': '', 'toname': ''}
 
     email_conn = smtplib.SMTP(em_config['host'], em_config['port'])

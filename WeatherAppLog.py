@@ -1,5 +1,5 @@
 import logging
-import Settings
+# import Settings
 import coloredlogs
 import logging.handlers
 import smtplib
