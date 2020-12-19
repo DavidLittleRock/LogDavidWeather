@@ -133,12 +133,17 @@ def mqtt_client():
     client.on_connect = on_connect
     try:
         client.connect(broker_url, broker_port)
+    except OSError as ose:
+        logger.error(f"OS Error, check url or port, {ose}")
+        send_email(f"OS Error, check url or port, {ose}")
     except Exception as ex:
         logger.exception(ex)
         send_email(f"The error is: {ex}.")
 
     try:
-        client.subscribe(mqtt_config['mqtt_client_id'], qos=2)
+        client.subscribe(mqtt_config['channel'], qos=2)
+ #       client.subscribe(mqtt_config['mqtt_client_id'], qos=2)
+
     except Exception as ex:
         logger.exception(ex)
         send_email(f"The error is: {ex}.")
