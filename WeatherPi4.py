@@ -35,7 +35,7 @@ logger = get_a_logger(__name__)
 
 """
 connect to Mosquitto MQTT
-subscribe to weather channel
+subscribe to weather topic
 
 connect to SQL
 write message data to SQL
@@ -141,8 +141,7 @@ def mqtt_client():
         send_email(f"The error is: {ex}.")
 
     try:
-        client.subscribe(mqtt_config['channel'], qos=2)
- #       client.subscribe(mqtt_config['mqtt_client_id'], qos=2)
+        client.subscribe(mqtt_config['topic'], qos=2)
 
     except Exception as ex:
         logger.exception(ex)
@@ -153,8 +152,7 @@ def mqtt_client():
 
 def on_connect(self, userdata, flags, rc):
     mqtt_config = read_config(section='mqtt')
-
-    logger.info(f"Connected to mosquitto {rc} with client_id: {mqtt_config['mqtt_client_id']}")
+    logger.info(f"Connected to mosquitto {rc} \n\twith client_id: {mqtt_config['mqtt_client_id']}.")
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
 
@@ -164,7 +162,8 @@ def on_disconnect(self, userdata, rc):
 
 
 def on_subscribe(self, userdata, mid, granted_qos):
-    logger.info(f"subscribed , with mid:{mid} and granted qos: {granted_qos} to topic OurWeather")
+    mqtt_config = read_config(section='mqtt')
+    logger.info(f"subscribed , with mid:{mid} and granted qos: {granted_qos} \n\tto topic: {mqtt_config['topic']}.")
 
 
 def write_to_data(list_to_write):
