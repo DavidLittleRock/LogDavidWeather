@@ -134,7 +134,7 @@ def mqtt_client():
     try:
         client.connect(broker_url, broker_port)
     except OSError as ose:
-        logger.error(f"OS Error, check url or port, {ose}")
+        logger.error(f"OS Error, check url or port, {ose}/n/t with url {broker_url} and port {broker_port}")
         send_email(f"OS Error, check url or port, {ose}")
     except Exception as ex:
         logger.exception(ex)
@@ -377,9 +377,20 @@ def make_fig_1(ax_dict):
     }
 
     # figure
-    figure_1 = pyplot.figure(num='one', facecolor='green')
+    figure_1 = pyplot.figure(num='one', facecolor='green', figsize=(18.9, 10.4))
     pyplot.suptitle("One Day Graph", fontsize='15', fontweight='bold')
     gs = figure_1.add_gridspec(10, 5)
+
+
+
+
+ #   gs.tight_layout(figure_1)
+ #   gs.tight_layout(figure=figure_1, pad=0.5)
+
+
+
+
+
     hfmt = dates.DateFormatter('')
 
     dayx = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now())-1]
@@ -398,6 +409,16 @@ def make_fig_1(ax_dict):
 
     # ax1  TEMP
     ax1 = figure_1.add_subplot(gs[:5, :4])
+    pyplot.tight_layout(pad=3.0, h_pad=-1.0)
+
+
+
+
+
+
+
+
+
     ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='', color='black', markersize=2.0,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp}) ")
 
@@ -493,7 +514,7 @@ def make_fig_1(ax_dict):
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
     ax3.xaxis.set_major_locator(dates.HourLocator(interval=6))
     ax3.xaxis.set_minor_locator(dates.HourLocator(interval=1))
-    hfmt = dates.DateFormatter('%m/%d \n %H:%M')
+    hfmt = dates.DateFormatter('%m/%d - %H:%M')
     ax3.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(fontsize=15)
 
@@ -549,7 +570,7 @@ def make_fig_1(ax_dict):
     ax4.legend(loc='upper left', bbox_to_anchor=(1.0, 1.6), shadow=True, ncol=1, fontsize=15)
     ax4.set_facecolor('#edf7f7')
 
-    #    pyplot.savefig(fname="one_day.png", format='png')
+    pyplot.savefig(fname="./figures/fig_1.jpeg", format='jpeg')
 
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
@@ -576,16 +597,38 @@ def make_fig_2(ax_dict):
         337.5: 'North',
         360: 'North',
     }
-    figure_2 = pyplot.figure(num='two', facecolor='green')
+    figure_2 = pyplot.figure(num='two', facecolor='green', figsize=(18.9, 10.4))
     pyplot.suptitle("7 Days", fontsize='15', fontweight='bold')
     gs = figure_2.add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
 
     dayx = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 7]
-    max_temp = max(dayx)
-    min_temp = min(dayx)
+
+    try:
+        max_temp = max(dayx)
+    except ValueError as ve:
+        logger.error(f"Value Error: {ve}\n\tno data in dayx so will set max_temp to 0")
+        max_temp = 0
+        send_email(f"The error is: {ve}. There is no data in the dayx so is set to 0 for fig 2.")
+
+    try:
+        min_temp = max(dayx)
+    except ValueError as ve:
+        logger.error(f"Value Error: {ve}\n\tno data in dayx so will set min_temp to 0")
+        min_temp = 0
+        send_email(f"The error is: {ve}. There is no data in the dayx so is set to 0 for fig 2.")
+ #   min_temp = min(dayx)
+
+
+
+
+
 
     ax1 = figure_2.add_subplot(gs[:5, :4])
+
+    pyplot.tight_layout(pad=3.0, h_pad=-1.0)
+
+
     ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='', color='black', markersize=1.5,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp})")
 
@@ -678,7 +721,7 @@ def make_fig_2(ax_dict):
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax3.xaxis.set_minor_locator(dates.HourLocator(interval=6))
-    hfmt = dates.DateFormatter('%m/%d\n%A')
+    hfmt = dates.DateFormatter('%m/%d-%A')
     ax3.xaxis.set_major_formatter(hfmt)
     pyplot.xticks(fontsize=15)
 
@@ -724,6 +767,10 @@ def make_fig_2(ax_dict):
 
     ax4.set_facecolor('#edf7f7')
 
+    pyplot.savefig(fname="./figures/fig_2.png", format='png')
+
+
+
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
 
@@ -749,7 +796,7 @@ def make_fig_3(ax_dict):
         337.5: 'North',
         360: 'North',
     }
-    figure_3 = pyplot.figure(num='three', facecolor='green')
+    figure_3 = pyplot.figure(num='three', facecolor='green', figsize=(18.9, 10.4))
     pyplot.suptitle("30 Days", fontsize='15', fontweight='bold')
     gs = figure_3.add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
@@ -758,7 +805,17 @@ def make_fig_3(ax_dict):
     max_temp = max(dayx)
     min_temp = min(dayx)
 
+
+
+
+
+
     ax1 = figure_3.add_subplot(gs[:5, :4])
+
+    pyplot.tight_layout(pad=3.0, h_pad=-1.0)
+
+
+
     ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='', color='black', markersize=1.0,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp})")
 
@@ -844,7 +901,7 @@ def make_fig_3(ax_dict):
 
     # ax3  BP
     ax3 = figure_3.add_subplot(gs[8:, :4])  # ax3 is local scope but modifies fig that was passed in as argument
-    pyplot.xticks(rotation='45')
+    pyplot.xticks(rotation='25')
 
     ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='', color='green', markersize=1.5, linewidth=1,
              label=f"BP {ax_dict['bp'][-1]:.2f} mmHg")
@@ -896,6 +953,7 @@ def make_fig_3(ax_dict):
     #   ax4.grid(b=True, which='both', axis='both')
 
     ax4.set_facecolor('#edf7f7')
+    pyplot.savefig(fname="./figures/fig_3.png", format='png')
 
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
@@ -943,21 +1001,21 @@ def mqtt_app():
 
         pyplot.figure(num='one')
         while not new_data:
-            pyplot.figure(num='one')
-            #         pyplot.show(block=False)
-            pyplot.pause(75.0)
+        #    pyplot.figure(num='one')
+        #    #         pyplot.show(block=False)
+        #    pyplot.pause(75.0)
 
-            pyplot.figure(num='two')
+        #    pyplot.figure(num='two')
             #            pyplot.show(block=False)
-            pyplot.pause(60.0)
+        #    pyplot.pause(60.0)
 
-            pyplot.figure(num='one')
+        #    pyplot.figure(num='one')
             #         pyplot.show(block=False)
-            pyplot.pause(75.0)
+        #    pyplot.pause(75.0)
 
-            pyplot.figure(num='three')
+        #    pyplot.figure(num='three')
             #            pyplot.show(block=False)
-            pyplot.pause(60.0)
+        #    pyplot.pause(60.0)
 
             if used_id != get_last_id():
                 dict_result = get_data()
