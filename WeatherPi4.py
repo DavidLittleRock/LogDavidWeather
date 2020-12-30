@@ -3,31 +3,22 @@
 # main and short datatable
 
 import gc
-import sys
 import time
 from datetime import datetime
-
 import numpy as np
 import paho.mqtt.client as mqtt
-# import pymysql as mdb
-# import matplotlib
 from matplotlib import dates
 from matplotlib import pyplot
-
-# import Settings
 from WeatherAppLog import get_a_logger
 from python_config import read_config
-
 import sqlfile
 from send_email import send_email
 from configparser import ConfigParser
 # TODO use argparser to specify debug and desk/pi
 
-
-database_table_t = read_config(section='sqltable')
-database_table = database_table_t['database_table']
+# database_table_t = read_config(section='sqltable')
+# database_table = database_table_t['database_table']
 #  print(database_table)
-
 
 logger = get_a_logger(__name__)
 # logger.setLevel(20)
@@ -69,11 +60,6 @@ def on_message(self, userdata, message):
     data_string = full_payload[index + 18:-2]
     data_list = data_string.split(',')  # split the string to a list
     logger.debug(f"data list to send to database: \n\t{data_list}")
-
-    # validate(data_list)
-    # validate_input(data_list)
-
-    # write_to_data(data_list)
 
     if validate_input(data_list):
         write_to_data(data_list)
@@ -172,6 +158,14 @@ def write_to_data(list_to_write):
     Args:
         list_to_write ():
     """
+
+    database_table_t = read_config(section='sqltable')
+    database_table = database_table_t['database_table']
+    #  print(database_table)
+
+
+
+
     logger.debug(f"in write_to_data()")
 
     db_connection = sqlfile.create_db_connection()
@@ -235,7 +229,6 @@ def get_data():
     result_rain_24 = sqlfile.read_query(db_connection, query)
     sqlfile.close_db_connection(db_connection)  # close the db connection
     # Move results into dict of lists
-    # TODO wind direction
     dict_result = {
         'time': [],
         'temp': [],
@@ -381,16 +374,6 @@ def make_fig_1(ax_dict):
     pyplot.suptitle("One Day Graph", fontsize='15', fontweight='bold')
     gs = figure_1.add_gridspec(10, 5)
 
-
-
-
- #   gs.tight_layout(figure_1)
- #   gs.tight_layout(figure=figure_1, pad=0.5)
-
-
-
-
-
     hfmt = dates.DateFormatter('')
 
     dayx = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now())-1]
@@ -410,14 +393,6 @@ def make_fig_1(ax_dict):
     # ax1  TEMP
     ax1 = figure_1.add_subplot(gs[:5, :4])
     pyplot.tight_layout(pad=3.0, h_pad=-1.0)
-
-
-
-
-
-
-
-
 
     ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='', color='black', markersize=2.0,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp}) ")
@@ -469,7 +444,6 @@ def make_fig_1(ax_dict):
     logger.debug('did make_ax1')
 
     # ax2  WIND
-
     # gust period
 
     gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 0.25]
@@ -612,22 +586,16 @@ def make_fig_2(ax_dict):
         send_email(f"The error is: {ve}. There is no data in the dayx so is set to 0 for fig 2.")
 
     try:
-        min_temp = max(dayx)
+        min_temp = min(dayx)
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in dayx so will set min_temp to 0")
         min_temp = 0
         send_email(f"The error is: {ve}. There is no data in the dayx so is set to 0 for fig 2.")
  #   min_temp = min(dayx)
 
-
-
-
-
-
     ax1 = figure_2.add_subplot(gs[:5, :4])
 
     pyplot.tight_layout(pad=3.0, h_pad=-1.0)
-
 
     ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='', color='black', markersize=1.5,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp})")
@@ -769,8 +737,6 @@ def make_fig_2(ax_dict):
 
     pyplot.savefig(fname="./figures/fig_2.png", format='png')
 
-
-
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
 
@@ -805,16 +771,9 @@ def make_fig_3(ax_dict):
     max_temp = max(dayx)
     min_temp = min(dayx)
 
-
-
-
-
-
     ax1 = figure_3.add_subplot(gs[:5, :4])
 
     pyplot.tight_layout(pad=3.0, h_pad=-1.0)
-
-
 
     ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='', color='black', markersize=1.0,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp})")
@@ -976,10 +935,7 @@ def check_for_new_x(used_id):
 def mqtt_app():
     mqtt_client()
     dict_result = get_data()
-#    logger.warning("Test warning")
-#    logger.debug("test debug")
-#    logger.error("ERROR test")
-#    send_email("This is a test message at start of program.")
+
 
     while True:
         time.sleep(1)
@@ -993,11 +949,6 @@ def mqtt_app():
         used_id = get_last_id()
         new_data = False
         logger.debug(f"Reset new_data back to False")
-#        if not new_data:
-#            try:
-#                raise ValueError("value bad")
-#            except ValueError as ve:
-#                logger.error(f"{ve}")
 
         pyplot.figure(num='one')
         while not new_data:
@@ -1023,8 +974,6 @@ def mqtt_app():
                 logger.debug("set new_data to True to trigger break out of new data loop")
 
         pyplot.close(fig='all')
-
-
 
 
 if __name__ == "__main__":
