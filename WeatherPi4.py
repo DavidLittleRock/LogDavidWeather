@@ -202,7 +202,6 @@ def get_last_id():
 
 
 def get_data():
-    #  TODO make chill factor, in SQL or here?
     logger.debug("from get_data")
     db_connection = sqlfile.create_db_connection()
     query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust FROM OneMonth ORDER BY Date ASC'
@@ -376,11 +375,11 @@ def make_fig_1(ax_dict):
 
     hfmt = dates.DateFormatter('')
 
-    dayx = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now())-1]
+    day_x = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now())-1]
 
     try:
-        max_temp = max(dayx)
-        min_temp = min(dayx)
+        max_temp = max(day_x)
+        min_temp = min(day_x)
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in ax_temp so will set max_temp and min_temp to 0")
         max_temp = 0
@@ -576,22 +575,22 @@ def make_fig_2(ax_dict):
     gs = figure_2.add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
 
-    dayx = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 7]
+    day_x = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 7]
 
     try:
-        max_temp = max(dayx)
+        max_temp = max(day_x)
     except ValueError as ve:
-        logger.error(f"Value Error: {ve}\n\tno data in dayx so will set max_temp to 0")
+        logger.error(f"Value Error: {ve}\n\tno data in day_x so will set max_temp to 0")
         max_temp = 0
-        send_email(f"The error is: {ve}. There is no data in the dayx so is set to 0 for fig 2.")
+        send_email(f"The error is: {ve}. There is no data in the day_x so is set to 0 for fig 2.")
 
     try:
-        min_temp = min(dayx)
+        min_temp = min(day_x)
     except ValueError as ve:
-        logger.error(f"Value Error: {ve}\n\tno data in dayx so will set min_temp to 0")
+        logger.error(f"Value Error: {ve}\n\tno data in day_x so will set min_temp to 0")
         min_temp = 0
-        send_email(f"The error is: {ve}. There is no data in the dayx so is set to 0 for fig 2.")
- #   min_temp = min(dayx)
+        send_email(f"The error is: {ve}. There is no data in the day_x so is set to 0 for fig 2.")
+ #   min_temp = min(day_x)
 
     ax1 = figure_2.add_subplot(gs[:5, :4])
 
@@ -767,9 +766,9 @@ def make_fig_3(ax_dict):
     gs = figure_3.add_gridspec(10, 5)
     hfmt = dates.DateFormatter('')
 
-    dayx = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 30]
-    max_temp = max(dayx)
-    min_temp = min(dayx)
+    day_x = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 30]
+    max_temp = max(day_x)
+    min_temp = min(day_x)
 
     ax1 = figure_3.add_subplot(gs[:5, :4])
 
@@ -935,7 +934,6 @@ def check_for_new_x(used_id):
 def mqtt_app():
     mqtt_client()
     dict_result = get_data()
-
 
     while True:
         time.sleep(1)
