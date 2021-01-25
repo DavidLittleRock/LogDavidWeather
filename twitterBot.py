@@ -19,10 +19,10 @@ def get_text_to_tweet():
 
 def main():
     cfg = {
-      "consumer_key": "fuuAgy3pElOz4Ecy4ZF1OSuRh",
-      "consumer_secret": "7XZnEh5PwXHQ2AH8Ma52g41aAB0D2cTvDSbPaHnzErPSzDAnZt",
-      "access_token": "1247287333478699008-KKpYUUHBBxDpJwudh525izgb1EZOVF",
-      "access_token_secret": "ZDNOfmy2iV9dGNEce14Bgqym2g4j2cEhpibGaztv9GxVc"
+      "consumer_key": "*",
+      "consumer_secret": "*",
+      "access_token": "*",
+      "access_token_secret": "*"
     }
 
     api = get_api(cfg)
