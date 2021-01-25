@@ -199,28 +199,26 @@ def get_data():
     """
     logger.debug("from get_data")
     db_connection = sqlfile.create_db_connection()
-    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust FROM OneMonth ORDER BY Date ASC'
+    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust, Rain_Rate FROM NewOneMonth ORDER BY Date ASC'
     result = sqlfile.read_query(db_connection, query)
     # QUERY FOR # 30 DAY RAIN
-    query = 'SELECT Date, SUM(Rain_Change) FROM OneMonth GROUP BY Day(Date) ORDER BY Date ASC'
+    query = 'SELECT Date, SUM(Rain_Change) FROM NewOneMonth GROUP BY Day(Date) ORDER BY Date ASC'
     result_rain_30 = sqlfile.read_query(db_connection, query)
     # QUERY one day rain BAR
-    query = 'SELECT Date, Rain_Change FROM OneDay ORDER BY Date ASC'
-    result_rain_bar = sqlfile.read_query(db_connection, query)
-    # QUERY rain TODAY
-    query = 'SELECT Date, Rain_Change FROM OneDay WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'
-    # Today start 00:00 to now
+    """  query = 'SELECT Date, Rain_Change FROM NewOneMonth WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR) ORDER BY Date ASC'
+    result_rain_bar = sqlfile.read_query(db_connection, query)  """
+    # QUERY rain TODAY  # Today start 00:00 to now
+    query = 'SELECT Date, Rain_Change FROM NewOneMonth WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'
     result_rain_today = sqlfile.read_query(db_connection, query)
     #  QUERY one day rain YESTERDAY
-    query = ('SELECT Date, Rain_Change FROM OneMonth WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY))'
+    query = ('SELECT Date, Rain_Change FROM NewOneMonth WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY))'
              ' ORDER BY Date ASC')  # Yesterday 00:00 to 00:00
     result_rain_yesterday = sqlfile.read_query(db_connection, query)
-
     # QUERY rain 24
-    query = ('SELECT Date, Rain_Change FROM OneDay WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR)'
+    query = ('SELECT Date, Rain_Change FROM NewOneMonth WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR)'
              ' ORDER BY Date ASC')
-    # 24 hr rain
     result_rain_24 = sqlfile.read_query(db_connection, query)
+
     sqlfile.close_db_connection(db_connection)  # close the db connection
     # Move results into dict of lists
     dict_result = {
@@ -251,6 +249,7 @@ def get_data():
         'time_wind_chill': [],
         'wind_for_wc': [],
         'gust': [],
+        'rain_rate': []
     }
 
     for record in result:  # make a list for each measure
@@ -266,6 +265,8 @@ def get_data():
         dict_result['time_wind_chill'].append(record[0])
         dict_result['wind_for_wc'].append(record[4])
         dict_result['gust'].append(record[8])
+        dict_result['rain_rate'].append(record[9])
+
 
     if len(result_rain_30) > 0:
         for record in result_rain_30:
@@ -289,13 +290,13 @@ def get_data():
         dict_result['rain_change_yesterday'].append(0)
         dict_result['rain_total_yesterday'].append(0)
 
-    if len(result_rain_bar) > 0:
+    """    if len(result_rain_bar) > 0:
         for record in result_rain_bar:
             dict_result['time_rain_bar'].append(record[0])
             dict_result['rain_change_bar'].append(record[1] / 22.5)
     else:
         dict_result['time_rain_bar'].append(0)
-        dict_result['rain_change_bar'].append(0)
+        dict_result['rain_change_bar'].append(0) """
 
     if len(result_rain_today) > 0:
         for record in result_rain_today:
@@ -506,12 +507,11 @@ def make_fig_1(ax_dict):
     ax4.xaxis.set_major_formatter(hfmt)
     # if 1 day
     #  if (ax_dict['title'] == '1 day'):
-    ax4.bar(ax_dict['time_rain_bar'], ax_dict['rain_change_bar'], color='blue', width=0.005, label="Rain inches")
+#    ax4.bar(ax_dict['time_rain_bar'], ax_dict['rain_change_bar'], color='red', width=0.005, label="wwww")
     if len(ax_dict['rain_total_today']) > 0:  # today
         logger.debug(f"Rain today: {ax_dict['rain_total_today']}")
-
         ax4.plot(ax_dict['time_rain_today'], ax_dict['rain_total_today'], marker='o', linestyle='--', color='green',
-                 markersize=1, linewidth=4,
+                 markersize=1, linewidth=2,
                  label=f"Rain {ax_dict['rain_total_today'][-1]:.1f} inches today")
     else:
         ax_dict['rain_total_today'] = (0.0, 0.0,)  # if nothing in rain today then set a 0.0
@@ -525,6 +525,10 @@ def make_fig_1(ax_dict):
         ax4.plot(ax_dict['time_rain_24'], ax_dict['rain_total_24'], marker='o', linestyle='-', color='blue',
                  markersize=1, linewidth=1,
                  label=f"Rain {ax_dict['rain_total_24'][-1]:.1f} inches in 24 hours")
+    if len(ax_dict['rain_rate']) > 0:  # 24
+        ax4.plot(ax_dict['time'], ax_dict['rain_rate'], marker='s', linestyle='', color='blue',
+                 markersize=4, linewidth=1,
+                 label=f"Rain Rate, inch / hr")
     ax4.axis(ymin=0, ymax=((max(max(ax_dict['rain_total_24']), max(ax_dict['rain_total_today']),
                                 max(ax_dict['rain_total_yesterday']))) + 1) // 1,
              xmin=(dates.date2num(datetime.now())) - 1, xmax=(dates.date2num(datetime.now())))
