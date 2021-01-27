@@ -275,6 +275,15 @@ def get_data():
         dict_result['rain_rate'].append(record[9])
         dict_result['rain_change_all'].append(record[10])  # in mm
 
+    for index in range(len(dict_result['rain_rate'])):  # clean none to 0.0
+
+        if dict_result['rain_rate'][index] is None:
+            print(index)
+            print(dict_result['rain_rate'][index])
+            dict_result['rain_rate'][index] = 0.0
+            print(index)
+            print(dict_result['rain_rate'][index])
+
 
     if len(result_rain_30) > 0:
         for record in result_rain_30:
@@ -1025,19 +1034,25 @@ def mqtt_app():
 
         # make and save the text to tweet;
  #       make_text_to_tweet(dict_result)
-        if (dict_result['temp'][-1] < 40) and (dict_result['temp'][-2] > 40):
+        if (dict_result['temp'][-1] <= 32) and (dict_result['temp'][-2] > 32):
             string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
             make_text_to_tweet(string_tweet)
             twitterBot.main()
-        if (dict_result['temp'][-1] >= 44) and (dict_result['temp'][-2] < 44):
-            string_tweet = f"This is above freezing: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
+        if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] > 32):
+            string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
             make_text_to_tweet(string_tweet)
             twitterBot.main()
-    #    if len(dict_result['rain_rate']) > 4:
-        #    if (dict_result['rain_rate'][-2] > dict_result['rain_rate'][-3]):
-            #    print("it is raining now")
-            #    print(dict_result['rain_rate'][-1])
-            #    send_email('raining')
+        if len(dict_result['rain_rate']) > 4:
+            if dict_result['rain_rate'][-1] == dict_result['rain_rate'][-3]:
+                print("it is raining now")
+                print(dict_result['rain_rate'][-1])
+                send_email(f"raining with rain rate = {dict_result['rain_rate'][-1]}")
+            if (dict_result['rain_rate'][-3] > 0) and (dict_result['rain_rate'][-2] == 0.0) and (dict_result['rain_rate'][-1] == 0.0):
+                print("it has stopped raining")
+        # print(dict_result['rain_rate'])
+        for i in range(len(dict_result['rain_rate'])):
+            if (dict_result['rain_rate'][i]) is None:
+                print(f"{i} > {dict_result['rain_rate'][i]}")
 
         # check if new data, by setting
         used_id = get_last_id()
