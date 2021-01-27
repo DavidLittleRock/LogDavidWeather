@@ -1033,9 +1033,9 @@ def mqtt_app():
             string_tweet = f"This is above freezing: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
             make_text_to_tweet(string_tweet)
             twitterBot.main()
-        if len(dict_result['rain_rate']) > 2:
-            if (dict_result['rain_rate'][-1] > dict_result['rain_rate'][-2]):
-                print("it is raining")
+        if len(dict_result['rain_rate']) > 4:
+            if (dict_result['rain_rate'][-2] > dict_result['rain_rate'][-3]):
+                print("it is raining now")
                 print(dict_result['rain_rate'][-1])
                 send_email('raining')
 
