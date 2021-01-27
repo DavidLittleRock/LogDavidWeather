@@ -58,7 +58,7 @@ def send_email(message):
         print("disconnect")
     the_msg = MIMEMultipart(_subtype="alternative")
 
-    the_msg["Subject"] = "ERROR, from David's Weather Station"
+    the_msg["Subject"] = "Message, from David's Weather Station"
     the_msg["From"] = em_config['username']
     the_msg["To"] = em_config['toname']
     the_msg["CC"] = ''

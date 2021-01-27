@@ -1038,7 +1038,8 @@ def mqtt_app():
             string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
             make_text_to_tweet(string_tweet)
             twitterBot.main()
-        if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] > 32):
+            send_email("freezing")
+        if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] <= 32):
             string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
             make_text_to_tweet(string_tweet)
             twitterBot.main()
