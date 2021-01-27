@@ -1,1 +1,1 @@
-This is a freeze alert: the temperature is now 53.0 at 2021-01-26 17:30:14.990581.
+It is now is above freezing: the temperature is 40.7 at 2021-01-27 13:47:06.406740.
