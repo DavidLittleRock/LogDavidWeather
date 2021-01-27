@@ -1044,7 +1044,7 @@ def mqtt_app():
             make_text_to_tweet(string_tweet)
             twitterBot.main()
         if len(dict_result['rain_rate']) > 4:
-            if dict_result['rain_rate'][-1] == dict_result['rain_rate'][-3]:
+            if dict_result['rain_rate'][-1] > dict_result['rain_rate'][-3]:
                 print("it is raining now")
                 print(dict_result['rain_rate'][-1])
                 send_email(f"raining with rain rate = {dict_result['rain_rate'][-1]}")
