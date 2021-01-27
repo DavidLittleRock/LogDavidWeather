@@ -4,7 +4,9 @@
 
 import gc
 import time
+from datetime import timedelta
 from datetime import datetime
+from datetime import date
 import numpy as np
 import paho.mqtt.client as mqtt
 from matplotlib import dates
@@ -199,37 +201,37 @@ def get_data():
     """
     logger.debug("from get_data")
     db_connection = sqlfile.create_db_connection()
-    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust, Rain_Rate FROM NewOneMonth ORDER BY Date ASC'
+    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust, Rain_Rate, Rain_Change FROM NewOneMonth ORDER BY Date ASC'
     result = sqlfile.read_query(db_connection, query)
-    # QUERY FOR # 30 DAY RAIN
+    # QUERY FOR # 30 DAY RAIN  will 'filter' to get 7 day
     query = 'SELECT Date, SUM(Rain_Change) FROM NewOneMonth GROUP BY Day(Date) ORDER BY Date ASC'
     result_rain_30 = sqlfile.read_query(db_connection, query)
     # QUERY one day rain BAR
-    """  query = 'SELECT Date, Rain_Change FROM NewOneMonth WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR) ORDER BY Date ASC'
-    result_rain_bar = sqlfile.read_query(db_connection, query)  """
+    # query = 'SELECT Date, Rain_Change FROM NewOneMonth WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR) ORDER BY Date ASC'
+    # result_rain_bar = sqlfile.read_query(db_connection, query)
     # QUERY rain TODAY  # Today start 00:00 to now
-    query = 'SELECT Date, Rain_Change FROM NewOneMonth WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'
-    result_rain_today = sqlfile.read_query(db_connection, query)
+    # query = 'SELECT Date, Rain_Change FROM NewOneMonth WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'
+    # result_rain_today = sqlfile.read_query(db_connection, query)
     #  QUERY one day rain YESTERDAY
-    query = ('SELECT Date, Rain_Change FROM NewOneMonth WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY))'
-             ' ORDER BY Date ASC')  # Yesterday 00:00 to 00:00
-    result_rain_yesterday = sqlfile.read_query(db_connection, query)
+    # query = ('SELECT Date, Rain_Change FROM NewOneMonth WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY))'
+    #          ' ORDER BY Date ASC')  # Yesterday 00:00 to 00:00
+    # result_rain_yesterday = sqlfile.read_query(db_connection, query)
     # QUERY rain 24
-    query = ('SELECT Date, Rain_Change FROM NewOneMonth WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR)'
-             ' ORDER BY Date ASC')
-    result_rain_24 = sqlfile.read_query(db_connection, query)
+    # query = ('SELECT Date, Rain_Change FROM NewOneMonth WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR)'
+     #        ' ORDER BY Date ASC')
+    # result_rain_24 = sqlfile.read_query(db_connection, query)
 
     sqlfile.close_db_connection(db_connection)  # close the db connection
     # Move results into dict of lists
     dict_result = {
         'time': [],
         'temp': [],
-        'hi': [],
+        'heat_index': [],
         'humid': [],
-        'wind': [],
+        'wind_speed': [],
         'wind_d': [],
-        'bp': [],
-        'time_hi': [],
+        'baro_press': [],
+        'time_heat_index': [],
         'time_rain_30': [],
         'rain_30': [],
         'rain_30_sum': [],
@@ -249,23 +251,29 @@ def get_data():
         'time_wind_chill': [],
         'wind_for_wc': [],
         'gust': [],
-        'rain_rate': []
+        'rain_rate': [],
+        'rain_change_all': [],
+        'time_rain_all': [],
+        'time_rain_yesterday_filtered': [],
+        'rain_change_yesterday_filtered': [],
+        'rain_total_yesterday_filtered': []
     }
 
     for record in result:  # make a list for each measure
         dict_result['time'].append(record[0])
         dict_result['temp'].append(record[1])
-        dict_result['hi'].append(record[2])
+        dict_result['heat_index'].append(record[2])
         dict_result['humid'].append(record[3])
-        dict_result['wind'].append(record[4])
+        dict_result['wind_speed'].append(record[4])
         dict_result['wind_d'].append(record[5])
-        dict_result['bp'].append(record[6])
-        dict_result['time_hi'].append(record[0])
+        dict_result['baro_press'].append(record[6])
+        dict_result['time_heat_index'].append(record[0])
         dict_result['wind_chill'].append(record[7])
         dict_result['time_wind_chill'].append(record[0])
         dict_result['wind_for_wc'].append(record[4])
         dict_result['gust'].append(record[8])
         dict_result['rain_rate'].append(record[9])
+        dict_result['rain_change_all'].append(record[10])  # in mm
 
 
     if len(result_rain_30) > 0:
@@ -274,11 +282,12 @@ def get_data():
             dict_result['rain_30'].append(record[1] / 22.5)
             dict_result['rain_30_sum'].append(sum(dict_result['rain_30']))
     else:
-        logger.debug(len(result_rain_yesterday))
+        logger.debug(len(result_rain_30))
         dict_result['time_rain_30'].append(0)
         dict_result['rain_30'].append(0)
         dict_result['rain_30_sum'].append(0)
 
+    """
     if len(result_rain_yesterday) > 0:
         for record in result_rain_yesterday:
             dict_result['time_rain_yesterday'].append(record[0])
@@ -289,6 +298,7 @@ def get_data():
         dict_result['time_rain_yesterday'].append(0)
         dict_result['rain_change_yesterday'].append(0)
         dict_result['rain_total_yesterday'].append(0)
+    """
 
     """    if len(result_rain_bar) > 0:
         for record in result_rain_bar:
@@ -298,6 +308,7 @@ def get_data():
         dict_result['time_rain_bar'].append(0)
         dict_result['rain_change_bar'].append(0) """
 
+    """
     if len(result_rain_today) > 0:
         for record in result_rain_today:
             dict_result['time_rain_today'].append(record[0])
@@ -308,7 +319,8 @@ def get_data():
         dict_result['time_rain_today'].append(0)
         dict_result['rain_change_today'].append(0)
         dict_result['rain_total_today'].append(0)
-
+    """
+    """
     if len(result_rain_24) > 0:
         for record in result_rain_24:
             dict_result['time_rain_24'].append(record[0])
@@ -319,13 +331,15 @@ def get_data():
         dict_result['time_rain_24'].append(0)
         dict_result['rain_change_24'].append(0)
         dict_result['rain_total_24'].append(0)
+        
+        """
 
     #    convert each list to a numpy array
-    for k in dict_result:
-        dict_result[k] = np.array(dict_result[k])
+    for element in dict_result:
+        dict_result[element] = np.array(dict_result[element])
 
-    dict_result['hi'] = dict_result['hi'][dict_result['temp'] > 80]  # filter hi for temp > 80
-    dict_result['time_hi'] = dict_result['time_hi'][dict_result['temp'] > 80]
+    dict_result['heat_index'] = dict_result['heat_index'][dict_result['temp'] > 80]  # filter heat_index for temp > 80
+    dict_result['time_heat_index'] = dict_result['time_heat_index'][dict_result['temp'] > 80]
 
     dict_result['wind_chill'] = dict_result['wind_chill'][dict_result['temp'] < 50]
     dict_result['time_wind_chill'] = dict_result['time_wind_chill'][dict_result['temp'] < 50]
@@ -337,7 +351,67 @@ def get_data():
     dict_result['rain_7'] = dict_result['rain_30'][
         dates.date2num(dict_result['time_rain_30']) > dates.date2num(datetime.now()) - 7]
 
+    """
+# midnight today
+
+from datetime import date
+from datetime import datetime
+today = date.today()
+midnight = datetime.combine(today, datetime.min.time())
+ 
+print('Midnight: %s ' % (midnight) )
+"""
+    """
+# midnight yeaterday
+yesterday = today - datetime.timedelta(days = 1)
+    """
+    # yesterday rain
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    yesterday_midnight = datetime.combine(yesterday, datetime.min.time())
+    today_midnight = datetime.combine(today, datetime.min.time())
+    # yesterday midnight to now
+    dict_result['time_rain_yesterday'] = dict_result['time'][(dict_result['time']) > yesterday_midnight]
+    dict_result['rain_change_yesterday'] = dict_result['rain_change_all'][(dict_result['time']) > yesterday_midnight]  # in mm
+    # yesterday midnight to today midnight
+    dict_result['time_rain_yesterday_filtered'] = dict_result['time_rain_yesterday'][(dict_result['time_rain_yesterday']) < today_midnight]
+    dict_result['rain_change_yesterday_filtered'] = dict_result['rain_change_yesterday'][(dict_result['time_rain_yesterday']) < today_midnight]  # in mm
+    # make cumulative sum
+    dict_result['rain_total_yesterday_filtered'] = (np.cumsum(dict_result['rain_change_yesterday_filtered'])/22.5)  # in INCH
+
+    # today midnight to now
+    dict_result['time_rain_today'] = dict_result['time'][(dict_result['time']) > today_midnight]
+    dict_result['rain_change_today'] = (dict_result['rain_change_all'])[
+        (dict_result['time']) > today_midnight]  # in mm
+    # make cumulative sum
+    dict_result['rain_total_today'] = (np.cumsum(dict_result['rain_change_today'])/22.5)  # in inch
+ #   print(dict_result['rain_total_today'])
+
+
+    # rain 24
+    time_24 = datetime.now() - timedelta(days=1)
+    dict_result['time_rain_24'] = dict_result['time'][(dict_result['time']) > time_24]
+    dict_result['rain_change_24'] = (dict_result['rain_change_all'])[
+        (dict_result['time']) > time_24]  # in mm
+    # make cumulative sum
+    dict_result['rain_total_24'] = (np.cumsum(dict_result['rain_change_24']) / 22.5)  # in inch
+
     gc.collect()
+
+    dict_clean = clean_dict(dict_result)
+
+    return dict_clean
+
+
+def clean_dict(dict_result):
+    del dict_result['time_rain_yesterday']
+    del dict_result['rain_change_yesterday']
+    del dict_result['rain_total_yesterday']
+    del dict_result['rain_change_today']
+    del dict_result['rain_change_24']
+    del dict_result['rain_change_all']
+    del dict_result['time_rain_all']
+    del dict_result['rain_change_yesterday_filtered']
 
     return dict_result
 
@@ -409,8 +483,8 @@ def make_fig_1(ax_dict):
 #        # do not print Heat Index line
 #        pass
 
-    if len(ax_dict['hi']) > 0 and dates.date2num(ax_dict['time_hi'][-1]) > (dates.date2num(datetime.now())) - 1:
-        ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red',
+    if len(ax_dict['heat_index']) > 0 and dates.date2num(ax_dict['time_heat_index'][-1]) > (dates.date2num(datetime.now())) - 1:
+        ax1.plot(ax_dict['time_heat_index'], ax_dict['heat_index'], marker=6, linestyle='', color='red',
                  label='Heat Index')
 
     if ax_dict['humid'] is not None:
@@ -451,8 +525,8 @@ def make_fig_1(ax_dict):
 
     ax2 = figure_1.add_subplot(gs[6:8, :4])
 
-    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='-', color='black', markersize=2, linewidth=0.5,
-             label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
+    ax2.plot(ax_dict['time'], ax_dict['wind_speed'], marker='o', linestyle='-', color='black', markersize=2, linewidth=0.5,
+             label=f"Wind Speed {ax_dict['wind_speed'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 1,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
@@ -476,8 +550,8 @@ def make_fig_1(ax_dict):
     ax3 = figure_1.add_subplot(gs[8:, :4])  # ax3 is local scope but modifies fig that was passed in as argument
     pyplot.xticks([], rotation='45')
 
-    ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='', color='green', markersize=2.0, linewidth=1,
-             label=f"BP {ax_dict['bp'][-1]:.2f} mmHg")
+    ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='', color='green', markersize=2.0, linewidth=1,
+             label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
 
     ax3.axis(ymin=29.50, ymax=30.60, xmin=(dates.date2num(datetime.now())) - 1,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
@@ -516,11 +590,12 @@ def make_fig_1(ax_dict):
     else:
         ax_dict['rain_total_today'] = (0.0, 0.0,)  # if nothing in rain today then set a 0.0
         logger.debug(f"rain today set to 0 because len was 0")
-    if len(ax_dict['rain_total_yesterday']) > 0:  # yesterday
-        logger.debug(f"rain yesterday : {ax_dict['rain_total_yesterday']}")
-        ax4.plot(ax_dict['time_rain_yesterday'], ax_dict['rain_total_yesterday'], marker='o', linestyle='--',
+
+    if len(ax_dict['rain_total_yesterday_filtered']) > 0:  # yesterday
+        logger.debug(f"rain yesterday : {ax_dict['rain_total_yesterday_filtered']}")
+        ax4.plot(ax_dict['time_rain_yesterday_filtered'], ax_dict['rain_total_yesterday_filtered'], marker='o', linestyle='--',
                  color='orange', markersize=1, linewidth=2,
-                 label=f"Rain {ax_dict['rain_total_yesterday'][-1]:.1f} inches yesterday")
+                 label=f"Rain {ax_dict['rain_total_yesterday_filtered'][-1]:.1f} inches yesterday")
     if len(ax_dict['rain_total_24']) > 0:  # 24
         ax4.plot(ax_dict['time_rain_24'], ax_dict['rain_total_24'], marker='o', linestyle='-', color='blue',
                  markersize=1, linewidth=1,
@@ -530,7 +605,7 @@ def make_fig_1(ax_dict):
                  markersize=4, linewidth=1,
                  label=f"Rain Rate, inch / hr")
     ax4.axis(ymin=0, ymax=((max(max(ax_dict['rain_total_24']), max(ax_dict['rain_total_today']),
-                                max(ax_dict['rain_total_yesterday']))) + 1) // 1,
+                                max(ax_dict['rain_total_yesterday_filtered']))) + 1) // 1,
              xmin=(dates.date2num(datetime.now())) - 1, xmax=(dates.date2num(datetime.now())))
     ax4.set_title('', fontsize='15')
     ax4.set_xlabel('')
@@ -616,8 +691,8 @@ def make_fig_2(ax_dict):
 #        # do not print Heat Index line
 #        pass
 
-    if len(ax_dict['hi']) > 0 and dates.date2num(ax_dict['time_hi'][-1]) > (dates.date2num(datetime.now())) - 7:
-        ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red',
+    if len(ax_dict['heat_index']) > 0 and dates.date2num(ax_dict['time_heat_index'][-1]) > (dates.date2num(datetime.now())) - 7:
+        ax1.plot(ax_dict['time_heat_index'], ax_dict['heat_index'], marker=6, linestyle='', color='red',
                  label='Heat Index')
 
     if ax_dict['wind_chill'] is not None:
@@ -656,8 +731,8 @@ def make_fig_2(ax_dict):
         max_gust = 0
         send_email(f"The error is: {ve}. There is no data in ax_dict['gust'] so will be set to 0. Fig 2.")
 
-    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize='1.0',
-             linewidth=0.5, label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
+    ax2.plot(ax_dict['time'], ax_dict['wind_speed'], marker='o', linestyle='', color='black', markersize='1.0',
+             linewidth=0.5, label=f"Wind Speed {ax_dict['wind_speed'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 7,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
@@ -680,8 +755,8 @@ def make_fig_2(ax_dict):
     ax3 = figure_2.add_subplot(gs[8:, :4])  # ax3 is local scope but modifies fig that was passed in as argument
     pyplot.xticks([], rotation='45')
 
-    ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='', color='green', markersize=1.5, linewidth=1,
-             label=f"BP {ax_dict['bp'][-1]:.2f} mmHg")
+    ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='', color='green', markersize=1.5, linewidth=1,
+             label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
 
     ax3.axis(ymin=29.50, ymax=30.60, xmin=(dates.date2num(datetime.now())) - 7,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
@@ -794,8 +869,8 @@ def make_fig_3(ax_dict):
 #        # do not print Heat Index line
 #        pass
 
-    if len(ax_dict['hi']) > 0 and dates.date2num(ax_dict['time_hi'][-1]) > (dates.date2num(datetime.now())) - 30:
-        ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red',
+    if len(ax_dict['heat_index']) > 0 and dates.date2num(ax_dict['time_heat_index'][-1]) > (dates.date2num(datetime.now())) - 30:
+        ax1.plot(ax_dict['time_heat_index'], ax_dict['heat_index'], marker=6, linestyle='', color='red',
                  label='Heat Index', markersize='1')
 
     #    if ax_dict['humid'] is not None:
@@ -837,8 +912,8 @@ def make_fig_3(ax_dict):
         logger.error(f"{ex}")
         send_email(f"{ex}, Fig 3, gust")
 
-    ax2.plot(ax_dict['time'], ax_dict['wind'], marker='o', linestyle='', color='black', markersize=1.5, linewidth=0.5,
-             label=f"Wind Speed {ax_dict['wind'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
+    ax2.plot(ax_dict['time'], ax_dict['wind_speed'], marker='o', linestyle='', color='black', markersize=1.5, linewidth=0.5,
+             label=f"Wind Speed {ax_dict['wind_speed'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 30,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
@@ -860,8 +935,8 @@ def make_fig_3(ax_dict):
     ax3 = figure_3.add_subplot(gs[8:, :4])  # ax3 is local scope but modifies fig that was passed in as argument
     pyplot.xticks(rotation='25')
 
-    ax3.plot(ax_dict['time'], ax_dict['bp'], marker='o', linestyle='', color='green', markersize=1.5, linewidth=1,
-             label=f"BP {ax_dict['bp'][-1]:.2f} mmHg")
+    ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='', color='green', markersize=1.5, linewidth=1,
+             label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
 
     ax3.axis(ymin=29.50, ymax=30.60, xmin=(dates.date2num(datetime.now())) - 30,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
@@ -950,7 +1025,7 @@ def mqtt_app():
 
         # make and save the text to tweet;
  #       make_text_to_tweet(dict_result)
-        if (dict_result['temp'][-1] <= 40) and (dict_result['temp'][-2] > 40):
+        if (dict_result['temp'][-1] < 40) and (dict_result['temp'][-2] > 40):
             string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
             make_text_to_tweet(string_tweet)
             twitterBot.main()
@@ -958,6 +1033,12 @@ def mqtt_app():
             string_tweet = f"This is above freezing: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
             make_text_to_tweet(string_tweet)
             twitterBot.main()
+
+        if (dict_result['rain_rate'][-1] > dict_result['rain_rate'][-2]):
+            print("it is raining")
+            print(dict_result['rain_rate'][-1])
+            send_email('raining')
+
         # check if new data, by setting
         used_id = get_last_id()
         new_data = False

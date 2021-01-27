@@ -1,6 +1,7 @@
 
 
 import tweepy
+from python_config import read_config
 
 
 def get_api(cfg):
@@ -18,12 +19,7 @@ def get_text_to_tweet():
 
 
 def main():
-    cfg = {
-      "consumer_key": "*",
-      "consumer_secret": "*",
-      "access_token": "*",
-      "access_token_secret": "*"
-    }
+    cfg = read_config(section='twitter')
 
     api = get_api(cfg)
     tweet_to_send = get_text_to_tweet()
