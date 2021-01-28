@@ -278,11 +278,11 @@ def get_data():
     for index in range(len(dict_result['rain_rate'])):  # clean none to 0.0
 
         if dict_result['rain_rate'][index] is None:
-            print(index)
-            print(dict_result['rain_rate'][index])
+        #    print(index)
+        #    print(dict_result['rain_rate'][index])
             dict_result['rain_rate'][index] = 0.0
-            print(index)
-            print(dict_result['rain_rate'][index])
+        #    print(index)
+        #    print(dict_result['rain_rate'][index])
 
 
     if len(result_rain_30) > 0:
@@ -562,7 +562,7 @@ def make_fig_1(ax_dict):
     ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='', color='green', markersize=2.0, linewidth=1,
              label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
 
-    ax3.axis(ymin=29.50, ymax=30.60, xmin=(dates.date2num(datetime.now())) - 1,
+    ax3.axis(ymin=29.50, ymax=30.70, xmin=(dates.date2num(datetime.now())) - 1,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
     ax3.xaxis.set_major_locator(dates.HourLocator(interval=6))
     ax3.xaxis.set_minor_locator(dates.HourLocator(interval=1))
@@ -767,7 +767,7 @@ def make_fig_2(ax_dict):
     ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='', color='green', markersize=1.5, linewidth=1,
              label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
 
-    ax3.axis(ymin=29.50, ymax=30.60, xmin=(dates.date2num(datetime.now())) - 7,
+    ax3.axis(ymin=29.50, ymax=30.70, xmin=(dates.date2num(datetime.now())) - 7,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax3.xaxis.set_minor_locator(dates.HourLocator(interval=6))
@@ -947,7 +947,7 @@ def make_fig_3(ax_dict):
     ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='', color='green', markersize=1.5, linewidth=1,
              label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
 
-    ax3.axis(ymin=29.50, ymax=30.60, xmin=(dates.date2num(datetime.now())) - 30,
+    ax3.axis(ymin=29.50, ymax=30.70, xmin=(dates.date2num(datetime.now())) - 30,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     #    ax3.xaxis.set_minor_locator(dates.HourLocator(interval=6))
