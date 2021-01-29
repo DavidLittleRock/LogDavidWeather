@@ -187,7 +187,7 @@ def get_last_id():
     query = 'SELECT id FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
     result = sqlfile.read_query(db_connection, query)
     row_id = result[0][0]
-    logger.debug(f"row_id to return: {row_id}; \n\ttype: {type(row_id)}")
+  #  logger.debug(f"row_id to return: {row_id}; \n\ttype: {type(row_id)}")
     sqlfile.close_db_connection(db_connection)  # close the db connection
     return row_id
 
@@ -562,7 +562,7 @@ def make_fig_1(ax_dict):
     ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='', color='green', markersize=2.0, linewidth=1,
              label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
 
-    ax3.axis(ymin=29.50, ymax=30.70, xmin=(dates.date2num(datetime.now())) - 1,
+    ax3.axis(ymin=29.50, ymax=30.71, xmin=(dates.date2num(datetime.now())) - 1,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
     ax3.xaxis.set_major_locator(dates.HourLocator(interval=6))
     ax3.xaxis.set_minor_locator(dates.HourLocator(interval=1))
@@ -767,7 +767,7 @@ def make_fig_2(ax_dict):
     ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='', color='green', markersize=1.5, linewidth=1,
              label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
 
-    ax3.axis(ymin=29.50, ymax=30.70, xmin=(dates.date2num(datetime.now())) - 7,
+    ax3.axis(ymin=29.50, ymax=30.71, xmin=(dates.date2num(datetime.now())) - 7,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax3.xaxis.set_minor_locator(dates.HourLocator(interval=6))
@@ -947,7 +947,7 @@ def make_fig_3(ax_dict):
     ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='', color='green', markersize=1.5, linewidth=1,
              label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
 
-    ax3.axis(ymin=29.50, ymax=30.70, xmin=(dates.date2num(datetime.now())) - 30,
+    ax3.axis(ymin=29.50, ymax=30.71, xmin=(dates.date2num(datetime.now())) - 30,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     #    ax3.xaxis.set_minor_locator(dates.HourLocator(interval=6))
@@ -1019,6 +1019,7 @@ def make_text_to_tweet(string):
     with open('tweetToSend.txt', 'w') as file:
         file.write(string)
 
+
 def mqtt_app():
     mqtt_client()
     dict_result = get_data()  # get data from SQL
@@ -1037,17 +1038,20 @@ def mqtt_app():
         if (dict_result['temp'][-1] <= 32) and (dict_result['temp'][-2] > 32):
             string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
             make_text_to_tweet(string_tweet)
-            twitterBot.main()
+            twitterBot.new_tweet()
             send_email("freezing")
         if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] <= 32):
             string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
             make_text_to_tweet(string_tweet)
-            twitterBot.main()
+            twitterBot.new_tweet()
         if len(dict_result['rain_rate']) > 4:
             if dict_result['rain_rate'][-1] > dict_result['rain_rate'][-3]:
                 print("it is raining now")
                 print(dict_result['rain_rate'][-1])
                 send_email(f"raining with rain rate = {dict_result['rain_rate'][-1]}")
+                logger.info(f"rain rate is raining\n\t rain rate[-1] {dict_result['rain_rate'][-1]} at \n\t time {dict_result['time'][-1]}"
+                            f"\n\t rain rate[-2] {dict_result['rain_rate'][-2]} at \n\t time {dict_result['time'][-2]}"
+                            f"\n\t rain rate[-3] {dict_result['rain_rate'][-3]} at \n\t time {dict_result['time'][-3]}")
             if (dict_result['rain_rate'][-3] > 0) and (dict_result['rain_rate'][-2] == 0.0) and (dict_result['rain_rate'][-1] == 0.0):
                 print("it has stopped raining")
         # print(dict_result['rain_rate'])

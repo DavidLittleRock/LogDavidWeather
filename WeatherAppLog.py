@@ -1,8 +1,8 @@
 import logging
-# import Settings
 import coloredlogs
 import logging.handlers
 import smtplib
+
 
 def get_a_logger(name):
 
@@ -47,7 +47,6 @@ def get_a_logger(name):
                                         'module': {'color': 'white'}
                                         }
 
-
     chcformatter = coloredlogs.ColoredFormatter(fmt=('%(asctime)s - Level: %(levelname)s\n  '
                                       '- Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n  '
                                       '- Message: %(message)s \n  '
@@ -68,7 +67,7 @@ def get_a_logger(name):
 
 
     trfh = logging.handlers.TimedRotatingFileHandler(filename='./LOGS/Weather.log',  when='H', interval=1, backupCount=6)
-    trfh.setLevel(logging.DEBUG)
+    trfh.setLevel(logging.INFO)
     trfh.setFormatter(chformatter)
     logger.addHandler(trfh)
 
