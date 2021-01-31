@@ -1,11 +1,16 @@
 
-
 import tweepy
 from python_config import read_config
 from datetime import datetime
+from send_email import send_email
+from WeatherAppLog import get_a_logger
+
+logger = get_a_logger(__name__)
 
 
-def get_api(cfg):
+def get_api():
+    cfg = read_config(section='twitter')
+
     auth = tweepy.OAuthHandler(cfg['consumer_key'], cfg['consumer_secret'])
     auth.set_access_token(cfg['access_token'], cfg['access_token_secret'])
     return tweepy.API(auth, wait_on_rate_limit=True)
@@ -32,12 +37,8 @@ def write_lastTweetSeen(last_seen_id, file_name='lastTweetSeen.txt'):
 
 
 def reply():
-    cfg = read_config(section='twitter')
-
-    api = get_api(cfg)
-
+    api = get_api()
     mentions = api.mentions_timeline(since_id=read_lastTweetSeen(), tweet_mode='extended')  # get all tweets that mention me
-
     for tweet in reversed(mentions):
         if '#weather' in tweet.full_text.lower():
             print(f"ID: {tweet.id} , text: {tweet.full_text}")
@@ -47,18 +48,26 @@ def reply():
                 api.retweet(tweet.id)
                 write_lastTweetSeen(tweet.id)
             except tweepy.TweepError as e:
+                logger.error(f"Tweet error: {e.reason}")
                 print(e.reason)
+                send_email(subject="Tweet error", message=f"ERROR: {e.reason}")
+    return
+
 
 def new_tweet():
-    cfg = read_config(section='twitter')
-
-    api = get_api(cfg)
+    api = get_api()
     tweet_to_send = get_text_to_tweet()
-    status = api.update_status(status=tweet_to_send)
+    try:
+        status = api.update_status(status=tweet_to_send)
+    except tweepy.TweepError as e:
+        logger.error(f"Tweet error: {e.reason}")
+        send_email(subject="Tweet Error", message=f"Tweet error: {e.reason}")
+    return
 
 
 def main():
     reply()
+    new_tweet()
 #    cfg = read_config(section='twitter')
 
 #    api = get_api(cfg)

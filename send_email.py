@@ -40,7 +40,7 @@ def read_email_config(filename='config.ini', section='sendmail'):
     return db
 
 
-def send_email(message):
+def send_email(message="default message", subject="default subject"):
 
     #    toname = toname  # or can to_list = ["ddd"]
     em_config = read_config(section='sendmail')
@@ -58,7 +58,7 @@ def send_email(message):
         print("disconnect")
     the_msg = MIMEMultipart(_subtype="alternative")
 
-    the_msg["Subject"] = "Message, from David's Weather Station"
+    the_msg["Subject"] = subject
     the_msg["From"] = em_config['username']
     the_msg["To"] = em_config['toname']
     the_msg["CC"] = ''
@@ -89,7 +89,7 @@ def send_email(message):
 
 def main():
     message = "test"
-#   send_email(message, re)
+    send_email(subject="error", message=message)
 
 
 if __name__ == '__main__':

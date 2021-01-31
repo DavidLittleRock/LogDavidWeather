@@ -21,6 +21,7 @@ def read_config(filename='config.ini', section='mysql'):
     user =
     password =
     """
+    logger.debug(f"start read_config()")
     # create a parser and read ini configuration file
     parser = ConfigParser()
     parser.read(filename)
@@ -33,7 +34,7 @@ def read_config(filename='config.ini', section='mysql'):
             db[item[0]] = item[1]
     else:
         raise Exception(f'{section} not found in the {filename} file')
-    logger.debug(f"read_db_config(): \n\t{db}")
+    logger.debug(f" END read_config(): section: {section} \n\t{db}")
     return db
 
 def read_db_config(filename='config.ini', section='mysql'):

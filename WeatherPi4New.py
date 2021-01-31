@@ -19,13 +19,7 @@ import twitterBot
 from configparser import ConfigParser
 # TODO use argparser to specify debug and desk/pi
 
-# database_table_t = read_config(section='sqltable')
-# database_table = database_table_t['database_table']
-#  print(database_table)
-
 logger = get_a_logger(__name__)
-# logger.setLevel(20)
-# coloredlogs.install(level='DEBUG', logger=logger)
 
 """
 connect to Mosquitto MQTT
@@ -57,19 +51,23 @@ def on_message(self, userdata, message):
     :param message: the message string from Mosquitto MQTT
     :type message: str
     """
-    logger.debug(f"In on_message()")
+    logger.debug(f"on_message() started")
     full_payload = message.payload.decode()
+    logger.debug(f"message payload: {full_payload}")
     index = full_payload.index("MQTT")
     data_string = full_payload[index + 18:-2]  # trim to just the data string
     data_list = data_string.split(',')  # split the string to a list
-    logger.debug(f"data list to send to database: \n\t{data_list}")
 
+    logger.debug(f"on_message() calls validate_input()")
     if validate_input(data_list):
+        logger.debug(f"on_message() calls write_to_data()")
         write_to_data(data_list)
+    logger.debug(f"data list to send to database: \n\t{data_list}\n\tend of on_message")
+    return
 
 
 def validate_input(data_list):
-    # print(data_list)
+    logger.debug(f"validate_input started")
     temperature = data_list[0]
     pressure = data_list[2]
     valid = True
@@ -79,7 +77,7 @@ def validate_input(data_list):
             raise ValueError("Temperature is out of range, ")
     except ValueError as ve:
         logger.error(f"{ve}\n\t Temp was: {temperature}")
-        send_email(f"{ve}\n\t Temp was: {temperature}")
+        send_email(subject="ERROR", message=f"{ve}\n\t Temp was: {temperature}")
 
     try:
         if float(pressure) < 90000 or float(pressure) > 119000:
@@ -87,14 +85,15 @@ def validate_input(data_list):
             raise ValueError("pressure is out of range, ")
     except ValueError as ve:
         logger.error(f"{ve}\n\t pressure was: {pressure}")
-        send_email(f"{ve}\n\t pressure was: {pressure}")
+        send_email(subject="ERROR", message=f"{ve}\n\t pressure was: {pressure}")
+    logger.debug(f"end validate_data()")
     return valid
 
 
 def mqtt_client():
+    logger.debug(f"Start in mqtt_client()")
 
     mqtt_config = read_config(section='mqtt')
-    logger.info(f"Start in mqtt_client()")
     broker_url = mqtt_config['broker_url']
     logger.debug(f"MQTT broker url: {broker_url}")
     broker_port = int(mqtt_config['broker_port'])
@@ -104,7 +103,7 @@ def mqtt_client():
         logger.debug(f"mqtt client created: id {mqtt_config['mqtt_client_id']}")
     except Exception as ex:
         logger.exception(ex)
-        send_email(f"The error is: {ex}.")
+        send_email(subject="ERROR", message=f"The error is: {ex}.")
 
     client.on_message = on_message
     client.on_subscribe = on_subscribe
@@ -114,33 +113,32 @@ def mqtt_client():
         client.connect(broker_url, broker_port)
     except OSError as ose:
         logger.error(f"OS Error, check url or port, {ose}/n/t with url {broker_url} and port {broker_port}")
-        send_email(f"OS Error, check url or port, {ose}")
+        send_email(subject="ERROR", message=f"OS Error, check url or port, {ose}")
     except Exception as ex:
         logger.exception(ex)
-        send_email(f"The error is: {ex}.")
+        send_email(subject="ERROR", message=f"The error is: {ex}.")
 
     try:
         client.subscribe(mqtt_config['topic'], qos=2)
-
     except Exception as ex:
         logger.exception(ex)
-        send_email(f"The error is: {ex}.")
+        send_email(subject="ERROR", message=f"The error is: {ex}.")
 
     client.loop_start()
-
+    logger.debug(f"end of mqtt_client()")
 
 def on_connect(self, userdata, flags, rc):
     mqtt_config = read_config(section='mqtt')
-    logger.info(f"Connected to mosquitto {rc} \n\twith client_id: {mqtt_config['mqtt_client_id']}.")
+    logger.debug(f"Connected to mosquitto {rc} \n\twith client_id: {mqtt_config['mqtt_client_id']}.")
 
 
 def on_disconnect(self, userdata, rc):
-    logger.info(f'disconnected with rc {rc}')
+    logger.debug(f"MQTT disconnected with rc {rc}")
 
 
 def on_subscribe(self, userdata, mid, granted_qos):
     mqtt_config = read_config(section='mqtt')
-    logger.info(f"subscribed , with mid:{mid} and granted qos: {granted_qos} \n\tto topic: {mqtt_config['topic']}.")
+    logger.debug(f"subscribed , with mid:{mid} and granted qos: {granted_qos} \n\tto topic: {mqtt_config['topic']}.")
 
 
 def write_to_data(list_to_write):
@@ -154,10 +152,10 @@ def write_to_data(list_to_write):
         None
 
     """
-
+    logger.debug(f"start write_to_data()")
+    logger.debug(f"write_to_data() call to read_config()")
     database_table_t = read_config(section='sqltable')
     database_table = database_table_t['database_table']
-    logger.debug(f"in write_to_data()")
 
     db_connection = sqlfile.create_db_connection()
 
@@ -176,10 +174,13 @@ def write_to_data(list_to_write):
     except IndexError as ie:
         logger.error(f"failed to build query to write to database,\n\tlength should be 14; {len(list_to_write)}\n\t"
                      f"list to write: {list_to_write}\n\t Error: {ie}")
-        send_email(f"The error is: {ie}.")
+        send_email(subject="ERROR", message=f"The error is: {ie}.")
 
     sqlfile.execute_query(db_connection, query)
     sqlfile.close_db_connection(db_connection)
+    logger.debug(f"end write_to_data()")
+
+    return
 
 
 def get_last_id():
@@ -187,7 +188,7 @@ def get_last_id():
     query = 'SELECT id FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
     result = sqlfile.read_query(db_connection, query)
     row_id = result[0][0]
-  #  logger.debug(f"row_id to return: {row_id}; \n\ttype: {type(row_id)}")
+    logger.debug(f"row_id to return: {row_id}; \n\ttype: {type(row_id)}\n\tin get_last_id()")
     sqlfile.close_db_connection(db_connection)  # close the db connection
     return row_id
 
@@ -199,12 +200,12 @@ def get_data():
         dict_result: a dict type
 
     """
-    logger.debug("from get_data")
+    logger.debug("start get_data()")
     db_connection = sqlfile.create_db_connection()
-    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust, Rain_Rate, Rain_Change FROM NewOneMonth ORDER BY Date ASC'
+    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust, Rain_Rate, Rain_Change FROM OneMonth ORDER BY Date ASC'
     result = sqlfile.read_query(db_connection, query)
     # QUERY FOR # 30 DAY RAIN  will 'filter' to get 7 day
-    query = 'SELECT Date, SUM(Rain_Change) FROM NewOneMonth GROUP BY Day(Date) ORDER BY Date ASC'
+    query = 'SELECT Date, SUM(Rain_Change) FROM OneMonth GROUP BY Day(Date) ORDER BY Date ASC'
     result_rain_30 = sqlfile.read_query(db_connection, query)
     # QUERY one day rain BAR
     # query = 'SELECT Date, Rain_Change FROM NewOneMonth WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR) ORDER BY Date ASC'
@@ -276,20 +277,20 @@ def get_data():
         dict_result['rain_change_all'].append(record[10])  # in mm
 
     for index in range(len(dict_result['rain_rate'])):  # clean none to 0.0
-
         if dict_result['rain_rate'][index] is None:
-        #    print(index)
-        #    print(dict_result['rain_rate'][index])
-            dict_result['rain_rate'][index] = 0.0
-        #    print(index)
-        #    print(dict_result['rain_rate'][index])
-
+             dict_result['rain_rate'][index] = 0.0
 
     if len(result_rain_30) > 0:
         for record in result_rain_30:
             dict_result['time_rain_30'].append(record[0])
-            dict_result['rain_30'].append(record[1] / 22.5)
+            try:
+                dict_result['rain_30'].append(record[1] / 22.5)
+            except TypeError as te:
+                logger.error(f"type error {te}\n\t {record}")
+                send_email(subject="Error", message=f"type error {te}\nrecord: {record}")
+                dict_result['rain_30'].append(0)
             dict_result['rain_30_sum'].append(sum(dict_result['rain_30']))
+
     else:
         logger.debug(len(result_rain_30))
         dict_result['time_rain_30'].append(0)
@@ -408,11 +409,12 @@ yesterday = today - datetime.timedelta(days = 1)
     gc.collect()
 
     dict_clean = clean_dict(dict_result)
-
+    logger.debug(f"END get_data() .....")
     return dict_clean
 
 
 def clean_dict(dict_result):
+    logger.debug(f"clean_dict() started")
     del dict_result['time_rain_yesterday']
     del dict_result['rain_change_yesterday']
     del dict_result['rain_total_yesterday']
@@ -463,7 +465,7 @@ def make_fig_1(ax_dict):
         logger.error(f"Value Error: {ve}\n\tno data in ax_temp so will set max_temp and min_temp to 0")
         max_temp = 0
         min_temp = 0
-        send_email(f"The error is: {ve}.")
+        send_email(subject="ERROR", message=f"The error is: {ve}.")
 
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
@@ -530,7 +532,7 @@ def make_fig_1(ax_dict):
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
         max_gust = 0
-        send_email(f"The error is: {ve}. There is no data in the ax_dict['gust'] so is ste to 0 for fig 1.")
+        send_email(subject="ERROR", message=f"The error is: {ve}. There is no data in the ax_dict['gust'] so is ste to 0 for fig 1.")
 
     ax2 = figure_1.add_subplot(gs[6:8, :4])
 
@@ -665,14 +667,14 @@ def make_fig_2(ax_dict):
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in day_x so will set max_temp to 0")
         max_temp = 0
-        send_email(f"The error is: {ve}. There is no data in the day_x so is set to 0 for fig 2.")
+        send_email(subject="ERROR", message=f"The error is: {ve}. There is no data in the day_x so is set to 0 for fig 2.")
 
     try:
         min_temp = min(day_x)
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in day_x so will set min_temp to 0")
         min_temp = 0
-        send_email(f"The error is: {ve}. There is no data in the day_x so is set to 0 for fig 2.")
+        send_email(subject="ERROR", message=f"The error is: {ve}. There is no data in the day_x so is set to 0 for fig 2.")
  #   min_temp = min(day_x)
 
     ax1 = figure_2.add_subplot(gs[:5, :4])
@@ -738,7 +740,7 @@ def make_fig_2(ax_dict):
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
         max_gust = 0
-        send_email(f"The error is: {ve}. There is no data in ax_dict['gust'] so will be set to 0. Fig 2.")
+        send_email(subject="ERROR", message=f"The error is: {ve}. There is no data in ax_dict['gust'] so will be set to 0. Fig 2.")
 
     ax2.plot(ax_dict['time'], ax_dict['wind_speed'], marker='o', linestyle='', color='black', markersize='1.0',
              linewidth=0.5, label=f"Wind Speed {ax_dict['wind_speed'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
@@ -916,10 +918,10 @@ def make_fig_3(ax_dict):
     except ValueError as ve:
         logger.error(f"Value Error: {ve}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
         max_gust = 0
-        send_email(f"The error is: {ve}. There is no data in ax_dict['gust'] so is set to 0 in fig 3")
+        send_email(subject="ERROR", message=f"The error is: {ve}. There is no data in ax_dict['gust'] so is set to 0 in fig 3")
     except Exception as ex:
         logger.error(f"{ex}")
-        send_email(f"{ex}, Fig 3, gust")
+        send_email(subject="ERROR", message=f"{ex}, Fig 3, gust")
 
     ax2.plot(ax_dict['time'], ax_dict['wind_speed'], marker='o', linestyle='', color='black', markersize=1.5, linewidth=0.5,
              label=f"Wind Speed {ax_dict['wind_speed'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
@@ -1021,7 +1023,9 @@ def make_text_to_tweet(string):
 
 
 def mqtt_app():
+
     mqtt_client()
+    logger.debug(f"mqtt_app() call to get_data()")
     dict_result = get_data()  # get data from SQL
 
     while True:
@@ -1033,28 +1037,42 @@ def mqtt_app():
         make_fig_2(dict_result)
         make_fig_3(dict_result)
 
+    #    print(np.average(dict_result['temp'][-3:]))
+    #    print(np.average(dict_result['temp'][-6:-4]))
+    #    print(np.average(dict_result['temp'][-9:-7]))
+
+
         # make and save the text to tweet;
  #       make_text_to_tweet(dict_result)
-        if (dict_result['temp'][-1] <= 32) and (dict_result['temp'][-2] > 32):
+        if (np.average(dict_result['temp'][-3:]) <= 41) and (np.average(dict_result['temp'][-6:-3]) > 41):  # temp below set point
             string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
             make_text_to_tweet(string_tweet)
             twitterBot.new_tweet()
-            send_email("freezing")
-        if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] <= 32):
-            string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
+            send_email(subject="Freeze", message=f"The temperature is below freezing, at {datetime.time()}.")
+            logger.info(f"Is now freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
+                            f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
+                            f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
+        if (np.average(dict_result['temp'][-3:]) > 41) and (np.average(dict_result['temp'][-6:-3]) <= 41):  # temp rising above set point
+            string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.time()}."
             make_text_to_tweet(string_tweet)
             twitterBot.new_tweet()
-        if len(dict_result['rain_rate']) > 4:
-            if dict_result['rain_rate'][-1] > dict_result['rain_rate'][-3]:
-                print("it is raining now")
-                print(dict_result['rain_rate'][-1])
-                send_email(f"raining with rain rate = {dict_result['rain_rate'][-1]}")
+            send_email(subject="Above freezing", message="The temperature is now above freezing.")
+            logger.info(f"Is now above freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
+                        f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
+                        f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
+        if len(dict_result['rain_rate']) > 4:  # RAINING
+            if (dict_result['rain_rate'][-1] >= 0.09) and (dict_result['rain_rate'][-2] < 0.09) and (dict_result['rain_rate'][-3] < 0.09):
+                send_email(subject="Rain", message=f"raining with rain rate = {dict_result['rain_rate'][-1]}")
                 logger.info(f"rain rate is raining\n\t rain rate[-1] {dict_result['rain_rate'][-1]} at \n\t time {dict_result['time'][-1]}"
                             f"\n\t rain rate[-2] {dict_result['rain_rate'][-2]} at \n\t time {dict_result['time'][-2]}"
                             f"\n\t rain rate[-3] {dict_result['rain_rate'][-3]} at \n\t time {dict_result['time'][-3]}")
             if (dict_result['rain_rate'][-3] > 0) and (dict_result['rain_rate'][-2] == 0.0) and (dict_result['rain_rate'][-1] == 0.0):
                 print("it has stopped raining")
-        # print(dict_result['rain_rate'])
+                send_email(subject="Rain", message=f"HAS STOPPED raining with rain rate = {dict_result['rain_rate'][-1]}")
+                logger.info(
+                    f"rain rate has stopped raining\n\t rain rate[-1] {dict_result['rain_rate'][-1]} at \n\t time {dict_result['time'][-1]}"
+                    f"\n\t rain rate[-2] {dict_result['rain_rate'][-2]} at \n\t time {dict_result['time'][-2]}"
+                    f"\n\t rain rate[-3] {dict_result['rain_rate'][-3]} at \n\t time {dict_result['time'][-3]}")
         for i in range(len(dict_result['rain_rate'])):
             if (dict_result['rain_rate'][i]) is None:
                 print(f"{i} > {dict_result['rain_rate'][i]}")
@@ -1091,4 +1109,9 @@ def mqtt_app():
 
 
 if __name__ == "__main__":
-    mqtt_app()
+    try:
+        mqtt_app()
+    except Exception as e:
+        print(e)
+        logger.error(f"{e}")
+        send_email(subject="ERROR", message=f"{e}, main unhandeled")

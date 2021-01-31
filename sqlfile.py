@@ -9,7 +9,7 @@ from WeatherAppLog import get_a_logger
 from send_email import send_email
 from python_config import read_config
 
-sqlogger = get_a_logger(__name__)
+logger = get_a_logger(__name__)
 # logger.setLevel(20)
 
 
@@ -17,9 +17,9 @@ def create_server_connection(host_name, user_name, user_password):
     connection = None
     try:
         connection = mdb.connect(host=host_name, user=user_name, password=user_password)
-        sqlogger.debug("sql connect successful")
+        logger.debug("sql connect successful")
     except Error as err:
-        sqlogger.error(f"Error: {err}")
+        logger.error(f"Error: {err}")
         send_email(f"Error: {err}")
     return connection
 
@@ -28,9 +28,9 @@ def create_database(connection, query):
     cursor = connection.cursor()
     try:
         cursor.execute(query)
-        sqlogger.debug("database created")
+        logger.debug("database created")
     except Error as err:
-        sqlogger.error(f"Error: {err}")
+        logger.error(f"Error: {err}")
         send_email(f"Error: {err}")
 
 
@@ -38,9 +38,9 @@ def create_db_connection_x(host_name, user_name, user_password, db_name):
     connection = None
     try:
         connection = mdb.connect(host=host_name, user=user_name, password=user_password, database=db_name)
-        sqlogger.debug("connected to database")
+        logger.debug("connected to database")
     except Error as err:
-        sqlogger.error(f"Error: {err}")
+        logger.error(f"Error: {err}")
         send_email(f"Error: {err}")
     return connection
 
@@ -49,23 +49,22 @@ def create_db_connection():
     connection = None
 
     try:
-        sqlogger.debug("start create_db_connection")
+        logger.debug("start create_db_connection to sql")
         db_config = read_config()
         connection = mdb.connect(**db_config)
         if connection.open:
-            sqlogger.debug(f"db connect open; success with:\n\t{db_config}")
+            logger.debug(f"db connect open; success with:\n\t{db_config}")
     except Error as err:
-        sqlogger.error(f"Error: {err}")
+        logger.error(f"Error: {err}")
         send_email(f"Error: {err}")
     return connection
 
 
 def close_db_connection(db_connection):
     # close the SQL connection
-    log = sqlogger
     db_connection.close()
     if not db_connection.open:
-        log.debug(f"db connection closed successfully")
+        logger.debug(f"db connection closed successfully")
     return
 
 
@@ -75,7 +74,7 @@ def execute_query(connection, query):
         cursor.execute(query)
         connection.commit()
     except Error as err:
-        sqlogger.error(f"Error: {err}")
+        logger.error(f"Error: {err}")
         send_email(f"Error: {err}")
 
 
@@ -88,7 +87,7 @@ def read_query(connection, query):
         cursor.close()
         return result
     except Exception as err:
-        sqlogger.error(f"Error: {err}")
+        logger.error(f"Error: {err}")
         send_email(f"Error: {err}")
 
 
@@ -119,5 +118,5 @@ def read_db_config_x(filename='config.ini', section='mysql'):
             db_kwargs[item[0]] = item[1]   # make a dict with key = first thing in tuple and value is second
     else:
         raise Exception(f'{section} not found in the {filename} file')
-    sqlogger.debug(f"read_db_config() was successful with db_kwargs: \n\t{db_kwargs}")
+    logger.debug(f"read_db_config() was successful with db_kwargs: \n\t{db_kwargs}")
     return db_kwargs
