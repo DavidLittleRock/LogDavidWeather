@@ -539,7 +539,7 @@ def make_fig_1(ax_dict):
     ax2.plot(ax_dict['time'], ax_dict['wind_speed'], marker='o', linestyle='-', color='black', markersize=2, linewidth=0.5,
              label=f"Wind Speed {ax_dict['wind_speed'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
 
-    ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 1,
+    ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now())) - 1,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
     ax2.xaxis.set_major_locator(dates.HourLocator(interval=6))
     ax2.xaxis.set_minor_locator(dates.HourLocator(interval=1))
@@ -745,7 +745,7 @@ def make_fig_2(ax_dict):
     ax2.plot(ax_dict['time'], ax_dict['wind_speed'], marker='o', linestyle='', color='black', markersize='1.0',
              linewidth=0.5, label=f"Wind Speed {ax_dict['wind_speed'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
 
-    ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 7,
+    ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now())) - 7,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
     ax2.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax2.xaxis.set_minor_locator(dates.HourLocator(interval=6))
@@ -926,7 +926,7 @@ def make_fig_3(ax_dict):
     ax2.plot(ax_dict['time'], ax_dict['wind_speed'], marker='o', linestyle='', color='black', markersize=1.5, linewidth=0.5,
              label=f"Wind Speed {ax_dict['wind_speed'][-1]:.0f} MPH \n from the {compass[ax_dict['wind_d'][-1]]}\n gusting between \n {ax_dict['gust'][-1]:.0f} and {max_gust:.0f} MPH")
 
-    ax2.axis(ymin=0, ymax=6, xmin=(dates.date2num(datetime.now())) - 30,
+    ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now())) - 30,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
     ax2.xaxis.set_major_locator(dates.DayLocator(interval=1))
     #    ax2.xaxis.set_minor_locator(dates.HourLocator(interval=6))
@@ -1002,7 +1002,7 @@ def make_fig_3(ax_dict):
     mng.full_screen_toggle()  # full screen no outline
 
 
-def check_for_new_x(used_id):
+"""def check_for_new_x(used_id):
     # return False if used_id == get_last_id(), no new data
     last_id = get_last_id()
     if last_id != used_id:
@@ -1014,12 +1014,9 @@ def check_for_new_x(used_id):
         new_data = False
         dict_result = get_data()
         return used_id, new_data, dict_result
+"""
 
 
-def make_text_to_tweet(string):
-  #  tempnow = dict_result['temp'][-1]
-    with open('tweetToSend.txt', 'w') as file:
-        file.write(string)
 
 
 def mqtt_app():
@@ -1044,18 +1041,18 @@ def mqtt_app():
 
         # make and save the text to tweet;
  #       make_text_to_tweet(dict_result)
-        if (np.average(dict_result['temp'][-3:]) <= 41) and (np.average(dict_result['temp'][-6:-3]) > 41):  # temp below set point
+        if (np.average(dict_result['temp'][-3:]) <= 32) and (np.average(dict_result['temp'][-6:-3]) > 32):  # temp below set point
             string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
-            make_text_to_tweet(string_tweet)
-            twitterBot.new_tweet()
+            twitterBot.write_text_to_tweet(string_tweet)
+            twitterBot.send_new_tweet()
             send_email(subject="Freeze", message=f"The temperature is below freezing, at {datetime.time()}.")
             logger.info(f"Is now freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
                             f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
                             f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
-        if (np.average(dict_result['temp'][-3:]) > 41) and (np.average(dict_result['temp'][-6:-3]) <= 41):  # temp rising above set point
+        if (np.average(dict_result['temp'][-3:]) > 32) and (np.average(dict_result['temp'][-6:-3]) <= 32):  # temp rising above set point
             string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.time()}."
-            make_text_to_tweet(string_tweet)
-            twitterBot.new_tweet()
+            twitterBot.write_text_to_tweet(string_tweet)
+            twitterBot.send_new_tweet()
             send_email(subject="Above freezing", message="The temperature is now above freezing.")
             logger.info(f"Is now above freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
                         f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"

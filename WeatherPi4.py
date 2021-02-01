@@ -928,7 +928,7 @@ def check_for_new_x(used_id):
 
 def make_text_to_tweet(string):
   #  tempnow = dict_result['temp'][-1]
-    with open('tweetToSend.txt', 'w') as file:
+    with open('tweet_to_send.txt', 'w') as file:
         file.write(string)
 
 def mqtt_app():
