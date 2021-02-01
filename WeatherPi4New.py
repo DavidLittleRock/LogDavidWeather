@@ -1045,12 +1045,12 @@ def mqtt_app():
             string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
             twitterBot.write_text_to_tweet(string_tweet)
             twitterBot.send_new_tweet()
-            send_email(subject="Freeze", message=f"The temperature is below freezing, at {datetime.time()}.")
+            send_email(subject="Freeze", message=f"The temperature is below freezing, at {datetime.now()}.")
             logger.info(f"Is now freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
                             f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
                             f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
         if (np.average(dict_result['temp'][-3:]) > 32) and (np.average(dict_result['temp'][-6:-3]) <= 32):  # temp rising above set point
-            string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.time()}."
+            string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
             twitterBot.write_text_to_tweet(string_tweet)
             twitterBot.send_new_tweet()
             send_email(subject="Above freezing", message="The temperature is now above freezing.")
@@ -1107,6 +1107,8 @@ def mqtt_app():
 
 if __name__ == "__main__":
     try:
+        print(time.time())
+
         mqtt_app()
     except Exception as e:
         print(e)
