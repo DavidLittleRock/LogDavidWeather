@@ -16,26 +16,16 @@ from python_config import read_config
 import sqlfile
 from send_email import send_email
 import twitterBot
+import traceback
 from configparser import ConfigParser
 # TODO use argparser to specify debug and desk/pi
 
 logger = get_a_logger(__name__)
 
-"""
-connect to Mosquitto MQTT
-subscribe to weather topic
-
-connect to SQL
-write message data to SQL
-"""
-
-
 def on_log(client, userdata, level, buff):
     print(level)
     print(buff)
     pass
-#   return database_password
-#   raise dd
 
 
 def on_message(self, userdata, message):
@@ -78,7 +68,6 @@ def validate_input(data_list):
     except ValueError as ve:
         logger.error(f"{ve}\n\t Temp was: {temperature}")
         send_email(subject="ERROR", message=f"{ve}\n\t Temp was: {temperature}")
-
     try:
         if float(pressure) < 90000 or float(pressure) > 119000:
             valid = False
@@ -117,7 +106,6 @@ def mqtt_client():
     except Exception as ex:
         logger.exception(ex)
         send_email(subject="ERROR", message=f"The error is: {ex}.")
-
     try:
         client.subscribe(mqtt_config['topic'], qos=2)
     except Exception as ex:
@@ -126,6 +114,7 @@ def mqtt_client():
 
     client.loop_start()
     logger.debug(f"end of mqtt_client()")
+
 
 def on_connect(self, userdata, flags, rc):
     mqtt_config = read_config(section='mqtt')
@@ -207,20 +196,6 @@ def get_data():
     # QUERY FOR # 30 DAY RAIN  will 'filter' to get 7 day
     query = 'SELECT Date, SUM(Rain_Change) FROM OneMonth GROUP BY Day(Date) ORDER BY Date ASC'
     result_rain_30 = sqlfile.read_query(db_connection, query)
-    # QUERY one day rain BAR
-    # query = 'SELECT Date, Rain_Change FROM NewOneMonth WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR) ORDER BY Date ASC'
-    # result_rain_bar = sqlfile.read_query(db_connection, query)
-    # QUERY rain TODAY  # Today start 00:00 to now
-    # query = 'SELECT Date, Rain_Change FROM NewOneMonth WHERE Day(Date) = Day(CURDATE()) ORDER BY Date ASC'
-    # result_rain_today = sqlfile.read_query(db_connection, query)
-    #  QUERY one day rain YESTERDAY
-    # query = ('SELECT Date, Rain_Change FROM NewOneMonth WHERE Day(Date) = Day(DATE_SUB(CURDATE(), INTERVAL 1 DAY))'
-    #          ' ORDER BY Date ASC')  # Yesterday 00:00 to 00:00
-    # result_rain_yesterday = sqlfile.read_query(db_connection, query)
-    # QUERY rain 24
-    # query = ('SELECT Date, Rain_Change FROM NewOneMonth WHERE Date >= DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR)'
-     #        ' ORDER BY Date ASC')
-    # result_rain_24 = sqlfile.read_query(db_connection, query)
 
     sqlfile.close_db_connection(db_connection)  # close the db connection
     # Move results into dict of lists
@@ -278,7 +253,7 @@ def get_data():
 
     for index in range(len(dict_result['rain_rate'])):  # clean none to 0.0
         if dict_result['rain_rate'][index] is None:
-             dict_result['rain_rate'][index] = 0.0
+            dict_result['rain_rate'][index] = 0.0
 
     if len(result_rain_30) > 0:
         for record in result_rain_30:
@@ -290,59 +265,11 @@ def get_data():
                 send_email(subject="Error", message=f"type error {te}\nrecord: {record}")
                 dict_result['rain_30'].append(0)
             dict_result['rain_30_sum'].append(sum(dict_result['rain_30']))
-
     else:
         logger.debug(len(result_rain_30))
         dict_result['time_rain_30'].append(0)
         dict_result['rain_30'].append(0)
         dict_result['rain_30_sum'].append(0)
-
-    """
-    if len(result_rain_yesterday) > 0:
-        for record in result_rain_yesterday:
-            dict_result['time_rain_yesterday'].append(record[0])
-            dict_result['rain_change_yesterday'].append(record[1] / 22.5)
-            dict_result['rain_total_yesterday'].append(sum(dict_result['rain_change_yesterday']))
-    else:
-        logger.debug(len(result_rain_yesterday))
-        dict_result['time_rain_yesterday'].append(0)
-        dict_result['rain_change_yesterday'].append(0)
-        dict_result['rain_total_yesterday'].append(0)
-    """
-
-    """    if len(result_rain_bar) > 0:
-        for record in result_rain_bar:
-            dict_result['time_rain_bar'].append(record[0])
-            dict_result['rain_change_bar'].append(record[1] / 22.5)
-    else:
-        dict_result['time_rain_bar'].append(0)
-        dict_result['rain_change_bar'].append(0) """
-
-    """
-    if len(result_rain_today) > 0:
-        for record in result_rain_today:
-            dict_result['time_rain_today'].append(record[0])
-            dict_result['rain_change_today'].append(record[1] / 22.5)
-            dict_result['rain_total_today'].append(sum(dict_result['rain_change_today']))
-    else:
-        logger.debug(len(result_rain_today))
-        dict_result['time_rain_today'].append(0)
-        dict_result['rain_change_today'].append(0)
-        dict_result['rain_total_today'].append(0)
-    """
-    """
-    if len(result_rain_24) > 0:
-        for record in result_rain_24:
-            dict_result['time_rain_24'].append(record[0])
-            dict_result['rain_change_24'].append(record[1] / 22.5)
-            dict_result['rain_total_24'].append(sum(dict_result['rain_change_24']))
-    else:
-        logger.debug(len(result_rain_24))
-        dict_result['time_rain_24'].append(0)
-        dict_result['rain_change_24'].append(0)
-        dict_result['rain_total_24'].append(0)
-        
-        """
 
     #    convert each list to a numpy array
     for element in dict_result:
@@ -361,20 +288,6 @@ def get_data():
     dict_result['rain_7'] = dict_result['rain_30'][
         dates.date2num(dict_result['time_rain_30']) > dates.date2num(datetime.now()) - 7]
 
-    """
-# midnight today
-
-from datetime import date
-from datetime import datetime
-today = date.today()
-midnight = datetime.combine(today, datetime.min.time())
- 
-print('Midnight: %s ' % (midnight) )
-"""
-    """
-# midnight yeaterday
-yesterday = today - datetime.timedelta(days = 1)
-    """
     # yesterday rain
     today = date.today()
     yesterday = today - timedelta(days=1)
@@ -395,8 +308,7 @@ yesterday = today - datetime.timedelta(days = 1)
         (dict_result['time']) > today_midnight]  # in mm
     # make cumulative sum
     dict_result['rain_total_today'] = (np.cumsum(dict_result['rain_change_today'])/22.5)  # in inch
- #   print(dict_result['rain_total_today'])
-
+    #   print(dict_result['rain_total_today'])
 
     # rain 24
     time_24 = datetime.now() - timedelta(days=1)
@@ -477,22 +389,6 @@ def make_fig_1(ax_dict):
     ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='', color='black', markersize=2.0,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp}) ")
 
-#    if ax_dict['hi'] is not None and len(ax_dict['hi']) > 0:  # if there is a Heat Index in the 30 days
-#        if ax_dict['time'][-1] == ax_dict['time_hi'][-1]:  # if the last reading has a Heat Index
-#            logger.debug(f"temp = {ax_dict['temp'][-1]}")
-#            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
-#                     label=f"Heat Index {ax_dict['hi'][-1]:.1f}\u2109")
-#            print(f"time hi: {ax_dict['time_hi'][-1]} \ntype {type(ax_dict['time_hi'][-1])}")
-#            print(f"datetime {datetime.now()}")
-#        elif dates.date2num(ax_dict['time_hi'][-1]) > (dates.date2num(datetime.now())) - 1:
-#            #  if there is a heat index in 1 day
-#            ax1.plot(ax_dict['time_hi'], ax_dict['hi'], marker=6, linestyle='', color='red', markersize=4.0,
-#                     label=f"Heat Index \u2109")
-#        else:  # if no heat index in this day
-#            pass
-#    else:  # if no heat index in 30 day
-#        # do not print Heat Index line
-#        pass
 
     if len(ax_dict['heat_index']) > 0 and dates.date2num(ax_dict['time_heat_index'][-1]) > (dates.date2num(datetime.now())) - 1:
         ax1.plot(ax_dict['time_heat_index'], ax_dict['heat_index'], marker=6, linestyle='', color='red',
@@ -599,7 +495,7 @@ def make_fig_1(ax_dict):
                  markersize=1, linewidth=2,
                  label=f"Rain {ax_dict['rain_total_today'][-1]:.1f} inches today")
     else:
-        ax_dict['rain_total_today'] = (0.0, 0.0,)  # if nothing in rain today then set a 0.0
+        ax_dict['rain_total_today'] = [0.0, 0.0]  # if nothing in rain today then set a 0.0
         logger.debug(f"rain today set to 0 because len was 0")
 
     if len(ax_dict['rain_total_yesterday_filtered']) > 0:  # yesterday
@@ -611,10 +507,13 @@ def make_fig_1(ax_dict):
         ax4.plot(ax_dict['time_rain_24'], ax_dict['rain_total_24'], marker='o', linestyle='-', color='blue',
                  markersize=1, linewidth=1,
                  label=f"Rain {ax_dict['rain_total_24'][-1]:.1f} inches in 24 hours")
-    if len(ax_dict['rain_rate']) > 0:  # 24
+    else:
+        ax_dict['rain_total_24'] = [0, 0]
+    if len(ax_dict['rain_rate']) > 0:
         ax4.plot(ax_dict['time'], ax_dict['rain_rate'], marker='s', linestyle='', color='blue',
                  markersize=4, linewidth=1,
                  label=f"Rain Rate, inch / hr")
+
     ax4.axis(ymin=0, ymax=((max(max(ax_dict['rain_total_24']), max(ax_dict['rain_total_today']),
                                 max(ax_dict['rain_total_yesterday_filtered']))) + 1) // 1,
              xmin=(dates.date2num(datetime.now())) - 1, xmax=(dates.date2num(datetime.now())))
@@ -1002,6 +901,52 @@ def make_fig_3(ax_dict):
     mng.full_screen_toggle()  # full screen no outline
 
 
+def make_tweet_texts(dict_result):
+    # make and send freezing tweet
+    if (dict_result['temp'][-1] < 32) and (dict_result['temp'][-2] <= 32) and (
+            dict_result['temp'][-3] > 32):  # temp rising above set point
+
+        string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
+        twitterBot.write_text_to_tweet(string_tweet)
+        #       twitterBot.send_new_tweet()
+        #       send_email(subject="Freeze", message=f"The temperature is below freezing, at {datetime.now()}.")
+        logger.info(f"Is now freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
+                    f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
+                    f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
+    #  make and send above freezing tweet
+
+        if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] >= 32) and (dict_result['temp'][-3] < 32):  # temp rising above set point
+            string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
+            twitterBot.write_text_to_tweet(string_tweet)
+            #        twitterBot.send_new_tweet()
+            #        send_email(subject="Above freezing", message="The temperature is now above freezing.")
+            logger.info(
+                f"OK  OK  Is now above freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
+                f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
+                f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
+
+    #  make and send rain tweet
+    if len(dict_result['rain_rate']) > 4:  # RAINING
+        if (dict_result['rain_rate'][-1] >= 0.09) and (dict_result['rain_rate'][-2] < 0.09) and (
+                dict_result['rain_rate'][-3] < 0.09):
+            send_email(subject="Rain", message=f"raining with rain rate = {dict_result['rain_rate'][-1]}")
+            logger.info(
+                f"rain rate is raining\n\t rain rate[-1] {dict_result['rain_rate'][-1]} at \n\t time {dict_result['time'][-1]}"
+                f"\n\t rain rate[-2] {dict_result['rain_rate'][-2]} at \n\t time {dict_result['time'][-2]}"
+                f"\n\t rain rate[-3] {dict_result['rain_rate'][-3]} at \n\t time {dict_result['time'][-3]}")
+        if (dict_result['rain_rate'][-3] > 0) and (dict_result['rain_rate'][-2] == 0.0) and (
+                dict_result['rain_rate'][-1] == 0.0):
+            print("it has stopped raining")
+            send_email(subject="Rain", message=f"HAS STOPPED raining with rain rate = {dict_result['rain_rate'][-1]}")
+            logger.info(
+                f"rain rate has stopped raining\n\t rain rate[-1] {dict_result['rain_rate'][-1]} at \n\t time {dict_result['time'][-1]}"
+                f"\n\t rain rate[-2] {dict_result['rain_rate'][-2]} at \n\t time {dict_result['time'][-2]}"
+                f"\n\t rain rate[-3] {dict_result['rain_rate'][-3]} at \n\t time {dict_result['time'][-3]}")
+    #  make and store current temperature tweet
+    temperature_tweet_string = f"The temperature is now {dict_result['temp'][-1]}\u2109."
+    twitterBot.write_text_to_tweet(string=temperature_tweet_string, file_name='temperature_tweet.txt')
+
+
 """def check_for_new_x(used_id):
     # return False if used_id == get_last_id(), no new data
     last_id = get_last_id()
@@ -1017,13 +962,13 @@ def make_fig_3(ax_dict):
 """
 
 
-
-
 def mqtt_app():
 
     mqtt_client()
     logger.debug(f"mqtt_app() call to get_data()")
     dict_result = get_data()  # get data from SQL
+
+    # Make Tweets
 
     while True:
         # LOOP to :
@@ -1033,46 +978,13 @@ def mqtt_app():
         make_fig_1(dict_result)
         make_fig_2(dict_result)
         make_fig_3(dict_result)
+        make_tweet_texts(dict_result)
+        time.sleep(5)
+        twitterBot.main()
 
     #    print(np.average(dict_result['temp'][-3:]))
     #    print(np.average(dict_result['temp'][-6:-4]))
     #    print(np.average(dict_result['temp'][-9:-7]))
-
-
-        # make and save the text to tweet;
- #       make_text_to_tweet(dict_result)
-        if (np.average(dict_result['temp'][-3:]) <= 32) and (np.average(dict_result['temp'][-6:-3]) > 32):  # temp below set point
-            string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
-            twitterBot.write_text_to_tweet(string_tweet)
-            twitterBot.send_new_tweet()
-            send_email(subject="Freeze", message=f"The temperature is below freezing, at {datetime.now()}.")
-            logger.info(f"Is now freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
-                            f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
-                            f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
-        if (np.average(dict_result['temp'][-3:]) > 32) and (np.average(dict_result['temp'][-6:-3]) <= 32):  # temp rising above set point
-            string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
-            twitterBot.write_text_to_tweet(string_tweet)
-            twitterBot.send_new_tweet()
-            send_email(subject="Above freezing", message="The temperature is now above freezing.")
-            logger.info(f"Is now above freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
-                        f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
-                        f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
-        if len(dict_result['rain_rate']) > 4:  # RAINING
-            if (dict_result['rain_rate'][-1] >= 0.09) and (dict_result['rain_rate'][-2] < 0.09) and (dict_result['rain_rate'][-3] < 0.09):
-                send_email(subject="Rain", message=f"raining with rain rate = {dict_result['rain_rate'][-1]}")
-                logger.info(f"rain rate is raining\n\t rain rate[-1] {dict_result['rain_rate'][-1]} at \n\t time {dict_result['time'][-1]}"
-                            f"\n\t rain rate[-2] {dict_result['rain_rate'][-2]} at \n\t time {dict_result['time'][-2]}"
-                            f"\n\t rain rate[-3] {dict_result['rain_rate'][-3]} at \n\t time {dict_result['time'][-3]}")
-            if (dict_result['rain_rate'][-3] > 0) and (dict_result['rain_rate'][-2] == 0.0) and (dict_result['rain_rate'][-1] == 0.0):
-                print("it has stopped raining")
-                send_email(subject="Rain", message=f"HAS STOPPED raining with rain rate = {dict_result['rain_rate'][-1]}")
-                logger.info(
-                    f"rain rate has stopped raining\n\t rain rate[-1] {dict_result['rain_rate'][-1]} at \n\t time {dict_result['time'][-1]}"
-                    f"\n\t rain rate[-2] {dict_result['rain_rate'][-2]} at \n\t time {dict_result['time'][-2]}"
-                    f"\n\t rain rate[-3] {dict_result['rain_rate'][-3]} at \n\t time {dict_result['time'][-3]}")
-        for i in range(len(dict_result['rain_rate'])):
-            if (dict_result['rain_rate'][i]) is None:
-                print(f"{i} > {dict_result['rain_rate'][i]}")
 
         # check if new data, by setting
         used_id = get_last_id()
@@ -1107,10 +1019,12 @@ def mqtt_app():
 
 if __name__ == "__main__":
     try:
-        print(time.time())
 
         mqtt_app()
     except Exception as e:
         print(e)
         logger.error(f"{e}")
         send_email(subject="ERROR", message=f"{e}, main unhandeled")
+        print(traceback.format_exec())
+
+    # mqtt_app()

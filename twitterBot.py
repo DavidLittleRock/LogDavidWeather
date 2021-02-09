@@ -16,16 +16,16 @@ def get_api():
     return tweepy.API(auth, wait_on_rate_limit=True)
 
 
-def write_text_to_tweet(string):
+def write_text_to_tweet(string, file_name='tweet_to_send.txt'):
   #  tempnow = dict_result['temp'][-1]
-    with open('tweet_to_send.txt', 'w') as file:
+    with open(file_name, 'w') as file:
         file.write(string)
     return
 
 
-def read_text_to_tweet(file_to_tweet='tweet_to_send.txt'):
+def read_text_to_tweet(file_name='tweet_to_send.txt'):
     # file_to_tweet = file_to_send
-    with open(file_to_tweet, 'r') as file:
+    with open(file_name, 'r') as file:
         text = file.read()
         # print(text)
     return text
@@ -48,11 +48,13 @@ def send_reply_tweet():
     mentions = api.mentions_timeline(since_id=read_last_tweet_seen(), tweet_mode='extended')  # get all tweets that mention me
     for tweet in reversed(mentions):
         if '#weather' in tweet.full_text.lower():
-            print(f"ID: {tweet.id} , text: {tweet.full_text}")
+            print(f"ID: {tweet.id} , text: {tweet.full_text} {tweet.user.screen_name}")
             try:
-                api.update_status(f"at {datetime.now()} @{tweet.user.screen_name} reply tweet, here; #weather", tweet.id)
+                status_a = read_text_to_tweet(file_name='temperature_tweet.txt')  # this posts as tweet
+                status = f"{status_a} @{tweet.user.screen_name} #Weather"
+                api.update_status(status, in_reply_to_status_id=tweet.id)
                 api.create_favorite(tweet.id)
-                api.retweet(tweet.id)
+                api.retweet(tweet.id)  # this retweets
                 write_last_tweet_seen(tweet.id)
             except tweepy.TweepError as e:
                 logger.error(f"Tweet error: {e.reason}")
@@ -61,9 +63,9 @@ def send_reply_tweet():
     return
 
 
-def send_new_tweet():
+def send_new_tweet(file):
     api = get_api()
-    tweet_to_send = read_text_to_tweet()
+    tweet_to_send = read_text_to_tweet(file)
     try:
         status = api.update_status(status=tweet_to_send)
     except tweepy.TweepError as e:
@@ -103,7 +105,8 @@ def main():
             tweet.retweet()
         except tweepy.TweepError as te:
             print(te.reason)"""
-    send_retweet(tweets)
+    # send_retweet(tweets)
+    send_reply_tweet()
     # search_bot(tweets)
 
 #    cfg = read_config(section='twitter')
