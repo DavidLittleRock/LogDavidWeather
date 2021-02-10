@@ -52,10 +52,12 @@ def send_reply_tweet():
             try:
                 status_a = read_text_to_tweet(file_name='temperature_tweet.txt')  # this posts as tweet
                 status = f"{status_a} @{tweet.user.screen_name} #Weather"
+                write_last_tweet_seen(tweet.id)
+
                 api.update_status(status, in_reply_to_status_id=tweet.id)
                 api.create_favorite(tweet.id)
                 api.retweet(tweet.id)  # this retweets
-                write_last_tweet_seen(tweet.id)
+                # write_last_tweet_seen(tweet.id)
             except tweepy.TweepError as e:
                 logger.error(f"Tweet error: {e.reason}")
                 print(e.reason)
