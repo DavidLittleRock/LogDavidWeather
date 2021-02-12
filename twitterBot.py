@@ -1,7 +1,7 @@
 
 import tweepy
 from python_config import read_config
-from datetime import datetime
+#  from datetime import datetime
 from send_email import send_email
 from WeatherAppLog import get_a_logger
 import time
@@ -24,10 +24,8 @@ def write_text_to_tweet(string, file_name='tweet_to_send.txt'):
 
 
 def read_text_to_tweet(file_name='tweet_to_send.txt'):
-    # file_to_tweet = file_to_send
     with open(file_name, 'r') as file:
         text = file.read()
-        # print(text)
     return text
 
 
@@ -53,11 +51,9 @@ def send_reply_tweet():
                 status_a = read_text_to_tweet(file_name='temperature_tweet.txt')  # this posts as tweet
                 status = f"{status_a} @{tweet.user.screen_name} #Weather"
                 write_last_tweet_seen(tweet.id)
-
                 api.update_status(status, in_reply_to_status_id=tweet.id)
                 api.create_favorite(tweet.id)
                 api.retweet(tweet.id)  # this retweets
-                # write_last_tweet_seen(tweet.id)
             except tweepy.TweepError as e:
                 logger.error(f"Tweet error: {e.reason}")
                 print(e.reason)
@@ -91,15 +87,12 @@ def send_retweet(tweets):
         except tweepy.TweepError as te:
             print(te.reason)
             time.sleep(2)
-
+    return
 
 
 def main():
-    #send_reply_tweet()
-    #send_new_tweet()
     api = get_api()
 
-    # tweets = tweepy.Cursor(api.search, '#weather').items(1)
     tweets = get_incoming_tweets()
     """for tweet in tweets:
         print(tweet.id)
@@ -110,38 +103,26 @@ def main():
     # send_retweet(tweets)
     send_reply_tweet()
     # search_bot(tweets)
-
 #    cfg = read_config(section='twitter')
-
 #    api = get_api(cfg)
- #   tweet_to_send = get_text_to_tweet()
-
+#   tweet_to_send = get_text_to_tweet()
 #    tweet = "Hello, world!"  # to send out a tweet
 #    status = api.update_status(status=tweet)
-    # Yes, tweet is called 'status' rather confusing
-
+# Yes, tweet is called 'status' rather confusing
 #    public_tweets = api.home_timeline(tweet_mode='extended')  # to get all tweets coming in
 #    for tweet in public_tweets:
 #        print(tweet)
-
 # open and read in file to tweet out
-    # TODO put the temperature in a txt file
-
+   # TODO put the temperature in a txt file
 #    mentions = api.mentions_timeline(since_id=read_last_tweet_seen(), tweet_mode='extended')  # get all tweets that mention me
-
-
- #       for tweet in reversed(mentions):
- #           if '#weather' in tweet.full_text.lower():
- #               print(f"ID: {tweet.id} , text: {tweet.full_text}")
- #               api.update_status(f"at {datetime.now()} @{tweet.user.screen_name} reply tweet, here; #weather", tweet.id)
- #               api.create_favorite(tweet.id)
-  #              api.retweet(tweet.id)
-  #              write_last_tweet_seen(tweet.id)
-
-
-
-
-   # print(mentions[0].entities['hashtags'][0]['text'])
+#       for tweet in reversed(mentions):
+#           if '#weather' in tweet.full_text.lower():
+#               print(f"ID: {tweet.id} , text: {tweet.full_text}")
+#               api.update_status(f"at {datetime.now()} @{tweet.user.screen_name} reply tweet, here; #weather", tweet.id)
+#               api.create_favorite(tweet.id)
+#              api.retweet(tweet.id)
+#              write_last_tweet_seen(tweet.id)
+# print(mentions[0].entities['hashtags'][0]['text'])
 
 #  send out the tweet
 #    status = api.update_status(status=tweet_to_send)

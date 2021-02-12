@@ -22,6 +22,7 @@ from configparser import ConfigParser
 
 logger = get_a_logger(__name__)
 
+
 def on_log(client, userdata, level, buff):
     print(level)
     print(buff)
@@ -503,6 +504,8 @@ def make_fig_1(ax_dict):
         ax4.plot(ax_dict['time_rain_yesterday_filtered'], ax_dict['rain_total_yesterday_filtered'], marker='o', linestyle='--',
                  color='orange', markersize=1, linewidth=2,
                  label=f"Rain {ax_dict['rain_total_yesterday_filtered'][-1]:.1f} inches yesterday")
+    else:
+        ax_dict['rain_total_yesterday_filtered'] = [0, 0]
     if len(ax_dict['rain_total_24']) > 0:  # 24
         ax4.plot(ax_dict['time_rain_24'], ax_dict['rain_total_24'], marker='o', linestyle='-', color='blue',
                  markersize=1, linewidth=1,
@@ -908,7 +911,7 @@ def make_tweet_texts(dict_result):
 
         string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
         twitterBot.write_text_to_tweet(string_tweet)
-        twitterBot.send_new_tweet()
+        twitterBot.send_new_tweet(file='tweet_to_send.txt')
         send_email(subject="Freeze", message=f"The temperature is below freezing, at {datetime.now()}.")
         logger.info(f"Is now freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
                     f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
@@ -918,7 +921,7 @@ def make_tweet_texts(dict_result):
         if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] >= 32) and (dict_result['temp'][-3] < 32):  # temp rising above set point
             string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
             twitterBot.write_text_to_tweet(string_tweet)
-            twitterBot.send_new_tweet()
+            twitterBot.send_new_tweet(file='tweet_to_send.txt')
             send_email(subject="Above freezing", message="The temperature is now above freezing.")
             logger.info(
                 f"OK  OK  Is now above freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
@@ -1024,7 +1027,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(e)
         logger.error(f"{e}")
-        send_email(subject="ERROR", message=f"{e}, main unhandeled")
-        print(traceback.format_exec())
+        send_email(subject="ERROR", message=f"{e}, main unhandled")
+        print(traceback.format_exc())
 
     # mqtt_app()

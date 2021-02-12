@@ -8,12 +8,7 @@ def get_a_logger(name):
 
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
-#    logger.propagate = False
-#    coloredlogs.install(level='DEBUG', logger=logger)
-#    coloredlogs.propagate = False
 
-  #  coloredlogs.DEFAULT_LOG_LEVEL = 50
-#    coloredlogs.adjust_level(logger=logger, level=20)
     """
     Log levels
     Critical    50
@@ -37,7 +32,6 @@ def get_a_logger(name):
                                         'warning': {'color': 'yellow'}
                                         }
 
-
     coloredlogs.DEFAULT_FIELD_STYLES = {'asctime': {'color': 'blue'},
                                         'hostname': {'color': 'magenta'},
                                         'levelname': {'bold': True},
@@ -56,15 +50,11 @@ def get_a_logger(name):
                                                     '- Module: %(module)s  - Function: %(funcName)s - Line #: %(lineno)s\n  '
                                                     '- Message: %(message)s \n  '
                                                     '--logger name: %(name)s')
-#    coloredlogs.install(level='DEBUG', logger=logger)
-#    coloredlogs.propagate = False
-
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
     ch.setFormatter(chcformatter)
     logger.addHandler(ch)
-
 
     trfh = logging.handlers.TimedRotatingFileHandler(filename='./LOGS/Weather.log',  when='H', interval=1, backupCount=6)
     trfh.setLevel(logging.INFO)

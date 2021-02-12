@@ -1,11 +1,12 @@
 from configparser import ConfigParser
-import logging
 from WeatherAppLog import get_a_logger
 
 logger = get_a_logger(__name__)
 """
 refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/
 """
+
+
 def read_config(filename='config.ini', section='mysql'):
     """
     Read database configuration file and return a dictionary object
@@ -25,7 +26,6 @@ def read_config(filename='config.ini', section='mysql'):
     # create a parser and read ini configuration file
     parser = ConfigParser()
     parser.read(filename)
-
     # get section, default to mysql
     db = {}
     if parser.has_section(section):
@@ -37,7 +37,8 @@ def read_config(filename='config.ini', section='mysql'):
     logger.debug(f" END read_config(): section: {section} \n\t{db}")
     return db
 
-def read_db_config(filename='config.ini', section='mysql'):
+
+#  def read_db_config(filename='config.ini', section='mysql'):
     """
     Read database configuration file and return a dictionary object
     refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/
@@ -53,6 +54,7 @@ def read_db_config(filename='config.ini', section='mysql'):
     password =
     """
     # create a parser and read ini configuration file
+    """
     parser = ConfigParser()
     parser.read(filename)
 
@@ -66,8 +68,9 @@ def read_db_config(filename='config.ini', section='mysql'):
         raise Exception(f'{section} not found in the {filename} file')
     logger.debug(f"read_db_config(): \n\t{db}")
     return db
+    """
 
-def read_email_config(filename='config.ini', section='sendmail'):
+#  def read_email_config(filename='config.ini', section='sendmail'):
     """
     Read database configuration file and return a dictionary object
     refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/
@@ -83,6 +86,7 @@ def read_email_config(filename='config.ini', section='sendmail'):
     password =
     """
     # create a parser and read ini configuration file
+    """
     parser = ConfigParser()
     parser.read(filename)
 
@@ -96,3 +100,4 @@ def read_email_config(filename='config.ini', section='sendmail'):
         raise Exception(f'{section} not found in the {filename} file')
     logger.debug(f"read_db_config(): \n\t{db}")
     return db
+    """

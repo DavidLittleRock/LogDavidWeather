@@ -4,7 +4,7 @@ https://www.freecodecamp.org/news/connect-python-with-sql/
 
 import pymysql as mdb
 from pymysql import Error
-from configparser import ConfigParser
+#  from configparser import ConfigParser
 from WeatherAppLog import get_a_logger
 from send_email import send_email
 from python_config import read_config
@@ -34,7 +34,7 @@ def create_database(connection, query):
         send_email(f"Error: {err}")
 
 
-def create_db_connection_x(host_name, user_name, user_password, db_name):
+"""def create_db_connection_x(host_name, user_name, user_password, db_name):
     connection = None
     try:
         connection = mdb.connect(host=host_name, user=user_name, password=user_password, database=db_name)
@@ -43,6 +43,7 @@ def create_db_connection_x(host_name, user_name, user_password, db_name):
         logger.error(f"Error: {err}")
         send_email(f"Error: {err}")
     return connection
+"""
 
 
 def create_db_connection():
@@ -91,7 +92,7 @@ def read_query(connection, query):
         send_email(f"Error: {err}")
 
 
-def read_db_config_x(filename='config.ini', section='mysql'):
+#  def read_db_config_x(filename='config.ini', section='mysql'):
     """
     Read database configuration file and return a dictionary object
     refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/
@@ -107,6 +108,7 @@ def read_db_config_x(filename='config.ini', section='mysql'):
     password =
     """
     # create a parser and read ini configuration file
+    """
     parser = ConfigParser()
     parser.read(filename)
 
@@ -120,3 +122,4 @@ def read_db_config_x(filename='config.ini', section='mysql'):
         raise Exception(f'{section} not found in the {filename} file')
     logger.debug(f"read_db_config() was successful with db_kwargs: \n\t{db_kwargs}")
     return db_kwargs
+    """

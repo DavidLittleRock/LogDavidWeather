@@ -1,7 +1,7 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from configparser import ConfigParser
+#  from configparser import ConfigParser
 from WeatherAppLog import get_a_logger
 from python_config import read_config
 """
@@ -10,8 +10,8 @@ from python_config import read_config
 logger = get_a_logger(__name__)
 
 
-def read_email_config(filename='config.ini', section='sendmail'):
-    """
+#  def read_email_config(filename='config.ini', section='sendmail'):
+"""
     Read database configuration file and return a dictionary object
     refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/
 
@@ -22,7 +22,8 @@ def read_email_config(filename='config.ini', section='sendmail'):
     the key must match expected name of the database arguments
     =
     """
-    # create a parser and read ini configuration file
+# create a parser and read ini configuration file
+"""
     parser = ConfigParser()
     parser.read(filename)
 
@@ -38,7 +39,7 @@ def read_email_config(filename='config.ini', section='sendmail'):
     #  db = {'host': '', 'port': '', 'username': '', 'password': '', 'toname': ''}
 
     return db
-
+    """
 
 def send_email(message="default message", subject="default subject"):
 

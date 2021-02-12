@@ -1,4 +1,4 @@
-#!/home/user/PycharmProjects/LogDavidWeather/venv/bin/python
+#!/home/david/PycharmProjects/LogDavidWeather/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
