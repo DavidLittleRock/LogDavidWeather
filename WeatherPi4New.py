@@ -15,6 +15,8 @@ from WeatherAppLog import get_a_logger
 from python_config import read_config
 import sqlfile
 from send_email import send_email
+from send_email import write_text_to_email
+from send_email import read_text_to_email
 import twitterBot
 import traceback
 from configparser import ConfigParser
@@ -63,7 +65,7 @@ def validate_input(data_list):
     pressure = data_list[2]
     valid = True
     try:
-        if float(temperature) < -10.0 or float(temperature) > 50.0:
+        if float(temperature) < -20.0 or float(temperature) > 50.0:
             valid = False
             raise ValueError("Temperature is out of range, ")
     except ValueError as ve:
@@ -904,15 +906,24 @@ def make_fig_3(ax_dict):
     mng.full_screen_toggle()  # full screen no outline
 
 
+def is_new_day(day=1):
+    return datetime.today().day != day
+
+
 def make_tweet_texts(dict_result):
     # make and send freezing tweet
     if (dict_result['temp'][-1] < 32) and (dict_result['temp'][-2] <= 32) and (
-            dict_result['temp'][-3] > 32):  # temp rising above set point
+            dict_result['temp'][-3] > 32):  # temp falling below set point
 
         string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
         twitterBot.write_text_to_tweet(string_tweet)
         twitterBot.send_new_tweet(file='tweet_to_send.txt')
-        send_email(subject="Freeze", message=f"The temperature is below freezing, at {datetime.now()}.")
+
+        string_email = f"This is a freeze email alert: the temperature is now {dict_result['temp'][-1]}."
+        write_text_to_email(string_email)
+        send_email(message=read_text_to_email(), subject="FREEZING")
+
+        #  send_email(subject="Freeze", message=f"The temperature is below freezing, at {datetime.now()}.")
         logger.info(f"Is now freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
                     f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
                     f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
@@ -922,7 +933,14 @@ def make_tweet_texts(dict_result):
             string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
             twitterBot.write_text_to_tweet(string_tweet)
             twitterBot.send_new_tweet(file='tweet_to_send.txt')
-            send_email(subject="Above freezing", message="The temperature is now above freezing.")
+
+            string_email = f"This is a temperature email alert: the temperature is now {dict_result['temp'][-1]}."
+            write_text_to_email(string_email)
+            send_email(message=read_text_to_email(), subject="Above freezing!")
+
+
+
+            #  send_email(subject="Above freezing", message="The temperature is now above freezing.")
             logger.info(
                 f"OK  OK  Is now above freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
                 f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
@@ -930,15 +948,15 @@ def make_tweet_texts(dict_result):
 
     #  make and send rain tweet
     if len(dict_result['rain_rate']) > 4:  # RAINING
-        if (dict_result['rain_rate'][-1] >= 0.09) and (dict_result['rain_rate'][-2] < 0.09) and (
-                dict_result['rain_rate'][-3] < 0.09):
+        if (dict_result['rain_rate'][-1] > 0.09) and (dict_result['rain_rate'][-2] > 0.09) and (
+                dict_result['rain_rate'][-3] <= 0.09):
             send_email(subject="Rain", message=f"raining with rain rate = {dict_result['rain_rate'][-1]}")
             logger.info(
                 f"rain rate is raining\n\t rain rate[-1] {dict_result['rain_rate'][-1]} at \n\t time {dict_result['time'][-1]}"
                 f"\n\t rain rate[-2] {dict_result['rain_rate'][-2]} at \n\t time {dict_result['time'][-2]}"
                 f"\n\t rain rate[-3] {dict_result['rain_rate'][-3]} at \n\t time {dict_result['time'][-3]}")
-        if (dict_result['rain_rate'][-3] > 0) and (dict_result['rain_rate'][-2] == 0.0) and (
-                dict_result['rain_rate'][-1] == 0.0):
+        if (dict_result['rain_rate'][-3] >= 0.09) and (dict_result['rain_rate'][-2] >= 0.9) and (
+                dict_result['rain_rate'][-1] < 0.09):
             print("it has stopped raining")
             send_email(subject="Rain", message=f"HAS STOPPED raining with rain rate = {dict_result['rain_rate'][-1]}")
             logger.info(
@@ -948,6 +966,18 @@ def make_tweet_texts(dict_result):
     #  make and store current temperature tweet
     temperature_tweet_string = f"The temperature is now {dict_result['temp'][-1]}\u2109."
     twitterBot.write_text_to_tweet(string=temperature_tweet_string, file_name='temperature_tweet.txt')
+
+    if is_new_day((dict_result['time'][-1]).day):
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+        yesterday_midnight = datetime.combine(yesterday, datetime.min.time())
+        temp_yesterday = []
+        temp_yesterday = dict_result['temp'][
+            (dict_result['time']) > yesterday_midnight]
+        string_email = f"The high yesterday was {max(temp_yesterday)}\u2109 and the low was {min(temp_yesterday)}\u2109." \
+                       f" There was {dict_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain yesterday"
+        write_text_to_email(string_email)
+        send_email(message=read_text_to_email(), subject="HI LOW")
 
 
 """def check_for_new_x(used_id):

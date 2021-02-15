@@ -41,6 +41,21 @@ logger = get_a_logger(__name__)
     return db
     """
 
+
+
+def write_text_to_email(string, file_name='email_to_send.txt'):
+  #  tempnow = dict_result['temp'][-1]
+    with open(file_name, 'w') as file:
+        file.write(string)
+    return
+
+
+def read_text_to_email(file_name='email_to_send.txt'):
+    with open(file_name, 'r') as file:
+        text = file.read()
+    return text
+
+# message=read_text_to_email()
 def send_email(message="default message", subject="default subject"):
 
     #    toname = toname  # or can to_list = ["ddd"]
