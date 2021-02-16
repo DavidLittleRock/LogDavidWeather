@@ -71,6 +71,15 @@ def send_new_tweet(file):
         send_email(subject="Tweet Error", message=f"Tweet error: {e.reason}")
     return
 
+def send_new_dm(file):
+    api = get_api()
+    tweet_to_send = read_text_to_tweet(file)
+    try:
+        status = api.send_direct_message(recipient_id='DavidDoc', text=tweet_to_send)
+    except tweepy.TweepError as e:
+        logger.error(f"Tweet error: {e.reason}")
+        send_email(subject="Tweet Error", message=f"Tweet error: {e.reason}")
+    return
 
 def get_incoming_tweets(hashtag='#weather', number_tweets=2):
     api = get_api()
@@ -101,7 +110,9 @@ def main():
         except tweepy.TweepError as te:
             print(te.reason)"""
     # send_retweet(tweets)
-    send_reply_tweet()
+
+
+    #send_reply_tweet()
     # search_bot(tweets)
 #    cfg = read_config(section='twitter')
 #    api = get_api(cfg)

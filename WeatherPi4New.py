@@ -65,7 +65,7 @@ def validate_input(data_list):
     pressure = data_list[2]
     valid = True
     try:
-        if float(temperature) < -20.0 or float(temperature) > 50.0:
+        if float(temperature) < -30.0 or float(temperature) > 50.0:
             valid = False
             raise ValueError("Temperature is out of range, ")
     except ValueError as ve:
