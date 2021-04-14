@@ -163,13 +163,17 @@ def write_to_data(list_to_write):
                     float(list_to_write[3]), float(list_to_write[4]), float(list_to_write[5]), float(list_to_write[7]),
                     float(list_to_write[8]), list_to_write[9], list_to_write[10], int(list_to_write[11]),
                     int(list_to_write[12]), float(list_to_write[6])))
+
+        sqlfile.execute_query(db_connection, query)
+        sqlfile.close_db_connection(db_connection)
+
     except IndexError as ie:
         logger.error(f"failed to build query to write to database,\n\tlength should be 14; {len(list_to_write)}\n\t"
                      f"list to write: {list_to_write}\n\t Error: {ie}")
         send_email(subject="ERROR", message=f"The error is: {ie}.")
 
-    sqlfile.execute_query(db_connection, query)
-    sqlfile.close_db_connection(db_connection)
+    # sqlfile.execute_query(db_connection, query)
+    # sqlfile.close_db_connection(db_connection)
     logger.debug(f"end write_to_data()")
 
     return
@@ -279,7 +283,10 @@ def get_data():
         dict_result[element] = np.array(dict_result[element])
 
     dict_result['heat_index'] = dict_result['heat_index'][dict_result['temp'] > 80]  # filter heat_index for temp > 80
+    dict_result['heat_index'] = dict_result['heat_index'][dict_result['heat_index'] > dict_result['temp']]  # to filter out heat index less than temp
+
     dict_result['time_heat_index'] = dict_result['time_heat_index'][dict_result['temp'] > 80]
+    dict_result['time_heat_index'] = dict_result['time_heat_index'][dict_result['heat_index'] > dict_result['temp']]
 
     dict_result['wind_chill'] = dict_result['wind_chill'][dict_result['temp'] < 50]
     dict_result['time_wind_chill'] = dict_result['time_wind_chill'][dict_result['temp'] < 50]
@@ -929,22 +936,22 @@ def make_tweet_texts(dict_result):
                     f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
     #  make and send above freezing tweet
 
-        if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] >= 32) and (dict_result['temp'][-3] < 32):  # temp rising above set point
-            string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
-            twitterBot.write_text_to_tweet(string_tweet)
-            twitterBot.send_new_tweet(file='tweet_to_send.txt')
+    if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] >= 32) and (dict_result['temp'][-3] < 32):  # temp rising above set point
+        string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
+        twitterBot.write_text_to_tweet(string_tweet)
+        twitterBot.send_new_tweet(file='tweet_to_send.txt')
 
-            string_email = f"This is a temperature email alert: the temperature is now {dict_result['temp'][-1]}."
-            write_text_to_email(string_email)
-            send_email(message=read_text_to_email(), subject="Above freezing!")
+        string_email = f"This is a temperature email alert: the temperature is now {dict_result['temp'][-1]}."
+        write_text_to_email(string_email)
+        send_email(message=read_text_to_email(), subject="Above freezing!")
 
 
 
-            #  send_email(subject="Above freezing", message="The temperature is now above freezing.")
-            logger.info(
-                f"OK  OK  Is now above freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
-                f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
-                f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
+        #  send_email(subject="Above freezing", message="The temperature is now above freezing.")
+        logger.info(
+            f"OK  OK  Is now above freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
+            f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
+            f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
 
     #  make and send rain tweet
     if len(dict_result['rain_rate']) > 4:  # RAINING

@@ -111,7 +111,7 @@ def main():
             print(te.reason)"""
     # send_retweet(tweets)
 
-
+#    send_new_dm(file='tweet_to_send.txt')
     #send_reply_tweet()
     # search_bot(tweets)
 #    cfg = read_config(section='twitter')
