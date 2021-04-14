@@ -283,10 +283,11 @@ def get_data():
         dict_result[element] = np.array(dict_result[element])
 
     dict_result['heat_index'] = dict_result['heat_index'][dict_result['temp'] > 80]  # filter heat_index for temp > 80
-    dict_result['heat_index'] = dict_result['heat_index'][dict_result['heat_index'] > dict_result['temp']]  # to filter out heat index less than temp
+    dict_result['heat_index_temp'] = dict_result['temp'][dict_result['temp'] > 80]
+    dict_result['heat_index'] = dict_result['heat_index'][dict_result['heat_index'] > dict_result['heat_index_temp']]  # to filter out heat index less than temp
 
     dict_result['time_heat_index'] = dict_result['time_heat_index'][dict_result['temp'] > 80]
-    dict_result['time_heat_index'] = dict_result['time_heat_index'][dict_result['heat_index'] > dict_result['temp']]
+    dict_result['time_heat_index'] = dict_result['time_heat_index'][dict_result['heat_index'] > dict_result['heat_index_temp']]
 
     dict_result['wind_chill'] = dict_result['wind_chill'][dict_result['temp'] < 50]
     dict_result['time_wind_chill'] = dict_result['time_wind_chill'][dict_result['temp'] < 50]
