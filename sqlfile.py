@@ -50,7 +50,7 @@ def create_db_connection():
     connection = None
 
     try:
-        logger.debug("start create_db_connection to sql")
+        logger.debug("START create_db_connection to sql")
         db_config = read_config()
         connection = mdb.connect(**db_config)
         if connection.open:
@@ -83,16 +83,32 @@ def read_query(connection, query):
     cursor = connection.cursor()
     result = None
     try:
+        logger.debug(f"START read_query()")
         cursor.execute(query)
         result = cursor.fetchall()
         cursor.close()
+        logger.debug(f"read_query result: {result}")
         return result
     except Exception as err:
         logger.error(f"Error: {err}")
         send_email(f"Error: {err}")
 
+def read_query_fetchone(connection, query):
+    cursor = connection.cursor()
+    result = None
+    try:
+        logger.debug(f"START read_query_fetchone()\n *******************************************")
+        cursor.execute(query)
+        result = cursor.fetchone()
+        cursor.close()
+        print(f"fetchone result: {result}")
+        logger.debug(f"END read_query_fetchone() \n ______________________________________________________")
+        return result
+    except Exception as err:
+        logger.error(f"Error: {err}")
+        send_email(f"Error: {err}")
 
-#  def read_db_config_x(filename='config.ini', section='mysql'):
+    #  def read_db_config_x(filename='config.ini', section='mysql'):
     """
     Read database configuration file and return a dictionary object
     refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/

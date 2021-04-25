@@ -83,13 +83,13 @@ def validate_input(data_list):
 
 
 def mqtt_client():
-    logger.debug(f"Start in mqtt_client()")
+    logger.debug(f"Start in mqtt_client()\n *********************************************************")
 
     mqtt_config = read_config(section='mqtt')
     broker_url = mqtt_config['broker_url']
-    logger.debug(f"MQTT broker url: {broker_url}")
+    logger.info(f"MQTT broker url: {broker_url}")
     broker_port = int(mqtt_config['broker_port'])
-    logger.debug(f"MQTT broker port: {broker_port}")
+    logger.info(f"MQTT broker port: {broker_port}")
     try:
         client = mqtt.Client(client_id=mqtt_config['mqtt_client_id'], clean_session=False, userdata=None, transport='tcp')
         logger.debug(f"mqtt client created: id {mqtt_config['mqtt_client_id']}")
@@ -103,6 +103,7 @@ def mqtt_client():
     client.on_connect = on_connect
     try:
         client.connect(broker_url, broker_port)
+        logger.debug(f"mqtt client connected")
     except OSError as ose:
         logger.error(f"OS Error, check url or port, {ose}/n/t with url {broker_url} and port {broker_port}")
         send_email(subject="ERROR", message=f"OS Error, check url or port, {ose}")
@@ -111,15 +112,17 @@ def mqtt_client():
         send_email(subject="ERROR", message=f"The error is: {ex}.")
     try:
         client.subscribe(mqtt_config['topic'], qos=2)
+        logger.debug(f"mqtt subscribed to {mqtt_config['topic']}")
     except Exception as ex:
         logger.exception(ex)
         send_email(subject="ERROR", message=f"The error is: {ex}.")
 
     client.loop_start()
-    logger.debug(f"end of mqtt_client()")
+    logger.debug(f"end of mqtt_client()\n ____________________________________________________________")
 
 
 def on_connect(self, userdata, flags, rc):
+    logger.debug(f"START on_connect()")
     mqtt_config = read_config(section='mqtt')
     logger.debug(f"Connected to mosquitto {rc} \n\twith client_id: {mqtt_config['mqtt_client_id']}.")
 
@@ -180,10 +183,13 @@ def write_to_data(list_to_write):
 
 
 def get_last_id():
+    logger.debug(f"START get_last_id() **************************")
     db_connection = sqlfile.create_db_connection()
     query = 'SELECT id FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
-    result = sqlfile.read_query(db_connection, query)
-    row_id = result[0][0]
+    logger.debug(f"get_last_id() call to read_query_fetchone() with {query}")
+    result = sqlfile.read_query_fetchone(db_connection, query)
+    # print(result[0])
+    row_id = result[0]
     logger.debug(f"row_id to return: {row_id}; \n\ttype: {type(row_id)}\n\tin get_last_id()")
     sqlfile.close_db_connection(db_connection)  # close the db connection
     return row_id
@@ -196,7 +202,7 @@ def get_data():
         dict_result: a dict type
 
     """
-    logger.debug("start get_data()")
+    logger.debug("START get_data() &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
     db_connection = sqlfile.create_db_connection()
     query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust, Rain_Rate, Rain_Change FROM OneMonth ORDER BY Date ASC'
     result = sqlfile.read_query(db_connection, query)
@@ -412,10 +418,14 @@ def make_fig_1(ax_dict):
     if ax_dict['humid'] is not None:
         ax1.plot(ax_dict['time'], ax_dict['humid'], marker='.', linestyle='', color='orange',
                  label=f"Humidity {ax_dict['humid'][-1]:.0f}%")
-
-    if ax_dict['wind_chill'] is not None and dates.date2num(ax_dict['time_wind_chill'][-1]) > (dates.date2num(datetime.now())) - 1:
-        ax1.plot(ax_dict['time_wind_chill'], ax_dict['wind_chill'], marker='v', linestyle='', color='blue',
-                 label='Wind chill')
+    try:
+        if ax_dict['wind_chill'] is not None and dates.date2num(ax_dict['time_wind_chill'][-1]) > (dates.date2num(datetime.now())) - 1:
+            ax1.plot(ax_dict['time_wind_chill'], ax_dict['wind_chill'], marker='v', linestyle='', color='blue',
+                     label='Wind chill')
+    except IndexError as ie:
+        logger.error(f"failed to b Error: {ie}")
+    #    send_email(subject="ERROR", message=f"The error is: {ie}."):
+# TODO fix this error message
 
     ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now())) - 1,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
@@ -1008,9 +1018,11 @@ def make_tweet_texts(dict_result):
 
 
 def mqtt_app():
-
+    logger.debug("START mqtt_app()\n *******************************************************")
+    logger.debug(f"mqtt_app() call to mqtt_client()")
     mqtt_client()
-    logger.debug(f"mqtt_app() call to get_data()")
+
+    logger.debug(f"mqtt_app() call to get_data()\n\tand put return into dict_result")
     dict_result = get_data()  # get data from SQL
 
     # Make Tweets
@@ -1018,7 +1030,6 @@ def mqtt_app():
     while True:
         # LOOP to :
         time.sleep(1)
-
         # make and save the figures; then
         make_fig_1(dict_result)
         make_fig_2(dict_result)
@@ -1026,40 +1037,24 @@ def mqtt_app():
         make_tweet_texts(dict_result)
         time.sleep(5)
         twitterBot.main()
-
-    #    print(np.average(dict_result['temp'][-3:]))
-    #    print(np.average(dict_result['temp'][-6:-4]))
-    #    print(np.average(dict_result['temp'][-9:-7]))
-
-        # check if new data, by setting
+       # check if new data, by setting
+        logger.debug(f"mqtt_app() call to get_last_id()\n\tand put return into used_id")
         used_id = get_last_id()
         new_data = False
         logger.debug(f"Reset new_data back to False")
-
 #        pyplot.figure(num='one')
         while not new_data:
-        #    pyplot.figure(num='one')
-        #    #         pyplot.show(block=False)
-        #    pyplot.pause(75.0)
-
-        #    pyplot.figure(num='two')
-            #            pyplot.show(block=False)
-        #    pyplot.pause(60.0)
-
-        #    pyplot.figure(num='one')
-            #         pyplot.show(block=False)
-        #    pyplot.pause(75.0)
-
-        #    pyplot.figure(num='three')
-            #            pyplot.show(block=False)
-        #    pyplot.pause(60.0)
             #  when there is new data;
+            time.sleep(10)
             if used_id != get_last_id():
                 dict_result = get_data()
                 new_data = True
                 logger.debug("set new_data to True to trigger break out of new data loop")
+            else:
+                logger.debug(f"checking for new data \n +++++++++++++++++++++++++++++++++++++++++++++++")
 
         pyplot.close(fig='all')
+        logger.debug("END mqtt_app()")
 
 
 if __name__ == "__main__":

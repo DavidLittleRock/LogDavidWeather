@@ -22,7 +22,7 @@ def read_config(filename='config.ini', section='mysql'):
     user =
     password =
     """
-    logger.debug(f"start read_config()")
+    logger.debug(f"START read_config()\n\t{filename} section: {section}")
     # create a parser and read ini configuration file
     parser = ConfigParser()
     parser.read(filename)
@@ -31,73 +31,10 @@ def read_config(filename='config.ini', section='mysql'):
     if parser.has_section(section):
         items = parser.items(section)
         for item in items:
-            db[item[0]] = item[1]
+            # print("item")
+            db[item[0]] = item[1]  # use item[0] as key and item[1] as value in dictionary 'db'
     else:
         raise Exception(f'{section} not found in the {filename} file')
-    logger.debug(f" END read_config(): section: {section} \n\t{db}")
+    logger.debug(f" END read_config(): \n\t{filename} section: {section} \n\t{db}")
     return db
 
-
-#  def read_db_config(filename='config.ini', section='mysql'):
-    """
-    Read database configuration file and return a dictionary object
-    refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/
-
-    Args:
-        filename (): name of the configuration file
-        section (): section on the database configuration
-    Returns: a dictionary of database parameters,
-    the key must match expected name of the database arguments
-    host =
-    database =
-    user =
-    password =
-    """
-    # create a parser and read ini configuration file
-    """
-    parser = ConfigParser()
-    parser.read(filename)
-
-    # get section, default to mysql
-    db = {}
-    if parser.has_section(section):
-        items = parser.items(section)
-        for item in items:
-            db[item[0]] = item[1]
-    else:
-        raise Exception(f'{section} not found in the {filename} file')
-    logger.debug(f"read_db_config(): \n\t{db}")
-    return db
-    """
-
-#  def read_email_config(filename='config.ini', section='sendmail'):
-    """
-    Read database configuration file and return a dictionary object
-    refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/
-
-    Args:
-        filename (): name of the configuration file
-        section (): section on the database configuration
-    Returns: a dictionary of database parameters,
-    the key must match expected name of the database arguments
-    host =
-    database =
-    user =
-    password =
-    """
-    # create a parser and read ini configuration file
-    """
-    parser = ConfigParser()
-    parser.read(filename)
-
-    # get section, default to mysql
-    db = {}
-    if parser.has_section(section):
-        items = parser.items(section)
-        for item in items:
-            db[item[0]] = item[1]
-    else:
-        raise Exception(f'{section} not found in the {filename} file')
-    logger.debug(f"read_db_config(): \n\t{db}")
-    return db
-    """

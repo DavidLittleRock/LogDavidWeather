@@ -52,7 +52,7 @@ def get_a_logger(name):
                                                     '--logger name: %(name)s')
 
     ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
+    ch.setLevel(logging.DEBUG)
     ch.setFormatter(chcformatter)
     logger.addHandler(ch)
 
