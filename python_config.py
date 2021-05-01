@@ -2,6 +2,7 @@ from configparser import ConfigParser
 from WeatherAppLog import get_a_logger
 
 logger = get_a_logger(__name__)
+logger.setLevel('INFO')
 """
 refer to: https://www.mysqltutorial.org/python-connecting-mysql-databases/
 """

@@ -10,7 +10,7 @@ from send_email import send_email
 from python_config import read_config
 
 logger = get_a_logger(__name__)
-# logger.setLevel(20)
+logger.setLevel('INFO')
 
 
 def create_server_connection(host_name, user_name, user_password):
@@ -32,18 +32,6 @@ def create_database(connection, query):
     except Error as err:
         logger.error(f"Error: {err}")
         send_email(f"Error: {err}")
-
-
-"""def create_db_connection_x(host_name, user_name, user_password, db_name):
-    connection = None
-    try:
-        connection = mdb.connect(host=host_name, user=user_name, password=user_password, database=db_name)
-        logger.debug("connected to database")
-    except Error as err:
-        logger.error(f"Error: {err}")
-        send_email(f"Error: {err}")
-    return connection
-"""
 
 
 def create_db_connection():
@@ -83,7 +71,7 @@ def read_query(connection, query):
     cursor = connection.cursor()
     result = None
     try:
-        logger.debug(f"START read_query()")
+        logger.debug(f"START read_query()\n****************\n*************\n*************")
         cursor.execute(query)
         result = cursor.fetchall()
         cursor.close()
@@ -97,7 +85,7 @@ def read_query_fetchone(connection, query):
     cursor = connection.cursor()
     result = None
     try:
-        logger.debug(f"START read_query_fetchone()\n *******************************************")
+        logger.debug(f"START read_query_fetchone()\n *******************************************\n************************\n************************")
         cursor.execute(query)
         result = cursor.fetchone()
         cursor.close()

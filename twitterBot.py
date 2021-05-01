@@ -1,12 +1,13 @@
 
 import tweepy
 from python_config import read_config
-#  from datetime import datetime
+from datetime import datetime
 from send_email import send_email
 from WeatherAppLog import get_a_logger
 import time
 
 logger = get_a_logger(__name__)
+logger.setLevel('INFO')
 
 
 def get_api():
@@ -100,7 +101,7 @@ def send_retweet(tweets):
 
 
 def main():
-    api = get_api()
+    api = get_api()  # based on config.ini
 
     tweets = get_incoming_tweets()
     """for tweet in tweets:
@@ -114,11 +115,9 @@ def main():
 #    send_new_dm(file='tweet_to_send.txt')
     #send_reply_tweet()
     # search_bot(tweets)
-#    cfg = read_config(section='twitter')
-#    api = get_api(cfg)
 #   tweet_to_send = get_text_to_tweet()
-#    tweet = "Hello, world!"  # to send out a tweet
-#    status = api.update_status(status=tweet)
+    tweet = f"Hello, world! {datetime.now()}"  # to send out a tweet
+    status = api.update_status(status=tweet)
 # Yes, tweet is called 'status' rather confusing
 #    public_tweets = api.home_timeline(tweet_mode='extended')  # to get all tweets coming in
 #    for tweet in public_tweets:

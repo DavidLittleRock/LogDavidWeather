@@ -21,14 +21,13 @@ import twitterBot
 import traceback
 from configparser import ConfigParser
 # TODO use argparser to specify debug and desk/pi
-
 logger = get_a_logger(__name__)
-
+logger.setLevel('INFO')
 
 def on_log(client, userdata, level, buff):
     print(level)
     print(buff)
-    pass
+    return
 
 
 def on_message(self, userdata, message):
@@ -44,7 +43,7 @@ def on_message(self, userdata, message):
     :param message: the message string from Mosquitto MQTT
     :type message: str
     """
-    logger.debug(f"on_message() started")
+    logger.debug(f"START on_message() ..........")
     full_payload = message.payload.decode()
     logger.debug(f"message payload: {full_payload}")
     index = full_payload.index("MQTT")
@@ -55,7 +54,9 @@ def on_message(self, userdata, message):
     if validate_input(data_list):
         logger.debug(f"on_message() calls write_to_data()")
         write_to_data(data_list)
-    logger.debug(f"data list to send to database: \n\t{data_list}\n\tend of on_message")
+        logger.debug(f"data list to send to database: \n\t{data_list}\n\tmiddle of on_message")
+
+    logger.debug(f"END of on_message() ____________________________________________________________")
     return
 
 
@@ -98,6 +99,8 @@ def mqtt_client():
         send_email(subject="ERROR", message=f"The error is: {ex}.")
 
     client.on_message = on_message
+
+
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
     client.on_connect = on_connect
@@ -242,7 +245,7 @@ def get_data():
         'gust': [],
         'rain_rate': [],
         'rain_change_all': [],
-        'time_rain_all': [],
+      #  'time_rain_all': [],
         'time_rain_yesterday_filtered': [],
         'rain_change_yesterday_filtered': [],
         'rain_total_yesterday_filtered': []
@@ -346,21 +349,252 @@ def get_data():
     return dict_clean
 
 
+def clean_hi(hi_result):
+    hi_result['heat_index'] = hi_result['heat_index'][hi_result['temp'] > 80]  # filter heat_index for temp > 80
+    hi_result['heat_index_temp'] = hi_result['temp'][hi_result['temp'] > 80]
+
+    hi_result['time_heat_index'] = hi_result['time_heat_index'][hi_result['temp'] > 80]
+    hi_result['time_heat_index'] = hi_result['time_heat_index'][hi_result['heat_index'] > hi_result['heat_index_temp']]
+
+    hi_result['heat_index'] = hi_result['heat_index'][
+        hi_result['heat_index'] > hi_result['heat_index_temp']]  # to filter out heat index less than temp
+    del hi_result['heat_index_temp']
+
+    return hi_result
+
+def clean_wc(wc_result):
+    for element in wc_result:
+        wc_result[element] = np.array(wc_result[element])
+    wc_result['wind_chill'] = wc_result['wind_chill'][wc_result['temp'] < 50]
+    wc_result['time_wind_chill'] = wc_result['time_wind_chill'][wc_result['temp'] < 50]
+    wc_result['wind_for_wc'] = wc_result['wind_for_wc'][wc_result['temp'] < 50]
+    wc_result['wind_chill'] = wc_result['wind_chill'][wc_result['wind_for_wc'] > 3]
+    wc_result['time_wind_chill'] = wc_result['time_wind_chill'][wc_result['wind_for_wc'] > 3]
+    del wc_result['temp']
+    del wc_result['wind_for_wc']
+    return wc_result
+
+def clean_rain(rain_result):
+    # TODO try enumerate
+    for index in range(len(rain_result['rain_rate'])):  # clean none to 0.0
+        if rain_result['rain_rate'][index] is None:
+            rain_result['rain_rate'][index] = 0.0
+    for element in rain_result:
+        rain_result[element] = np.array(rain_result[element])
+    # yesterday rain
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    yesterday_midnight = datetime.combine(yesterday, datetime.min.time())
+    today_midnight = datetime.combine(today, datetime.min.time())
+    # yesterday midnight to now
+    rain_result['time_rain_yesterday'] = rain_result['time'][(rain_result['time']) > yesterday_midnight]
+    rain_result['rain_change_yesterday'] = rain_result['rain_change_all'][(rain_result['time']) > yesterday_midnight]  # in mm
+    # yesterday midnight to today midnight
+    rain_result['time_rain_yesterday_filtered'] = rain_result['time_rain_yesterday'][(rain_result['time_rain_yesterday']) < today_midnight]
+    rain_result['rain_change_yesterday_filtered'] = rain_result['rain_change_yesterday'][(rain_result['time_rain_yesterday']) < today_midnight]  # in mm
+    # make cumulative sum
+    rain_result['rain_total_yesterday_filtered'] = (np.cumsum(rain_result['rain_change_yesterday_filtered'])/22.5)  # in INCH
+
+    # today midnight to now
+    rain_result['time_rain_today'] = rain_result['time'][(rain_result['time']) > today_midnight]
+    rain_result['rain_change_today'] = (rain_result['rain_change_all'])[
+        (rain_result['time']) > today_midnight]  # in mm
+    # make cumulative sum
+    rain_result['rain_total_today'] = (np.cumsum(rain_result['rain_change_today'])/22.5)  # in inch
+    #   print(dict_result['rain_total_today'])
+
+    # rain 24
+    time_24 = datetime.now() - timedelta(days=1)
+    rain_result['time_rain_24'] = rain_result['time'][(rain_result['time']) > time_24]
+    rain_result['rain_change_24'] = (rain_result['rain_change_all'])[
+        (rain_result['time']) > time_24]  # in mm
+    # make cumulative sum
+    rain_result['rain_total_24'] = (np.cumsum(rain_result['rain_change_24']) / 22.5)  # in inch
+
+    del rain_result['time_rain_yesterday']
+    del rain_result['rain_change_yesterday']
+    del rain_result['rain_total_yesterday']
+    del rain_result['rain_change_today']
+    del rain_result['rain_change_24']
+    del rain_result['rain_change_all']
+   # del rain_result['time_rain_all']
+    del rain_result['rain_change_yesterday_filtered']
+
+    return rain_result
+
+def get_data_a():
+    """
+    Runs a series of SQL queries and combines into a dict
+    Returns:
+        dict_result: a dict type
+
+    """
+    logger.debug("START get_data_a() &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+    db_connection = sqlfile.create_db_connection()
+    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust, Rain_Rate, Rain_Change FROM OneMonth ORDER BY Date ASC'
+    result = sqlfile.read_query(db_connection, query)
+    # QUERY FOR # 30 DAY RAIN  will 'filter' to get 7 day
+    query = 'SELECT Date, SUM(Rain_Change) FROM OneMonth GROUP BY Day(Date) ORDER BY Date ASC'
+    result_rain_30 = sqlfile.read_query(db_connection, query)
+
+    sqlfile.close_db_connection(db_connection)  # close the db connection
+    # Move results into dict of lists
+    dict_result = {
+        'time': [],
+        'temp': [],
+        'heat_index': [],
+        'humid': [],
+        'wind_speed': [],
+        'wind_d': [],
+        'baro_press': [],
+        'time_heat_index': [],
+        'time_rain_30': [],
+        'rain_30': [],
+        'rain_30_sum': [],
+        'time_rain_yesterday': [],
+        'rain_change_yesterday': [],
+        'rain_total_yesterday': [],
+        'time_rain_bar': [],
+        'rain_change_bar': [],
+        'time_rain_today': [],
+        'rain_change_today': [],
+        'rain_total_today': [],
+        'time_rain_24': [],
+        'rain_change_24': [],
+        'rain_total_24': [],
+        'rain_7': [],
+        'wind_chill': [],
+        'time_wind_chill': [],
+        'wind_for_wc': [],
+        'gust': [],
+        'rain_rate': [],
+        'rain_change_all': [],
+       # 'time_rain_all': [],
+        'time_rain_yesterday_filtered': [],
+        'rain_change_yesterday_filtered': [],
+        'rain_total_yesterday_filtered': []
+    }
+
+    hi_result = {
+        'heat_index': [],
+        'temp': [],
+        'time_heat_index': [],
+        'heat_index_temp': []
+    }
+
+    wc_result = {
+        'wind_chill': [],
+        'time_wind_chill': [],
+        'wind_for_wc': [],
+        'temp': []
+    }
+
+    rain_result = {
+        'time_rain_yesterday_filtered': [],
+        'time_rain_today': [],
+        'time_rain_24': [],
+        'rain_total_yesterday': [],
+        'rain_total_yesterday_filtered': [],
+        'rain_total_today': [],
+        'rain_total_24': [],
+        'rain_rate': [],
+        'rain_change_all': [],
+        'time': []
+    }
+
+    for record in result:  # make a list for each measure
+        dict_result['time'].append(record[0])
+        dict_result['temp'].append(record[1])
+        # dict_result['heat_index'].append(record[2])
+        dict_result['humid'].append(record[3])
+        dict_result['wind_speed'].append(record[4])
+        dict_result['wind_d'].append(record[5])
+        dict_result['baro_press'].append(record[6])
+        # dict_result['time_heat_index'].append(record[0])
+        # dict_result['wind_chill'].append(record[7])
+        # dict_result['time_wind_chill'].append(record[0])
+        # dict_result['wind_for_wc'].append(record[4])
+        dict_result['gust'].append(record[8])
+
+        rain_result['rain_rate'].append(record[9])
+        rain_result['rain_change_all'].append(record[10])  # in mm
+        rain_result['time'].append(record[0])
+
+
+        hi_result['heat_index'].append(record[2])
+        hi_result['temp'].append(record[1])
+        hi_result['time_heat_index'].append(record[0])
+        hi_result['heat_index_temp'].append(record[1])
+
+        wc_result['wind_chill'].append(record[7])
+        wc_result['time_wind_chill'].append(record[0])
+        wc_result['wind_for_wc'].append(record[4])
+        wc_result['temp'].append(record[1])
+
+
+
+# TODO try enumerate
+    # for index in range(len(rain_result['rain_rate'])):  # clean none to 0.0
+        # if rain_result['rain_rate'][index] is None:
+            # rain_result['rain_rate'][index] = 0.0
+
+    if len(result_rain_30) > 0:
+        for record in result_rain_30:
+            dict_result['time_rain_30'].append(record[0])
+            try:
+                dict_result['rain_30'].append(record[1] / 22.5)
+            except TypeError as te:
+                logger.error(f"type error {te}\n\t {record}")
+                send_email(subject="Error", message=f"type error {te}\nrecord: {record}")
+                dict_result['rain_30'].append(0)
+            dict_result['rain_30_sum'].append(sum(dict_result['rain_30']))
+    else:
+        logger.debug(len(result_rain_30))
+        dict_result['time_rain_30'].append(0)
+        dict_result['rain_30'].append(0)
+        dict_result['rain_30_sum'].append(0)
+
+    #    convert each list to a numpy array
+    for element in dict_result:
+        dict_result[element] = np.array(dict_result[element])
+    for element in hi_result:
+        hi_result[element] = np.array(hi_result[element])
+
+
+    hi_result = clean_hi(hi_result)
+
+    wc_result = clean_wc(wc_result)
+
+    rain_result = clean_rain(rain_result)
+
+    #  filter 30 day rain to 7 days
+    dict_result['rain_7'] = dict_result['rain_30'][
+        dates.date2num(dict_result['time_rain_30']) > dates.date2num(datetime.now()) - 7]
+
+
+
+    gc.collect()
+
+    dict_clean = clean_dict(dict_result)
+    logger.debug(f"END get_data() .....")
+    return dict_clean, hi_result, wc_result, rain_result
+
+
 def clean_dict(dict_result):
-    logger.debug(f"clean_dict() started")
+    logger.debug(f"START clean_dict() started")
     del dict_result['time_rain_yesterday']
     del dict_result['rain_change_yesterday']
     del dict_result['rain_total_yesterday']
     del dict_result['rain_change_today']
     del dict_result['rain_change_24']
     del dict_result['rain_change_all']
-    del dict_result['time_rain_all']
+  #  del dict_result['time_rain_all']
     del dict_result['rain_change_yesterday_filtered']
 
     return dict_result
 
 
-def make_fig_1(ax_dict):
+def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
 
     compass = {
         0.0: 'North',
@@ -411,21 +645,20 @@ def make_fig_1(ax_dict):
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp}) ")
 
 
-    if len(ax_dict['heat_index']) > 0 and dates.date2num(ax_dict['time_heat_index'][-1]) > (dates.date2num(datetime.now())) - 1:
-        ax1.plot(ax_dict['time_heat_index'], ax_dict['heat_index'], marker=6, linestyle='', color='red',
+    if len(hi_dict['heat_index']) > 0 and dates.date2num(hi_dict['time_heat_index'][-1]) > (dates.date2num(datetime.now())) - 1:
+        ax1.plot(hi_dict['time_heat_index'], hi_dict['heat_index'], marker=6, linestyle='', color='red',
                  label='Heat Index')
 
     if ax_dict['humid'] is not None:
         ax1.plot(ax_dict['time'], ax_dict['humid'], marker='.', linestyle='', color='orange',
                  label=f"Humidity {ax_dict['humid'][-1]:.0f}%")
     try:
-        if ax_dict['wind_chill'] is not None and dates.date2num(ax_dict['time_wind_chill'][-1]) > (dates.date2num(datetime.now())) - 1:
-            ax1.plot(ax_dict['time_wind_chill'], ax_dict['wind_chill'], marker='v', linestyle='', color='blue',
+        if len(wc_dict['wind_chill']) >= 1 and dates.date2num(wc_dict['time_wind_chill'][-1]) > (dates.date2num(datetime.now())) - 1:
+            ax1.plot(wc_dict['time_wind_chill'], wc_dict['wind_chill'], marker='v', linestyle='', color='blue',
                      label='Wind chill')
     except IndexError as ie:
-        logger.error(f"failed to b Error: {ie}")
-    #    send_email(subject="ERROR", message=f"The error is: {ie}."):
-# TODO fix this error message
+        logger.error(f"failed to plot wind chill Error: {ie}")
+        send_email(subject="ERROR", message=f"The error is: {ie}.")
 
     ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now())) - 1,
              xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
@@ -442,7 +675,7 @@ def make_fig_1(ax_dict):
     ax1.grid(b=True, which='major', axis='both', color='#666666', linewidth=1.2, linestyle='-')
     ax1.set_facecolor('#edf7f7')
 
-    logger.debug('did make_ax1')
+    logger.debug('did make_ax1 in figure 1')
 
     # ax2  WIND
     # gust period
@@ -514,35 +747,35 @@ def make_fig_1(ax_dict):
     # if 1 day
     #  if (ax_dict['title'] == '1 day'):
 #    ax4.bar(ax_dict['time_rain_bar'], ax_dict['rain_change_bar'], color='red', width=0.005, label="wwww")
-    if len(ax_dict['rain_total_today']) > 0:  # today
-        logger.debug(f"Rain today: {ax_dict['rain_total_today']}")
-        ax4.plot(ax_dict['time_rain_today'], ax_dict['rain_total_today'], marker='o', linestyle='--', color='green',
+    if len(rain_dict['rain_total_today']) > 0:  # today
+        logger.debug(f"Rain today: {rain_dict['rain_total_today']}")
+        ax4.plot(rain_dict['time_rain_today'], rain_dict['rain_total_today'], marker='o', linestyle='--', color='green',
                  markersize=1, linewidth=2,
-                 label=f"Rain {ax_dict['rain_total_today'][-1]:.1f} inches today")
+                 label=f"Rain {rain_dict['rain_total_today'][-1]:.1f} inches today")
     else:
-        ax_dict['rain_total_today'] = [0.0, 0.0]  # if nothing in rain today then set a 0.0
+        rain_dict['rain_total_today'] = [0.0, 0.0]  # if nothing in rain today then set a 0.0
         logger.debug(f"rain today set to 0 because len was 0")
 
-    if len(ax_dict['rain_total_yesterday_filtered']) > 0:  # yesterday
-        logger.debug(f"rain yesterday : {ax_dict['rain_total_yesterday_filtered']}")
-        ax4.plot(ax_dict['time_rain_yesterday_filtered'], ax_dict['rain_total_yesterday_filtered'], marker='o', linestyle='--',
+    if len(rain_dict['rain_total_yesterday_filtered']) > 0:  # yesterday
+        logger.debug(f"rain yesterday : {rain_dict['rain_total_yesterday_filtered']}")
+        ax4.plot(rain_dict['time_rain_yesterday_filtered'], rain_dict['rain_total_yesterday_filtered'], marker='o', linestyle='--',
                  color='orange', markersize=1, linewidth=2,
-                 label=f"Rain {ax_dict['rain_total_yesterday_filtered'][-1]:.1f} inches yesterday")
+                 label=f"Rain {rain_dict['rain_total_yesterday_filtered'][-1]:.1f} inches yesterday")
     else:
-        ax_dict['rain_total_yesterday_filtered'] = [0, 0]
-    if len(ax_dict['rain_total_24']) > 0:  # 24
-        ax4.plot(ax_dict['time_rain_24'], ax_dict['rain_total_24'], marker='o', linestyle='-', color='blue',
+        rain_dict['rain_total_yesterday_filtered'] = [0, 0]
+    if len(rain_dict['rain_total_24']) > 0:  # 24
+        ax4.plot(rain_dict['time_rain_24'], rain_dict['rain_total_24'], marker='o', linestyle='-', color='blue',
                  markersize=1, linewidth=1,
-                 label=f"Rain {ax_dict['rain_total_24'][-1]:.1f} inches in 24 hours")
+                 label=f"Rain {rain_dict['rain_total_24'][-1]:.1f} inches in 24 hours")
     else:
-        ax_dict['rain_total_24'] = [0, 0]
-    if len(ax_dict['rain_rate']) > 0:
-        ax4.plot(ax_dict['time'], ax_dict['rain_rate'], marker='s', linestyle='', color='blue',
+        rain_dict['rain_total_24'] = [0, 0]
+    if len(rain_dict['rain_rate']) > 0:
+        ax4.plot(rain_dict['time'], rain_dict['rain_rate'], marker='s', linestyle='', color='blue',
                  markersize=4, linewidth=1,
                  label=f"Rain Rate, inch / hr")
 
-    ax4.axis(ymin=0, ymax=((max(max(ax_dict['rain_total_24']), max(ax_dict['rain_total_today']),
-                                max(ax_dict['rain_total_yesterday_filtered']))) + 1) // 1,
+    ax4.axis(ymin=0, ymax=((max(max(rain_dict['rain_total_24']), max(rain_dict['rain_total_today']),
+                                max(rain_dict['rain_total_yesterday_filtered']))) + 1) // 1,
              xmin=(dates.date2num(datetime.now())) - 1, xmax=(dates.date2num(datetime.now())))
     ax4.set_title('', fontsize='15')
     ax4.set_xlabel('')
@@ -654,7 +887,7 @@ def make_fig_2(ax_dict):
     ax1.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
     ax1.grid(b=True, which='both', axis='both')
 
-    logger.debug('did make_ax1')
+    logger.debug('did make_ax1 in figure 2')
     ax1.set_facecolor('#edf7f7')
 
     # ax2  WIND
@@ -832,7 +1065,7 @@ def make_fig_3(ax_dict):
     ax1.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
     ax1.grid(b=True, which='both', axis='both')
 
-    logger.debug('did make_ax1')
+    logger.debug('did make_ax1 in figure 3')
     ax1.set_facecolor('#edf7f7')
 
     # ax2  WIND
@@ -932,41 +1165,38 @@ def is_new_day(day=1):
     return datetime.today().day != day
 
 
-def make_tweet_texts(dict_result):
+def make_tweet_texts(dict_result, rain_result):
     # make and send freezing tweet
+    # TODO reset to 32
     if (dict_result['temp'][-1] < 32) and (dict_result['temp'][-2] <= 32) and (
             dict_result['temp'][-3] > 32):  # temp falling below set point
-
+        # tweet freeze alert
         string_tweet = f"This is a freeze alert: the temperature is now {dict_result['temp'][-1]} at {datetime.now()}."
         twitterBot.write_text_to_tweet(string_tweet)
         twitterBot.send_new_tweet(file='tweet_to_send.txt')
-
+        # email / text freeze alert
         string_email = f"This is a freeze email alert: the temperature is now {dict_result['temp'][-1]}."
         write_text_to_email(string_email)
         send_email(message=read_text_to_email(), subject="FREEZING")
 
-        #  send_email(subject="Freeze", message=f"The temperature is below freezing, at {datetime.now()}.")
         logger.info(f"Is now freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
                     f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
                     f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
     #  make and send above freezing tweet
-
-    if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] >= 32) and (dict_result['temp'][-3] < 32):  # temp rising above set point
+    # TODO reset to 32
+    if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] >= 32) and (dict_result['temp'][-3] < 32):
+        # tweet temp above freezing
         string_tweet = f"It is now is above freezing: the temperature is {dict_result['temp'][-1]} at {datetime.now()}."
         twitterBot.write_text_to_tweet(string_tweet)
         twitterBot.send_new_tweet(file='tweet_to_send.txt')
-
+        # email / text temp above freezing
         string_email = f"This is a temperature email alert: the temperature is now {dict_result['temp'][-1]}."
         write_text_to_email(string_email)
         send_email(message=read_text_to_email(), subject="Above freezing!")
 
-
-
-        #  send_email(subject="Above freezing", message="The temperature is now above freezing.")
-        logger.info(
-            f"OK  OK  Is now above freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
-            f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
-            f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
+        logger.info(f"Is now above freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time {dict_result['time'][-1]}"
+                    f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
+                    f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
 
     #  make and send rain tweet
     if len(dict_result['rain_rate']) > 4:  # RAINING
@@ -990,14 +1220,17 @@ def make_tweet_texts(dict_result):
     twitterBot.write_text_to_tweet(string=temperature_tweet_string, file_name='temperature_tweet.txt')
 
     if is_new_day((dict_result['time'][-1]).day):
+        # make the midnight HI/LOW email
         today = date.today()
         yesterday = today - timedelta(days=1)
         yesterday_midnight = datetime.combine(yesterday, datetime.min.time())
         temp_yesterday = []
         temp_yesterday = dict_result['temp'][
             (dict_result['time']) > yesterday_midnight]
-        string_email = f"The high yesterday was {max(temp_yesterday)}\u2109 and the low was {min(temp_yesterday)}\u2109." \
-                       f" There was {dict_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain yesterday"
+
+        # took \u2109 out to check sms
+        string_email = f"The high yesterday was {max(temp_yesterday)} and the low was {min(temp_yesterday)} u2109." \
+                       f" There was {rain_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain yesterday"
         write_text_to_email(string_email)
         send_email(message=read_text_to_email(), subject="HI LOW")
 
@@ -1018,41 +1251,54 @@ def make_tweet_texts(dict_result):
 
 
 def mqtt_app():
+
+    # global DICT_RESULT
+
     logger.debug("START mqtt_app()\n *******************************************************")
     logger.debug(f"mqtt_app() call to mqtt_client()")
     mqtt_client()
-
-    logger.debug(f"mqtt_app() call to get_data()\n\tand put return into dict_result")
-    dict_result = get_data()  # get data from SQL
+    # move to mqtt_client
+    # logger.debug(f"mqtt_app() call to get_data()\n\tand put return into dict_result")
+    # DICT_RESULT = get_data()  # get data from SQL
 
     # Make Tweets
-
+    loop_count = 0
     while True:
         # LOOP to :
-        time.sleep(1)
+        time.sleep(60)
+        logger.debug(f"mqtt_app()IN WHILE LOOP call to get_data()\n\tand put return into dict_result")
+        dict_result, hi_result, wc_result, rain_result = get_data_a()  # get data from SQL
+
         # make and save the figures; then
-        make_fig_1(dict_result)
+        make_fig_1(dict_result, hi_result, wc_result, rain_result)
         make_fig_2(dict_result)
         make_fig_3(dict_result)
-        make_tweet_texts(dict_result)
-        time.sleep(5)
-        twitterBot.main()
-       # check if new data, by setting
-        logger.debug(f"mqtt_app() call to get_last_id()\n\tand put return into used_id")
-        used_id = get_last_id()
-        new_data = False
-        logger.debug(f"Reset new_data back to False")
-#        pyplot.figure(num='one')
-        while not new_data:
-            #  when there is new data;
-            time.sleep(10)
-            if used_id != get_last_id():
-                dict_result = get_data()
-                new_data = True
-                logger.debug("set new_data to True to trigger break out of new data loop")
-            else:
-                logger.debug(f"checking for new data \n +++++++++++++++++++++++++++++++++++++++++++++++")
+# TODO move out of this 1 min loop
+        loop_count += 1
+        if loop_count >= 5:
+            make_tweet_texts(dict_result, rain_result)
+            loop_count = 0
+      #  time.sleep(5)
+         #   twitterBot.main()
 
+
+        # pause these, do not need if moving to mqtt_client works
+       # check if new data, by setting
+        # logger.debug(f"mqtt_app() call to get_last_id()\n\tand put return into used_id")
+        # used_id = get_last_id()
+        # new_data = False
+        # logger.debug(f"Reset new_data back to False")
+#        pyplot.figure(num='one')
+        # while not new_data:
+            #  when there is new data;
+            # time.sleep(10)
+            # if used_id != get_last_id():
+                # dict_result = get_data()
+                # new_data = True
+                # logger.debug("set new_data to True to trigger break out of new data loop")
+            # else:
+                # logger.debug(f"checking for new data \n +++++++++++++++++++++++++++++++++++++++++++++++")
+        # move to mqtt_client
         pyplot.close(fig='all')
         logger.debug("END mqtt_app()")
 
