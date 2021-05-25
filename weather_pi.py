@@ -1157,10 +1157,10 @@ def make_tweet_texts(dict_result, rain_result):
             (dict_result['time']) > yesterday_midnight]
 
         # took \u2109 out to check sms
-        string_email = f"The high yesterday was {max(temp_yesterday)} and the low was " \
-                       f"{min(temp_yesterday)} u2109. There was " \
-                       f"{rain_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain " \
-                       f"yesterday."
+    #    string_email = f"The high yesterday was {max(temp_yesterday)} and the low was " \
+    #                   f"{min(temp_yesterday)} u2109. There was " \
+    #                   f"{rain_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain " \
+    #                   f"yesterday."
         write_text_to_email(string_email)
         send_email(message=read_text_to_email(), subject="HI LOW")
 
