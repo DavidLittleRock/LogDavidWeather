@@ -235,13 +235,9 @@ def get_last_id():
     return row_id
 
 
-
 def clean_hi(hi_result):
-
     for element in hi_result:
         hi_result[element] = np.array(hi_result[element])
-
-
 
     hi_result['heat_index'] = hi_result['heat_index'][
         hi_result['temp'] > 80]  # filter heat_index for temp > 80
@@ -278,9 +274,14 @@ def clean_wc(wc_result):
 
 def clean_rain(rain_result):
     # TODO try enumerate
-    for index in range(len(rain_result['rain_rate'])):  # clean none to 0.0
-        if rain_result['rain_rate'][index] is None:
-            rain_result['rain_rate'][index] = 0.0
+    # for index in range(len(rain_result['rain_rate'])):  # clean none to 0.0
+
+    for index, result in enumerate(rain_result['rain_rate'], 0):
+
+    #    if rain_result['rain_rate'][index] is None:
+    #        rain_result['rain_rate'][index] = 0.0
+        rain_result['rain_rate'][index] = 0.0 if rain_result['rain_rate'][index] is None else rain_result['rain_rate'][index]
+
     for element in rain_result:
         rain_result[element] = np.array(rain_result[element])
     # yesterday rain
@@ -338,8 +339,6 @@ def clean_rain(rain_result):
         else:
             i += 1
             continue
-
-
 
     del rain_result['time_rain_yesterday']
     del rain_result['rain_change_yesterday']
@@ -488,7 +487,6 @@ def get_data_a():
     for element in dict_result:
         dict_result[element] = np.array(dict_result[element])
 
-
     hi_result = clean_hi(hi_result)
 
     wc_result = clean_wc(wc_result)
@@ -516,6 +514,50 @@ def clean_dict(dict_result):
     return dict_result
 
 
+def fig_1_rain(rain_dict, ax4):
+    if len(rain_dict['rain_total_today']) > 0:  # today
+        logger.debug(f"Rain today: {rain_dict['rain_total_today']}")
+        ax4.plot(rain_dict['time_rain_today'], rain_dict['rain_total_today'],
+                 marker='o',
+                 linestyle='--', color='green', markersize=1, linewidth=2,
+                 label=f"Rain {rain_dict['rain_total_today'][-1]:.1f} inches today")
+    else:
+        rain_dict['rain_total_today'] = [0.0,
+                                         0.0]  # if nothing in rain today then set a 0.0
+        logger.debug("rain today set to 0 because len was 0")
+
+    if len(rain_dict['rain_total_yesterday_filtered']) > 0:  # yesterday
+        logger.debug(
+            f"rain yesterday : {rain_dict['rain_total_yesterday_filtered']}")
+        ax4.plot(rain_dict['time_rain_yesterday_filtered'],
+                 rain_dict['rain_total_yesterday_filtered'], marker='o',
+                 linestyle='--',
+                 color='orange', markersize=1, linewidth=2,
+                 label=f"Rain {rain_dict['rain_total_yesterday_filtered'][-1]:.1f} in yesterday")
+    else:
+        rain_dict['rain_total_yesterday_filtered'] = [0, 0]
+    if len(rain_dict['rain_total_24']) > 0:  # 24
+        ax4.plot(rain_dict['time_rain_24'], rain_dict['rain_total_24'],
+                 marker='o', linestyle='-',
+                 color='blue', markersize=1, linewidth=1,
+                 label=f"Rain {rain_dict['rain_total_24'][-1]:.1f} inches in 24 hours")
+    else:
+        rain_dict['rain_total_24'] = [0, 0]
+    if len(rain_dict['rain_rate']) > 0:
+        ax4.plot(rain_dict['time'], rain_dict['rain_rate'], marker='s',
+                 linestyle='', color='blue',
+                 markersize=4, linewidth=1, label="Rain Rate, inch / hr")
+
+    ax4.axis(ymin=0, ymax=((max(max(rain_dict['rain_total_24']),
+                                max(rain_dict['rain_total_today']),
+                                max(rain_dict[
+                                        'rain_total_yesterday_filtered']))) + 1) // 1,
+             xmin=(dates.date2num(datetime.now())) - 1,
+             xmax=(dates.date2num(datetime.now())))
+
+    return ax4
+
+
 def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
     compass = {
         0.0: 'North',
@@ -538,18 +580,23 @@ def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
     }
 
     # figure
-    figure_1 = pyplot.figure(num='one', facecolor='green', figsize=(18.9, 10.4))
+    figure_1 = pyplot.figure(num='one', facecolor='green',
+                             figsize=(18.9, 10.4))
     pyplot.suptitle("One Day Graph", fontsize='15', fontweight='bold')
     gs = figure_1.add_gridspec(10, 5)
 
-  #  day_x = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 1]
+    #  day_x = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 1]
 
     try:
-        max_temp = max(ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 1])
-        min_temp = min(ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 1])
-    except ValueError as vee:
-        logger.error(
-            f"Value Error: {vee}\n\tno data in ax_temp so will set max_temp and min_temp to 0")
+        max_temp = max(
+            ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(
+                datetime.now()) - 1])
+        min_temp = min(
+            ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(
+                datetime.now()) - 1])
+    except ValueError:
+        #    logger.error(
+        #        f"Value Error: {vee}\n\tno data in ax_temp so will set max_temp and min_temp to 0")
         max_temp = 0
         min_temp = 0
         # send_email(subject="ERROR", message=f"The error is: {ve}.")
@@ -566,17 +613,19 @@ def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp}) ")
 
     if len(hi_dict['heat_index']) > 0 and \
-            dates.date2num(hi_dict['time_heat_index'][-1]) > (dates.date2num(datetime.now())) - 1:
+            dates.date2num(hi_dict['time_heat_index'][-1]) > (
+    dates.date2num(datetime.now())) - 1:
         ax1.plot(hi_dict['time_heat_index'], hi_dict['heat_index'], marker=6,
                  linestyle='', color='red', label='Heat Index')
 
     # if ax_dict['humid'] is not None:
-    ax1.plot(ax_dict['time'], ax_dict['humid'], marker='.', linestyle='', color='orange',
+    ax1.plot(ax_dict['time'], ax_dict['humid'], marker='.', linestyle='',
+             color='orange',
              label=f"Humidity {ax_dict['humid'][-1]:.0f}%")
     # try:
     if len(wc_dict['wind_chill']) >= 1 and dates.date2num(
-                wc_dict['time_wind_chill'][-1]) > (
-                dates.date2num(datetime.now())) - 1:
+            wc_dict['time_wind_chill'][-1]) > (
+            dates.date2num(datetime.now())) - 1:
         ax1.plot(wc_dict['time_wind_chill'], wc_dict['wind_chill'],
                  marker='v', linestyle='', color='blue',
                  label='Wind chill')
@@ -584,7 +633,8 @@ def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
     #     logger.error(f"failed to plot wind chill Error: {iee}")
 
     ax1.axis(ymin=10, ymax=110, xmin=(dates.date2num(datetime.now())) - 1,
-             xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
+             xmax=(dates.date2num(
+                 datetime.now())))  # set a rolling x axis for preceding 24 hours
 
     style_ax1(ax1)
     ax1.xaxis.set_major_locator(dates.HourLocator(interval=6))
@@ -594,44 +644,50 @@ def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
     # ax2  WIND
     # gust period
 
- #   gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(
-        #    datetime.now()) - 0.25]
-    # try:
-    max_gust = max(ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(
-            datetime.now()) - 0.25])
-    # except ValueError as vee:
-        # logger.error(
-        #     f"Value Error: {vee}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
-        # max_gust = 0
-        # send_email(subject="ERROR",
-        #            message=f"The error is: {ve}. There is no data in the ax_dict['gust'] so is ste "
-        #                    f"to 0 for fig 1.")
+    #   gust_period = ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(
+    #    datetime.now()) - 0.25]
+    try:
+        max_gust = max(
+            ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(
+                datetime.now()) - 0.25])
+    except ValueError as vee:
+        logger.error(
+            f"Value Error: {vee}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
+        max_gust = 0
+    # send_email(subject="ERROR",
+    #            message=f"The error is: {ve}. There is no data in the ax_dict['gust'] so is ste "
+    #                    f"to 0 for fig 1.")
 
     ax2 = figure_1.add_subplot(gs[6:8, :4])
 
-    ax2.plot(ax_dict['time'], ax_dict['wind_speed'], marker='o', linestyle='-', color='black',
-             markersize=2, linewidth=0.5, label=f"Wind Speed {ax_dict['wind_speed'][-1]:.0f} MPH \n from the "
+    ax2.plot(ax_dict['time'], ax_dict['wind_speed'], marker='o', linestyle='-',
+             color='black',
+             markersize=2, linewidth=0.5,
+             label=f"Wind Speed {ax_dict['wind_speed'][-1]:.0f} MPH \n from the "
                    f"{compass[ax_dict['wind_d'][-1]]}\n gusting between \n{ax_dict['gust'][-1]:.0f}"
                    f" and {max_gust:.0f} MPH")
 
     ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now())) - 1,
-             xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
+             xmax=(dates.date2num(
+                 datetime.now())))  # set a rolling x axis for preceding 24 hours
 
     style_ax2(ax2)
     ax2.xaxis.set_major_locator(dates.HourLocator(interval=6))
 
-
     # ax3  BP
     ax3 = figure_1.add_subplot(gs[8:, :4])
     # ax3 is local scope but modifies fig that was passed in as argument
-  #  pyplot.xticks([], rotation='45')
+    #  pyplot.xticks([], rotation='45')
     #
-    ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='', color='green',
-             markersize=2.0, linewidth=1, label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
+    ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='',
+             color='green',
+             markersize=2.0, linewidth=1,
+             label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
 
     ax3.axis(ymin=29.50, ymax=30.71, xmin=(dates.date2num(datetime.now())) - 1,
-             xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
-  #  ax3.xaxis.set_minor_locator(dates.HourLocator(interval=1))
+             xmax=(dates.date2num(
+                 datetime.now())))  # set a rolling x axis for preceding 24 hours
+    #  ax3.xaxis.set_minor_locator(dates.HourLocator(interval=1))
 
     style_ax3(ax3)
     ax3.xaxis.set_major_formatter(dates.DateFormatter('%m/%d\n%H:00'))
@@ -640,54 +696,25 @@ def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
 
     # ax4 RAIN
     ax4 = figure_1.add_subplot(gs[5:6, :4])
- #   pyplot.xticks([], rotation='45')
- #   ax4.xaxis.set_minor_locator(dates.HourLocator(interval=1))
+    #   pyplot.xticks([], rotation='45')
+    #   ax4.xaxis.set_minor_locator(dates.HourLocator(interval=1))
 
     # if 1 day
     #  if (ax_dict['title'] == '1 day'):
     #  ax4.bar(ax_dict['time_rain_bar'], ax_dict['rain_change_bar'], color='red', width=0.005,
     #  label="wwww")
-    if len(rain_dict['rain_total_today']) > 0:  # today
-        logger.debug(f"Rain today: {rain_dict['rain_total_today']}")
-        ax4.plot(rain_dict['time_rain_today'], rain_dict['rain_total_today'], marker='o',
-                 linestyle='--', color='green', markersize=1, linewidth=2,
-                 label=f"Rain {rain_dict['rain_total_today'][-1]:.1f} inches today")
-    else:
-        rain_dict['rain_total_today'] = [0.0, 0.0]  # if nothing in rain today then set a 0.0
-        logger.debug("rain today set to 0 because len was 0")
+    ax4 = fig_1_rain(rain_dict, ax4)
 
-    if len(rain_dict['rain_total_yesterday_filtered']) > 0:  # yesterday
-        logger.debug(f"rain yesterday : {rain_dict['rain_total_yesterday_filtered']}")
-        ax4.plot(rain_dict['time_rain_yesterday_filtered'],
-                 rain_dict['rain_total_yesterday_filtered'], marker='o', linestyle='--',
-                 color='orange', markersize=1, linewidth=2,
-                 label=f"Rain {rain_dict['rain_total_yesterday_filtered'][-1]:.1f} in yesterday")
-    else:
-        rain_dict['rain_total_yesterday_filtered'] = [0, 0]
-    if len(rain_dict['rain_total_24']) > 0:  # 24
-        ax4.plot(rain_dict['time_rain_24'], rain_dict['rain_total_24'], marker='o', linestyle='-',
-                 color='blue', markersize=1, linewidth=1,
-                 label=f"Rain {rain_dict['rain_total_24'][-1]:.1f} inches in 24 hours")
-    else:
-        rain_dict['rain_total_24'] = [0, 0]
-    if len(rain_dict['rain_rate']) > 0:
-        ax4.plot(rain_dict['time'], rain_dict['rain_rate'], marker='s', linestyle='', color='blue',
-                 markersize=4, linewidth=1, label="Rain Rate, inch / hr")
+    #  ax4.set_title('', fontsize='15')
+    #   ax4.set_xlabel('')
+    #   ax4.set_ylabel("inches")
+    #   ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
+    #   ax4.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
+    #   ax4.grid(True, which='both', axis='both')
 
-    ax4.axis(ymin=0, ymax=((max(max(rain_dict['rain_total_24']),
-                                max(rain_dict['rain_total_today']),
-                                max(rain_dict['rain_total_yesterday_filtered']))) + 1) // 1,
-             xmin=(dates.date2num(datetime.now())) - 1, xmax=(dates.date2num(datetime.now())))
-  #  ax4.set_title('', fontsize='15')
- #   ax4.set_xlabel('')
- #   ax4.set_ylabel("inches")
- #   ax4.grid(which='minor', color='#999999', alpha=0.5, linestyle='--')
- #   ax4.grid(which='major', color='#666666', linewidth=1.2, linestyle='-')
- #   ax4.grid(True, which='both', axis='both')
-
- #   ax4.legend(loc='upper left', bbox_to_anchor=(1.0, 1.6), shadow=True,
- #              ncol=1, fontsize=15)
- #   ax4.set_facecolor('#edf7f7')
+    #   ax4.legend(loc='upper left', bbox_to_anchor=(1.0, 1.6), shadow=True,
+    #              ncol=1, fontsize=15)
+    #   ax4.set_facecolor('#edf7f7')
 
     style_ax4(ax4)
     ax4.xaxis.set_major_locator(dates.HourLocator(interval=6))
@@ -718,34 +745,39 @@ def make_fig_2(ax_dict, rain_dict):
         337.5: 'North',
         360: 'North',
     }
-    figure_2 = pyplot.figure(num='two', facecolor='green', figsize=(18.9, 10.4))
+    figure_2 = pyplot.figure(num='two', facecolor='green',
+                             figsize=(18.9, 10.4))
     pyplot.suptitle("7 Days", fontsize='15', fontweight='bold')
     pyplot.tight_layout(pad=3.0, h_pad=-1.0)
 
     gs = figure_2.add_gridspec(10, 5)
 
- #   day_x = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 7]
+    #   day_x = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 7]
 
     try:
-        max_temp = max(ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 7])
-        min_temp = min(ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 7])
+        max_temp = max(
+            ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(
+                datetime.now()) - 7])
+        min_temp = min(
+            ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(
+                datetime.now()) - 7])
     except ValueError as vee:
         logger.error(
             f"Value Error: {vee}\n\tno data in day_x so will set max_temp to 0")
         max_temp = 0
         min_temp = 0
 
-#        send_email(subject="ERROR",
-#                   message=f"The error is: {ve}. There is no data in day_x so set to 0 for fig 2.")
+    #        send_email(subject="ERROR",
+    #                   message=f"The error is: {ve}. There is no data in day_x so set to 0 for fig 2.")
 
-#    try:
-#        min_temp = min(day_x)
-#    except ValueError as ve:
-#        logger.error(
-#            f"Value Error: {ve}\n\tno data in day_x so will set min_temp to 0")
-#        min_temp = 0
-#        send_email(subject="ERROR",
-#                   message=f"The error is: {ve}. There is no data in day_x so set to 0 for fig 2.")
+    #    try:
+    #        min_temp = min(day_x)
+    #    except ValueError as ve:
+    #        logger.error(
+    #            f"Value Error: {ve}\n\tno data in day_x so will set min_temp to 0")
+    #        min_temp = 0
+    #        send_email(subject="ERROR",
+    #                   message=f"The error is: {ve}. There is no data in day_x so set to 0 for fig 2.")
     #   min_temp = min(day_x)
 
     ax1 = figure_2.add_subplot(gs[:5, :4])
@@ -768,15 +800,16 @@ def make_fig_2(ax_dict, rain_dict):
     ax1.xaxis.set_minor_locator(dates.HourLocator(interval=6))
 
     #   logger.debug('did make_ax1 in figure 2')
- #   ax1.set_facecolor('#edf7f7')
+    #   ax1.set_facecolor('#edf7f7')
 
     # ax2  WIND
     ax2 = figure_2.add_subplot(gs[6:8, :4])
- #   gust_period = ax_dict['gust'][
-  #      dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 0.5]
+    #   gust_period = ax_dict['gust'][
+    #      dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 0.5]
     try:
         max_gust = max(ax_dict['gust'][
-            dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 0.5])
+                           dates.date2num(ax_dict['time']) > dates.date2num(
+                               datetime.now()) - 0.5])
     except ValueError as vee:
         logger.error(
             f"Value Error: {vee}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
@@ -799,22 +832,23 @@ def make_fig_2(ax_dict, rain_dict):
     # ax3  BP
     ax3 = figure_2.add_subplot(gs[8:,
                                :4])  # ax3 is local scope but modifies fig that was passed in
- #   pyplot.xticks([], rotation='45')
+    #   pyplot.xticks([], rotation='45')
 
     ax3.plot(ax_dict['time'], ax_dict['baro_press'], marker='o', linestyle='',
              color='green', markersize=1.5, linewidth=1,
              label=f"BP {ax_dict['baro_press'][-1]:.2f} mmHg")
     ax3.axis(ymin=29.50, ymax=30.71, xmin=(dates.date2num(datetime.now())) - 7,
-             xmax=(dates.date2num(datetime.now())))  # set a rolling x axis for preceding 24 hours
+             xmax=(dates.date2num(
+                 datetime.now())))  # set a rolling x axis for preceding 24 hours
     style_ax3(ax3)
     ax3.xaxis.set_minor_locator(dates.HourLocator(interval=6))
     ax3.xaxis.set_major_formatter(dates.DateFormatter('%m/%d'))
 
     # ax4 RAIN
     ax4 = figure_2.add_subplot(gs[5:6, :4])
- #   pyplot.xticks([], rotation='45')
+    #   pyplot.xticks([], rotation='45')
 
-#    ax4.xaxis.set_major_locator(dates.DayLocator(interval=1))
+    #    ax4.xaxis.set_major_locator(dates.DayLocator(interval=1))
 
     ax4.bar(rain_dict['time_rain_30'], rain_dict['rain_30'], color='blue',
             width=0.99,
@@ -830,7 +864,6 @@ def make_fig_2(ax_dict, rain_dict):
 
     mng = pyplot.get_current_fig_manager()
     mng.full_screen_toggle()  # full screen no outline
-
 
 
 def style_ax1(ax1):
@@ -877,9 +910,10 @@ def style_ax3(ax3):
     ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     ax3.xaxis.set_minor_locator(dates.HourLocator(interval=1))
 
-  #  ax3.set_xticks()
-  #  ax3.set_xticklabels([])
-  #   ax3.tick_params(axis='x', colors='r', labelrotation=0)
+
+#  ax3.set_xticks()
+#  ax3.set_xticklabels([])
+#   ax3.tick_params(axis='x', colors='r', labelrotation=0)
 
 def style_ax4(ax4):
     ax4.xaxis.set_major_formatter(dates.DateFormatter(''))
@@ -922,16 +956,22 @@ def make_fig_3(ax_dict, rain_dict):
     pyplot.suptitle("30 Days", fontsize='15', fontweight='bold')
     gs = figure_3.add_gridspec(10, 5)
 
- #   day_x = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 30]
-    max_temp = max(ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 30])
-    min_temp = min(ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 30])
- #   print(min_temp)
+    #   day_x = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 30]
+    max_temp = max(
+        ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(
+            datetime.now()) - 30])
+    min_temp = min(
+        ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(
+            datetime.now()) - 30])
+    #   print(min_temp)
     ax1 = figure_3.add_subplot(gs[:5, :4])
     pyplot.tight_layout(pad=3.0, h_pad=-1.0)
-    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='', color='black',
+    ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='',
+             color='black',
              markersize=1.0, label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n"
                                    f"(High: {max_temp} Low: {min_temp})")
-    if len(ax_dict['heat_index']) > 0 and dates.date2num(ax_dict['time_heat_index'][-1]) > (
+    if len(ax_dict['heat_index']) > 0 and dates.date2num(
+            ax_dict['time_heat_index'][-1]) > (
             dates.date2num(datetime.now())) - 30:
         ax1.plot(ax_dict['time_heat_index'], ax_dict['heat_index'], marker=6,
                  linestyle='', color='red',
@@ -952,11 +992,12 @@ def make_fig_3(ax_dict, rain_dict):
 
     # ax2  WIND
     ax2 = figure_3.add_subplot(gs[6:8, :4])
-#   gust_period = ax_dict['gust'][
-#        dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 1]
+    #   gust_period = ax_dict['gust'][
+    #        dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 1]
     try:
         max_gust = max(ax_dict['gust'][
-            dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 1])
+                           dates.date2num(ax_dict['time']) > dates.date2num(
+                               datetime.now()) - 1])
     except ValueError as vee:
         logger.error(
             f"Value Error: {vee}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
@@ -975,7 +1016,6 @@ def make_fig_3(ax_dict, rain_dict):
     ax2.axis(ymin=0, ymax=8, xmin=(dates.date2num(datetime.now())) - 30,
              xmax=(dates.date2num(
                  datetime.now())))  # set a rolling x axis for preceding 24 hours
-
 
     style_ax2(ax2)
     ax2.tick_params(axis='x', which='minor', bottom=False, grid_linestyle='')
@@ -997,16 +1037,14 @@ def make_fig_3(ax_dict, rain_dict):
     # ax3.xaxis.set_major_locator(dates.DayLocator(interval=1))
     #    ax3.xaxis.set_minor_locator(dates.HourLocator(interval=6))
 
-
     style_ax3(ax3)
     ax3.tick_params(axis='x', which='minor', bottom=False, grid_linestyle='')
 
-
     # ax4 RAIN
     ax4 = figure_3.add_subplot(gs[5:6, :4])
- #   pyplot.xticks([], rotation='45')
+    #   pyplot.xticks([], rotation='45')
 
- #   ax4.xaxis.set_major_locator(dates.DayLocator(interval=1))
+    #   ax4.xaxis.set_major_locator(dates.DayLocator(interval=1))
 
     ax4.bar(rain_dict['time_rain_30'], rain_dict['rain_30'], color='blue',
             width=0.99,
@@ -1016,11 +1054,8 @@ def make_fig_3(ax_dict, rain_dict):
              xmin=(dates.date2num(datetime.now())) - 30,
              xmax=(dates.date2num(datetime.now())))
 
-
     style_ax4(ax4)
     ax4.tick_params(axis='x', which='minor', bottom=False, grid_linestyle='')
-
-
 
     pyplot.savefig(fname="./figures/fig_3.png", format='png')
 
@@ -1034,10 +1069,10 @@ def is_new_day(day=1):
 
 def make_tweet_texts(dict_result, rain_result):
     # make and send freezing tweet
-    if dict_result['temp'][-1] < dict_result['temp'][-2] <= 32 < dict_result['temp'][-3]:
-
-  #  if (dict_result['temp'][-1] < 32) and (dict_result['temp'][-2] <= 32) and (
-  #          dict_result['temp'][-3] > 32):  # temp falling below set point
+    if dict_result['temp'][-1] < dict_result['temp'][-2] <= 32 < \
+            dict_result['temp'][-3]:
+        #  if (dict_result['temp'][-1] < 32) and (dict_result['temp'][-2] <= 32) and (
+        #          dict_result['temp'][-3] > 32):  # temp falling below set point
         # tweet freeze alert
         string_tweet = f"This is a freeze alert: the temperature is now " \
                        f"{dict_result['temp'][-1]} at {datetime.now()}."
@@ -1055,9 +1090,10 @@ def make_tweet_texts(dict_result, rain_result):
             f"\n\t temp[-2] {dict_result['temp'][-2]} at \n\t time {dict_result['time'][-2]}"
             f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
     #  make and send above freezing tweet
-    if dict_result['temp'][-3] < 32 <= dict_result['temp'][-2] <= dict_result['temp'][-1]:
-#    if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] >= 32) and (
- #           dict_result['temp'][-3] < 32):
+    if dict_result['temp'][-3] < 32 <= dict_result['temp'][-2] <= \
+            dict_result['temp'][-1]:
+        #    if (dict_result['temp'][-1] > 32) and (dict_result['temp'][-2] >= 32) and (
+        #           dict_result['temp'][-3] < 32):
         # tweet temp above freezing
         string_tweet = f"It is now is above freezing: the temperature is " \
                        f"{dict_result['temp'][-1]} at {datetime.now()}."
@@ -1078,12 +1114,12 @@ def make_tweet_texts(dict_result, rain_result):
     #  make and send rain tweet
     if len(dict_result['rain_rate']) > 4:  # RAINING
 
-        if dict_result['rain_rate'][-1] >= dict_result['rain_rate'][-2] > 0.09 >= \
+        if dict_result['rain_rate'][-1] >= dict_result['rain_rate'][
+            -2] > 0.09 >= \
                 dict_result['rain_rate'][-3]:
-
- #       if (dict_result['rain_rate'][-1] > 0.09) and (
- #               dict_result['rain_rate'][-2] > 0.09) and (
- #               dict_result['rain_rate'][-3] <= 0.09):
+            #       if (dict_result['rain_rate'][-1] > 0.09) and (
+            #               dict_result['rain_rate'][-2] > 0.09) and (
+            #               dict_result['rain_rate'][-3] <= 0.09):
             send_email(subject="Rain",
                        message=f"raining with rain rate = {dict_result['rain_rate'][-1]}")
             logger.info(
@@ -1092,13 +1128,12 @@ def make_tweet_texts(dict_result, rain_result):
                 f" at \n\t time {dict_result['time'][-2]}\n\t rain rate[-3] "
                 f"{dict_result['rain_rate'][-3]} at \n\t time {dict_result['time'][-3]}")
 
-        if dict_result['rain_rate'][-3] >= dict_result['rain_rate'][-2] >= 0.09 > \
-            dict_result['rain_rate'][-1]:
-
-
-#        if (dict_result['rain_rate'][-3] >= 0.09) and (
- #               dict_result['rain_rate'][-2] >= 0.9) and (
- #               dict_result['rain_rate'][-1] < 0.09):
+        if dict_result['rain_rate'][-3] >= dict_result['rain_rate'][
+            -2] >= 0.09 > \
+                dict_result['rain_rate'][-1]:
+            #        if (dict_result['rain_rate'][-3] >= 0.09) and (
+            #               dict_result['rain_rate'][-2] >= 0.9) and (
+            #               dict_result['rain_rate'][-1] < 0.09):
             print("it has stopped raining")
             send_email(subject="Rain",
                        message=f"STOPPED raining with rain rate: {dict_result['rain_rate'][-1]}")
