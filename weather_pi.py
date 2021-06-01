@@ -1145,7 +1145,7 @@ def make_tweet_texts(dict_result, rain_result):
     twitterBot.write_text_to_tweet(string=temperature_tweet_string,
                                    file_name='temperature_tweet.txt')
 
-    if True: # ((dict_result['time'][-1]).day):
+    if ((dict_result['time'][-1]).day):
         # make the midnight HI/LOW email
         today = date.today()
         yesterday = today - timedelta(days=1)
