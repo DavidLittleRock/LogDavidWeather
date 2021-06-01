@@ -1114,9 +1114,7 @@ def make_tweet_texts(dict_result, rain_result):
     #  make and send rain tweet
     if len(dict_result['rain_rate']) > 4:  # RAINING
 
-        if dict_result['rain_rate'][-1] >= dict_result['rain_rate'][
-            -2] > 0.09 >= \
-                dict_result['rain_rate'][-3]:
+        if dict_result['rain_rate'][-1] >= dict_result['rain_rate'][-2] > 0.09 >= dict_result['rain_rate'][-3]:
             #       if (dict_result['rain_rate'][-1] > 0.09) and (
             #               dict_result['rain_rate'][-2] > 0.09) and (
             #               dict_result['rain_rate'][-3] <= 0.09):
@@ -1156,13 +1154,12 @@ def make_tweet_texts(dict_result, rain_result):
         temp_yesterday = dict_result['temp'][
             (dict_result['time']) > yesterday_midnight]
 
-        # took \u2109 out to check sms
-    #    string_email = f"The high yesterday was {max(temp_yesterday)} and the low was " \
-    #                   f"{min(temp_yesterday)} u2109. There was " \
-    #                   f"{rain_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain " \
-    #                   f"yesterday."
-    #    write_text_to_email(string_email)
-    #    send_email(message=read_text_to_email(), subject="HI LOW")
+        string_email = f"The high yesterday was {max(temp_yesterday)} and the low was " \
+                       f"{min(temp_yesterday)} \u2109. There was " \
+                       f"{rain_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain " \
+                       f"yesterday."
+        write_text_to_email(string_email)
+        send_email(message=read_text_to_email(), subject="HI LOW")
 
 
 def mqtt_app():
@@ -1219,12 +1216,9 @@ def mqtt_app():
 
 if __name__ == "__main__":
     try:
-
         mqtt_app()
     except Exception as exe:
         print(exe)
         logger.error(f"{exe}")
         send_email(subject="ERROR", message=f"{exe}, main unhandled")
         print(traceback.format_exc())
-
-    # mqtt_app()
