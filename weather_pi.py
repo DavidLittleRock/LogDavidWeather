@@ -1145,7 +1145,7 @@ def make_tweet_texts(dict_result, rain_result):
     twitterBot.write_text_to_tweet(string=temperature_tweet_string,
                                    file_name='temperature_tweet.txt')
 
-    if is_new_day((dict_result['time'][-1]).day):
+    if True: # ((dict_result['time'][-1]).day):
         # make the midnight HI/LOW email
         today = date.today()
         yesterday = today - timedelta(days=1)
@@ -1158,6 +1158,9 @@ def make_tweet_texts(dict_result, rain_result):
                        f"{min(temp_yesterday)} \u2109. There was " \
                        f"{rain_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain " \
                        f"yesterday."
+        
+
+         # string_email = 'test mail'
         write_text_to_email(string_email)
         send_email(message=read_text_to_email(), subject="HI LOW")
 
