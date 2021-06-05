@@ -582,6 +582,8 @@ def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
     # figure
     figure_1 = pyplot.figure(num='one', facecolor='green',
                              figsize=(18.9, 10.4))
+    # pyplot.xticks(fontsize=16)
+
     pyplot.suptitle("One Day Graph", fontsize='15', fontweight='bold')
     gs = figure_1.add_gridspec(10, 5)
 
@@ -690,7 +692,10 @@ def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
     #  ax3.xaxis.set_minor_locator(dates.HourLocator(interval=1))
 
     style_ax3(ax3)
-    ax3.xaxis.set_major_formatter(dates.DateFormatter('%m/%d\n%H:00'))
+#    ax3.xticks(fontsize=16)
+#    ax3.xlabel(fontdict={'size': 16})
+    ax3.tick_params(axis='x', labelsize=16)
+    ax3.xaxis.set_major_formatter(dates.DateFormatter('%H:00'))  # '%m/%d\n%H:00'))
 
     ax3.xaxis.set_major_locator(dates.HourLocator(interval=6))
 
