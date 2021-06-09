@@ -159,7 +159,7 @@ def on_connect(self, userdata, flags, r_c):
         f"Connected to mosquitto {r_c} \n\twith client_id: {mqtt_config['mqtt_client_id']}.")
 
 
-def on_disconnect(r_c):
+def on_disconnect(self, userdata, r_c):
     logger.debug(f"MQTT disconnected with rc {r_c}")
 
 
