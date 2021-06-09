@@ -1,4 +1,5 @@
 import smtplib
+import socket
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 #  from configparser import ConfigParser
@@ -62,7 +63,23 @@ def send_email(message="default message", subject="default subject"):
     em_config = read_config(section='sendmail')
     #  em_config = {'host': '', 'port': '', 'username': '', 'password': '', 'toname': ''}
 
-    email_conn = smtplib.SMTP(em_config['host'], em_config['port'])
+
+    tryagain = 3
+    trynum = 0
+
+    while trynum <= tryagain:
+        try:
+            email_conn = smtplib.SMTP(em_config['host'], em_config['port'])
+            trynum = 4
+        except socket.gaierror:
+            print('gai error')
+            trynum += 1
+            print("try num = ")
+            print(trynum)
+
+
+
+
     email_conn.ehlo()
     email_conn.starttls()
 
