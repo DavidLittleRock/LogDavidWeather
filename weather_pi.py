@@ -236,6 +236,8 @@ def get_last_id():
 
 
 def clean_hi(hi_result):
+
+    # convert into a np array
     for element in hi_result:
         hi_result[element] = np.array(hi_result[element])
 
@@ -359,7 +361,7 @@ def get_data_a():
         dict_result: a dict type
 
     """
-    logger.debug("START get_data_a() &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+    logger.debug("START get_data_a() &&&&&&&&&&&&&")
     db_connection = sqlfile.create_db_connection()
     query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust, Rain_Rate, ' \
             'Rain_Change FROM OneMonth ORDER BY Date ASC'
@@ -616,9 +618,11 @@ def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
 
     if len(hi_dict['heat_index']) > 0 and \
             dates.date2num(hi_dict['time_heat_index'][-1]) > (
-    dates.date2num(datetime.now())) - 1:
+            dates.date2num(datetime.now())) - 1:
+        hi = hi_dict['heat_index'][dates.date2num(hi_dict['time_heat_index']) > (dates.date2num(datetime.now())) - 1]
+
         ax1.plot(hi_dict['time_heat_index'], hi_dict['heat_index'], marker=6,
-                 linestyle='', color='red', label='Heat Index')
+                 linestyle='', color='red', label=f'Heat Index Max {max(hi)}\u2109', markersize=5)
 
     # if ax_dict['humid'] is not None:
     ax1.plot(ax_dict['time'], ax_dict['humid'], marker='.', linestyle='',
@@ -730,7 +734,7 @@ def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
     mng.full_screen_toggle()  # full screen no outline
 
 
-def make_fig_2(ax_dict, rain_dict):
+def make_fig_2(ax_dict, rain_dict, hi_dict, wc_dict):
     compass = {
         0.0: 'North',
         22.5: 'North',
@@ -786,15 +790,25 @@ def make_fig_2(ax_dict, rain_dict):
     #   min_temp = min(day_x)
 
     ax1 = figure_2.add_subplot(gs[:5, :4])
+    pyplot.tight_layout(pad=3.0, h_pad=-1.0)
+
     ax1.plot(ax_dict['time'], ax_dict['temp'], marker='o', linestyle='',
              color='black', markersize=1.5,
              label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n(High: {max_temp} Low: {min_temp})")
-    if len(ax_dict['heat_index']) > 0 and dates.date2num(
-            ax_dict['time_heat_index'][-1]) > (
+    if len(hi_dict['heat_index']) > 0 and dates.date2num(
+            hi_dict['time_heat_index'][-1]) > (
             dates.date2num(datetime.now())) - 7:
-        ax1.plot(ax_dict['time_heat_index'], ax_dict['heat_index'], marker=6,
-                 linestyle='', color='red', label='Heat Index')
-    if ax_dict['wind_chill'] is not None:
+        hi = hi_dict['heat_index'][dates.date2num(hi_dict['time_heat_index']) > (dates.date2num(datetime.now())) -7]
+
+        ax1.plot(hi_dict['time_heat_index'], hi_dict['heat_index'], marker=6,
+                 linestyle='', color='red', label=f'Heat Index Max {max(hi)}\u2109', ms=1)
+
+
+
+#    if ax_dict['wind_chill'] is not None:
+    if len(wc_dict['wind_chill']) >= 1 and dates.date2num(
+            wc_dict['time_wind_chill'][-1]) > (
+            dates.date2num(datetime.now())) - 1:
         ax1.plot(ax_dict['time_wind_chill'], ax_dict['wind_chill'], marker='v',
                  linestyle='', color='blue',
                  label='Wind chill', markersize='3.0')
@@ -936,7 +950,7 @@ def style_ax4(ax4):
     ax4.xaxis.set_minor_locator(dates.HourLocator(interval=1))
 
 
-def make_fig_3(ax_dict, rain_dict):
+def make_fig_3(ax_dict, rain_dict, hi_dict, wc_dict):
     compass = {
         0.0: 'North',
         22.5: 'North',
@@ -975,16 +989,42 @@ def make_fig_3(ax_dict, rain_dict):
              color='black',
              markersize=1.0, label=f"Temp {ax_dict['temp'][-1]:.1f}\u2109\n"
                                    f"(High: {max_temp} Low: {min_temp})")
-    if len(ax_dict['heat_index']) > 0 and dates.date2num(
-            ax_dict['time_heat_index'][-1]) > (
+    if len(hi_dict['heat_index']) > 0 and dates.date2num(
+            hi_dict['time_heat_index'][-1]) > (
             dates.date2num(datetime.now())) - 30:
-        ax1.plot(ax_dict['time_heat_index'], ax_dict['heat_index'], marker=6,
+        hi = hi_dict['heat_index'][
+            dates.date2num(hi_dict['time_heat_index']) > (
+                dates.date2num(datetime.now())) - 30]
+
+        ax1.plot(hi_dict['time_heat_index'], hi_dict['heat_index'], marker=6,
                  linestyle='', color='red',
-                 label='Heat Index', markersize='1')
+                 label=f'Heat Index Max {max(hi)}\u2109', markersize='1')
+
+
+
+
+  #  hi = hi_dict['heat_index'][dates.date2num(hi_dict['time_heat_index']) > (dates.date2num(datetime.now())) -30]
+  #  print(max(hi))
+   # print(min(hi))
+   # print("max")
+
+
+
+
+
+
+
+
+
+
+
     #    if ax_dict['humid'] is not None:
     #        ax1.plot(ax_dict['time'], ax_dict['humid'], marker='.', linestyle='', color='orange',
     #                 label=f"Humidity {ax_dict['humid'][-1]:.0f}%")
-    if ax_dict['wind_chill'] is not None:
+#    if ax_dict['wind_chill'] is not None:
+    if len(wc_dict['wind_chill']) >= 1 and dates.date2num(
+            wc_dict['time_wind_chill'][-1]) > (
+            dates.date2num(datetime.now())) - 30:
         ax1.plot(ax_dict['time_wind_chill'], ax_dict['wind_chill'], marker='v',
                  linestyle='', color='blue',
                  label='Wind chill', markersize='2.0')
@@ -1072,7 +1112,7 @@ def is_new_day(day=1):
     return datetime.today().day != day
 
 
-def make_tweet_texts(dict_result, rain_result):
+def make_tweet_texts(dict_result, rain_result, hi_dict):
     # make and send freezing tweet
     if dict_result['temp'][-1] < dict_result['temp'][-2] <= 32 < \
             dict_result['temp'][-3]:
@@ -1160,14 +1200,20 @@ def make_tweet_texts(dict_result, rain_result):
         temp_yesterday = []
         temp_yesterday = dict_result['temp'][
             (dict_result['time']) > yesterday_midnight]
+        hi = hi_dict['heat_index'][dates.date2num(hi_dict['time_heat_index']) > (dates.date2num(datetime.now())) - 1]
 
         string_email = f"The high yesterday was {max(temp_yesterday)} and the low was " \
                        f"{min(temp_yesterday)} \u2109. There was " \
                        f"{rain_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain " \
-                       f"yesterday."
-        
+                       f"yesterday.\nThe max heat index was {max(hi)}\u2109"
 
-         # string_email = 'test mail'
+#        if len(hi_dict['heat_index']) > 0 and \
+#                dates.date2num(hi_dict['time_heat_index'][-1]) > (
+ #               dates.date2num(datetime.now())) - 1:
+#            string_email += f"the heat index maximum was {}"
+
+
+        # string_email = 'test mail'
         write_text_to_email(string_email)
         send_email(message=read_text_to_email(), subject="HI LOW")
 
@@ -1194,11 +1240,11 @@ def mqtt_app():
 
         # make and save the figures; then
         make_fig_1(dict_result, hi_result, wc_result, rain_result)
-        make_fig_2(dict_result, rain_result)
-        make_fig_3(dict_result, rain_result)
+        make_fig_2(dict_result, rain_result, hi_result, wc_result)
+        make_fig_3(dict_result, rain_result, hi_result, wc_result)
         loop_count += 1
         if loop_count >= 5:
-            make_tweet_texts(dict_result, rain_result)
+            make_tweet_texts(dict_result, rain_result, hi_result)
             loop_count = 0
         #  time.sleep(5)
         #   twitterBot.main()
