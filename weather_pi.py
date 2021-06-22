@@ -1111,6 +1111,55 @@ def make_fig_3(ax_dict, rain_dict, hi_dict, wc_dict):
 def is_new_day(day=1):
     return datetime.today().day != day
 
+def suffix(d):
+    return 'th' if 11 <= d <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(d % 10, 'th')
+
+def custom_strftime(format, t):
+    return t.strftime(format).replace('{jj}', str(t.day) + suffix(t.day))
+
+
+def get_year_stats():
+    db_connection = sqlfile.create_db_connection()
+
+    query = 'SELECT TimeStamp, Outdoor_Temperature FROM OURWEATHERTable WHERE Year(TimeStamp) = 2021'
+    result = sqlfile.read_query(db_connection, query)
+    # print(result)
+    # print(result[1])
+    dict_result = {
+        'time': [],
+        'temp': []
+    }
+    for record in result:
+        dict_result['time'].append(record[0])
+        dict_result['temp'].append(((record[1])*9/5)+32)
+    for element in dict_result:
+        dict_result[element] = np.array(dict_result[element])
+    # print(dict_result)
+    # print(max(dict_result['temp']))
+    max_temp_for_year = np.amax(dict_result['temp'])  # find max temperature
+    index_max_temp_for_year = np.where(dict_result['temp'] == np.amax(dict_result['temp']))  # find index of max temperatures
+    # print('Returned tuple of index_max_temp_for_year :', index_max_temp_for_year)
+    # print('List of Indices of maximum element :', index_max_temp_for_year[0])
+    # print(dict_result['temp'][index_max_temp_for_year[0][-1]])
+    # print(dict_result['time'][index_max_temp_for_year[0][-1]])
+    # print(datetime.date(dict_result['time'][index_max_temp_for_year[0][-1]]))
+    date_max_temp = datetime.date(dict_result['time'][index_max_temp_for_year[0][-1]])
+
+    min_temp_for_year = np.amin(dict_result['temp'])  # find min temperature
+    index_min_temp_for_year = np.where(dict_result['temp'] == np.amin(dict_result['temp']))  # find index of min temperatures
+    date_min_temp = datetime.date(dict_result['time'][index_min_temp_for_year[0][-1]])
+
+    custom_date_max_temp = (custom_strftime('%A, %B {jj}', date_max_temp))
+    custom_date_min_temp = (custom_strftime('%A, %B {jj}', date_min_temp))
+
+
+    print(f"The high temperature for the year so far was {max_temp_for_year:.1f}\u2109 on {custom_date_max_temp}.")
+    print(f"The low temperature for the year so far was {min_temp_for_year:.1f}\u2109 on {custom_date_min_temp}.")
+
+
+    # input("print")
+
+    return max_temp_for_year, custom_date_max_temp, min_temp_for_year, custom_date_min_temp
 
 def make_tweet_texts(dict_result, rain_result, hi_dict):
     # make and send freezing tweet
@@ -1191,6 +1240,7 @@ def make_tweet_texts(dict_result, rain_result, hi_dict):
                                    file_name='temperature_tweet.txt')
 
     if ((dict_result['time'][-1]).day) != date.today().day:
+    # if True:
         # print(date.today().day)
         # print((dict_result['time'][-1]).day)
         # make the midnight HI/LOW email
@@ -1202,10 +1252,14 @@ def make_tweet_texts(dict_result, rain_result, hi_dict):
             (dict_result['time']) > yesterday_midnight]
         hi = hi_dict['heat_index'][dates.date2num(hi_dict['time_heat_index']) > (dates.date2num(datetime.now())) - 1]
 
+        max_temp_for_year, custom_date_max_temp, min_temp_for_year, custom_date_min_temp = get_year_stats()
+
         string_email = f"The high yesterday was {max(temp_yesterday)} and the low was " \
-                       f"{min(temp_yesterday)} \u2109. There was " \
-                       f"{rain_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain " \
-                       f"yesterday.\nThe max heat index was {max(hi)}\u2109"
+                       f"{min(temp_yesterday)} \u2109. \n" \
+                       f"There was {rain_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain yesterday.\n" \
+                       f"The max heat index was {max(hi)}\u2109.\n" \
+                       f"The high temperature so far this year was {max_temp_for_year}\u2109 on {custom_date_max_temp} " \
+                       f"and the low was {min_temp_for_year} on {custom_date_min_temp}."
 
 #        if len(hi_dict['heat_index']) > 0 and \
 #                dates.date2num(hi_dict['time_heat_index'][-1]) > (
@@ -1271,6 +1325,7 @@ def mqtt_app():
 
 
 if __name__ == "__main__":
+    get_year_stats()
     try:
         mqtt_app()
     except Exception as exe:
