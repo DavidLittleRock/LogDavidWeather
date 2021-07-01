@@ -128,8 +128,8 @@ def send_blog(message="default message", subject="default subject", file='./figu
     #    toname = toname  # or can to_list = ["ddd"]
     em_config = read_config(section='sendmail')
     #  em_config = {'host': '', 'port': '', 'username': '', 'password': '', 'toname': ''}
-    # em_config['toname'] = 'bela219maqo@post.wordpress.com'
-    em_config['toname'] = 'atECsw9z3hAsyCbyANbT@gmail.com'
+    # em_config['toname'] = '@post.wordpress.com'
+    # em_config['toname'] = '@gmail.com'
 
 
     tryagain = 3
