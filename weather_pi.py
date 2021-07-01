@@ -134,18 +134,25 @@ def mqtt_client():
 
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
-    client.on_connect = on_connect
-    try:
-        client.connect(broker_url, broker_port)
-        logger.debug("mqtt client connected")
-    except OSError as ose:
-        logger.error(
-            f"OS Error, check url or port, {ose}/n/t with url {broker_url} and port {broker_port}")
-        send_email(subject="ERROR",
-                   message=f"OS Error, check url or port, {ose}")
-    except Exception as ex:
-        logger.exception(ex)
-        send_email(subject="ERROR", message=f"The error is: {ex}.")
+    client.on_connect =
+
+    tryagain = 3
+    trynum = 0
+    while trynum <= tryagain:
+
+        try:
+            client.connect(broker_url, broker_port)
+            logger.debug("mqtt client connected")
+        except OSError as ose:
+            trynum += 1
+            logger.error(
+                f"OS Error, check url or port, {ose}/n/t with url {broker_url} and port {broker_port}")
+            send_email(subject="ERROR",
+                       message=f"OS Error, check url or port, {ose}")
+        except Exception as ex:
+            trynum += 1
+            logger.exception(ex)
+            send_email(subject="ERROR", message=f"The error is: {ex}.")
     try:
         client.subscribe(mqtt_config['topic'], qos=2)
         logger.debug(f"mqtt subscribed to {mqtt_config['topic']}")
@@ -1318,7 +1325,7 @@ def make_blog_posts():
             string_blog += f"The max heat index yesterday was {max(hi)}\u2109.\n"
 
         string_blog += f"\nThe high temperature so far this year was {max_temp_for_year:.1f}\u2109 " \
-                       f"on {custom_date_max_temp} and the low was {min_temp_for_year:.1f} on {custom_date_min_temp}. [tags Daily]\n\n" \
+                       f"on {custom_date_max_temp} and the low was {min_temp_for_year:.1f} on {custom_date_min_temp}.\n\n" \
                        f"Time : {datetime.now().time()}"
 
         subject = f"Daily weather post for {datetime.today().date()} [Weather] [Daily]"
@@ -1352,9 +1359,9 @@ def make_blog_posts():
             subject = f"Weather summary for {calendar.month_name[today.month - 1]} [Weather] [Monthly]"
             attach = './figures/fig_3.png'
             write_text_to_send(string_blog, file_name='daily_blog_post.txt')
-            send_blog(
-                message=read_text_to_email(file_name='daily_blog_post.txt'),
-                subject=subject, file=attach)
+            # send_blog(
+            #     message=read_text_to_email(file_name='daily_blog_post.txt'),
+            #     subject=subject, file=attach)
 
         if datetime.today().weekday() == 0:  # if today is Monday 0. sunday 7
             print('new week is true, should see weekly blog post')
@@ -1369,8 +1376,8 @@ def make_blog_posts():
             attach = './figures/fig_2.png'
             write_text_to_send(string_blog, file_name='daily_blog_post.txt')
             # print(string_blog)
-            send_blog(message=read_text_to_email(file_name='daily_blog_post.txt'),
-                  subject=subject, file=attach)
+            # send_blog(message=read_text_to_email(file_name='daily_blog_post.txt'),
+            #        subject=subject, file=attach)
 
     return True
 
