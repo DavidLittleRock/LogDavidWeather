@@ -2,9 +2,11 @@ import smtplib
 import socket
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 #  from configparser import ConfigParser
 from WeatherAppLog import get_a_logger
 from python_config import read_config
+import imghdr
 """
 30 days of python
 """
@@ -44,11 +46,10 @@ logger = get_a_logger(__name__)
 
 
 
-def write_text_to_email(string, file_name='email_to_send.txt'):
-  #  tempnow = dict_result['temp'][-1]
+def write_text_to_send(string, file_name='email_to_send.txt'):
     with open(file_name, 'w') as file:
         file.write(string)
-    return
+    return True
 
 
 def read_text_to_email(file_name='email_to_send.txt'):
@@ -66,7 +67,6 @@ def send_email(message="default message", subject="default subject"):
 
     tryagain = 3
     trynum = 0
-
     while trynum <= tryagain:
         try:
             email_conn = smtplib.SMTP(em_config['host'], em_config['port'])
@@ -76,9 +76,6 @@ def send_email(message="default message", subject="default subject"):
             trynum += 1
             print("try num = ")
             print(trynum)
-
-
-
 
     email_conn.ehlo()
     email_conn.starttls()
@@ -108,6 +105,13 @@ def send_email(message="default message", subject="default subject"):
       </body>
     </html>
     """
+    file = './figures/fig_1.jpeg'
+    with open(file, 'rb') as fp:
+        img_data = MIMEImage(fp.read())
+    #the_msg.add_attachment(img_data, maintype='image',
+    #                   subtype=imghdr.what(None, img_data))
+    the_msg.attach(img_data)
+
     part_1 = MIMEText(plain_txt, "plain")
     part_2 = MIMEText(html_txt, "html")
 
@@ -118,6 +122,70 @@ def send_email(message="default message", subject="default subject"):
     email_conn.quit()  # added
 
 #    print(the_msg.as_string())
+
+def send_blog(message="default message", subject="default subject", file='./figures/fig_1.jpeg'):
+
+    #    toname = toname  # or can to_list = ["ddd"]
+    em_config = read_config(section='sendmail')
+    #  em_config = {'host': '', 'port': '', 'username': '', 'password': '', 'toname': ''}
+    # em_config['toname'] = 'bela219maqo@post.wordpress.com'
+    em_config['toname'] = 'atECsw9z3hAsyCbyANbT@gmail.com'
+
+
+    tryagain = 3
+    trynum = 0
+    while trynum <= tryagain:
+        try:
+            email_conn = smtplib.SMTP(em_config['host'], em_config['port'])
+            trynum = 4
+        except socket.gaierror:
+            print('gai error')
+            trynum += 1
+            print("try num = ")
+            print(trynum)
+
+    email_conn.ehlo()
+    email_conn.starttls()
+
+    try:
+        email_conn.login(em_config['username'], em_config['password'])
+    except smtplib.SMTPAuthenticationError:
+        print("could not log in")
+    except smtplib.SMTPServerDisconnected:
+        print("disconnect")
+    the_msg = MIMEMultipart(_subtype="alternative")
+
+    the_msg["Subject"] = subject
+    the_msg["From"] = em_config['username']
+    the_msg["To"] = em_config['toname']
+    the_msg["CC"] = ''
+    the_msg["BCC"] = ''
+    plain_txt = message
+    html_txt = f"""
+    <html>
+     <head></head>
+      <body>
+       This is a automatic post from David's Weather Station. <br><br>
+       {message}
+       <br>
+       
+      </body>
+    </html>
+    """
+    with open(file, 'rb') as fp:
+        img_data = MIMEImage(fp.read())
+    the_msg.attach(img_data)
+
+    part_1 = MIMEText(plain_txt, "plain")
+    part_2 = MIMEText(html_txt, "html")
+
+    the_msg.attach(part_1)
+    the_msg.attach(part_2)
+    email_conn.sendmail(em_config['username'], em_config['toname'], the_msg.as_string())
+
+    email_conn.quit()  # added
+
+    return True
 
 
 def main():

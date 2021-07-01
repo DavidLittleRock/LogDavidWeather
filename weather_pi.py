@@ -1,13 +1,18 @@
 """ This will communicate with Mosquitto,
  main and short datatable
 """
-
+import calendar
 import gc
 import time
 import traceback
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
+# from datetime import time
+from calendar import monthrange
+# import
+from calendar import month_name
+from calendar import month
 
 import numpy as np
 import paho.mqtt.client as mqtt
@@ -20,7 +25,8 @@ from WeatherAppLog import get_a_logger
 from python_config import read_config
 from send_email import read_text_to_email
 from send_email import send_email
-from send_email import write_text_to_email
+from send_email import write_text_to_send
+from send_email import send_blog
 
 logger = get_a_logger(__name__)
 logger.setLevel('INFO')
@@ -65,7 +71,7 @@ def on_message(self, userdata, message):
         write_to_data(data_list)
         logger.debug(
             f"data list to send to database: \n\t{data_list}\n\tmiddle of on_message")
-
+    # make_figures()
     logger.debug(
         "END of on_message() ____________________________________________________________")
 
@@ -105,7 +111,7 @@ def validate_input(data_list):
 
 def mqtt_client():
     """
-    mqtt_client
+    make mqtt_client, connect to mqtt, start mqtt loop
     """
     logger.debug(
         "Start in mqtt_client()\n *********************************************************")
@@ -155,6 +161,7 @@ def mqtt_client():
 def on_connect(self, userdata, flags, r_c):
     logger.debug("START on_connect()")
     mqtt_config = read_config(section='mqtt')
+    print(f"Connected to mosquitto {r_c} \n\twith client_id: {mqtt_config['mqtt_client_id']}.")
     logger.debug(
         f"Connected to mosquitto {r_c} \n\twith client_id: {mqtt_config['mqtt_client_id']}.")
 
@@ -219,20 +226,6 @@ def write_to_data(list_to_write):
     # sqlfile.execute_query(db_connection, query)
     # sqlfile.close_db_connection(db_connection)
     logger.debug("end write_to_data()")
-
-
-def get_last_id():
-    logger.debug("START get_last_id() **************************")
-    db_connection = sqlfile.create_db_connection()
-    query = 'SELECT id FROM OURWEATHERTable ORDER BY id DESC LIMIT 1'
-    logger.debug(f"get_last_id() call to read_query_fetchone() with {query}")
-    result = sqlfile.read_query_fetchone(db_connection, query)
-    # print(result[0])
-    row_id = result[0]
-    logger.debug(f"row_id to return: {row_id}; \n\ttype: {type(row_id)}\n\t"
-                 f"in get_last_id()")
-    sqlfile.close_db_connection(db_connection)  # close the db connection
-    return row_id
 
 
 def clean_hi(hi_result):
@@ -586,7 +579,7 @@ def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
                              figsize=(18.9, 10.4))
     # pyplot.xticks(fontsize=16)
 
-    pyplot.suptitle("One Day Graph", fontsize='15', fontweight='bold')
+    pyplot.suptitle(f"One Day Graph: {datetime.today().date()}", fontsize='15', fontweight='bold')
     gs = figure_1.add_gridspec(10, 5)
 
     #  day_x = ax_dict['temp'][dates.date2num(ax_dict['time']) > dates.date2num(datetime.now()) - 1]
@@ -655,7 +648,7 @@ def make_fig_1(ax_dict, hi_dict, wc_dict, rain_dict):
     try:
         max_gust = max(
             ax_dict['gust'][dates.date2num(ax_dict['time']) > dates.date2num(
-                datetime.now()) - 0.25])
+                datetime.now()) - 0.5])
     except ValueError as vee:
         logger.error(
             f"Value Error: {vee}\n\tno data in ax_dict['gust'] so will set max_gust to 0")
@@ -930,10 +923,6 @@ def style_ax3(ax3):
     ax3.xaxis.set_minor_locator(dates.HourLocator(interval=1))
 
 
-#  ax3.set_xticks()
-#  ax3.set_xticklabels([])
-#   ax3.tick_params(axis='x', colors='r', labelrotation=0)
-
 def style_ax4(ax4):
     ax4.xaxis.set_major_formatter(dates.DateFormatter(''))
     ax4.set_title('', fontsize='15')
@@ -1111,11 +1100,162 @@ def make_fig_3(ax_dict, rain_dict, hi_dict, wc_dict):
 def is_new_day(day=1):
     return datetime.today().day != day
 
+
 def suffix(d):
     return 'th' if 11 <= d <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(d % 10, 'th')
 
+
 def custom_strftime(format, t):
     return t.strftime(format).replace('{jj}', str(t.day) + suffix(t.day))
+
+
+def end_of_day_report():
+    db_connection = sqlfile.create_db_connection()
+    query = 'SELECT Date, Temp, HI, Humid, Wind, Wind_Direction, BP, WC, Gust, Rain_Rate, ' \
+            'Rain_Change FROM OneMonth WHERE Day(Date) = Day(CURRENT_DATE - INTERVAL 1 Day) ORDER BY Date ASC'
+    # query = 'SELECT TimeStamp, Outdoor_Temperature FROM OURWEATHERTable WHERE Year(TimeStamp) = 2021'
+    result = sqlfile.read_query(db_connection, query)
+    # result is all temperature for the year to date
+    dict_result = {
+        'time': [],
+        'temp': []
+    }
+    for record in result:
+        dict_result['time'].append(record[0])
+        dict_result['temp'].append(((record[1]) * 9 / 5) + 32)
+    for element in dict_result:
+        dict_result[element] = np.array(dict_result[element])
+    print(dict_result)
+    input('print')
+    max_temp_for_year = np.amax(dict_result['temp'])  # find max temperature
+    index_max_temp_for_year = np.where(dict_result['temp'] == np.amax(
+        dict_result['temp']))  # find index of max temperatures
+    # print('Returned tuple of index_max_temp_for_year :', index_max_temp_for_year)
+    # print('List of Indices of maximum element :', index_max_temp_for_year[0])
+    # print(dict_result['temp'][index_max_temp_for_year[0][-1]])
+    # print(dict_result['time'][index_max_temp_for_year[0][-1]])
+    # print(datetime.date(dict_result['time'][index_max_temp_for_year[0][-1]]))
+    date_max_temp = datetime.date(dict_result['time'][
+                                      index_max_temp_for_year[0][
+                                          -1]])  # use index to find date for max temperature
+
+    min_temp_for_year = np.amin(dict_result['temp'])  # find min temperature
+    index_min_temp_for_year = np.where(dict_result['temp'] == np.amin(
+        dict_result['temp']))  # find index of min temperatures
+    date_min_temp = datetime.date(dict_result['time'][
+                                      index_min_temp_for_year[0][
+                                          -1]])  # use index to find date of minimum temperature
+
+    custom_date_max_temp = (custom_strftime('%A, %B {jj}',
+                                            date_max_temp))  # make custom date string
+    custom_date_min_temp = (custom_strftime('%A, %B {jj}', date_min_temp))
+
+    # print(f"The high temperature for the year so far was {max_temp_for_year:.1f}\u2109 on {custom_date_max_temp}.")
+    # print(f"The low temperature for the year so far was {min_temp_for_year:.1f}\u2109 on {custom_date_min_temp}.")
+
+    return max_temp_for_year, custom_date_max_temp, min_temp_for_year, custom_date_min_temp
+    return True
+
+
+
+def get_last_week_stats():
+    db_connection = sqlfile.create_db_connection()
+
+    # query = 'SELECT TimeStamp, Outdoor_Temperature FROM OURWEATHERTable WHERE Year(TimeStamp) = 2021'
+    month_num = month
+    query = 'SELECT TimeStamp, Outdoor_Temperature FROM OURWEATHERTable WHERE Date(Timestamp) >= CURRENT_DATE - INTERVAL 7 DAY'
+    result = sqlfile.read_query(db_connection, query)
+    # result is all temperature for the year to date
+    dict_result = {
+        'time': [],
+        'temp': []
+    }
+    for record in result:
+        dict_result['time'].append(record[0])
+        dict_result['temp'].append(((record[1]) * 9 / 5) + 32)
+    for element in dict_result:
+        dict_result[element] = np.array(dict_result[element])
+    # print(dict_result)
+    max_temp_for_week = np.amax(dict_result['temp'])  # find max temperature
+    index_max_temp_for_week = np.where(dict_result['temp'] == np.amax(
+        dict_result['temp']))  # find index of max temperatures
+    # print('Returned tuple of index_max_temp_for_year :', index_max_temp_for_year)
+    # print('List of Indices of maximum element :', index_max_temp_for_year[0])
+    # print(dict_result['temp'][index_max_temp_for_year[0][-1]])
+    # print(dict_result['time'][index_max_temp_for_year[0][-1]])
+    # print(datetime.date(dict_result['time'][index_max_temp_for_year[0][-1]]))
+    date_max_temp = datetime.date(dict_result['time'][
+                                      index_max_temp_for_week[0][
+                                          -1]])  # use index to find date for max temperature
+
+    min_temp_for_week = np.amin(dict_result['temp'])  # find min temperature
+    index_min_temp_for_week = np.where(dict_result['temp'] == np.amin(
+        dict_result['temp']))  # find index of min temperatures
+    date_min_temp = datetime.date(dict_result['time'][
+                                      index_min_temp_for_week[0][
+                                          -1]])  # use index to find date of minimum temperature
+
+    custom_date_max_temp = (custom_strftime('%A, %B {jj}',
+                                            date_max_temp))  # make custom date string
+    custom_date_min_temp = (custom_strftime('%A, %B {jj}', date_min_temp))
+
+    # print(custom_date_min_temp)
+
+    # print(f"The high temperature for last week was {max_temp_for_week:.1f}\u2109 on {custom_date_max_temp}.")
+    # print(f"The low temperature for last week was {min_temp_for_week:.1f}\u2109 on {custom_date_min_temp}.")
+
+    return max_temp_for_week, custom_date_max_temp, min_temp_for_week, custom_date_min_temp
+
+
+
+def get_last_month_stats(month):
+    db_connection = sqlfile.create_db_connection()
+
+    # query = 'SELECT TimeStamp, Outdoor_Temperature FROM OURWEATHERTable WHERE Year(TimeStamp) = 2021'
+    month_num = month
+    query = 'SELECT TimeStamp, Outdoor_Temperature FROM OURWEATHERTable WHERE Year(TimeStamp) = 2021 and Month(TimeStamp) = ' + str(
+        month_num)
+    result = sqlfile.read_query(db_connection, query)
+    # result is all temperature for the year to date
+    dict_result = {
+        'time': [],
+        'temp': []
+    }
+    for record in result:
+        dict_result['time'].append(record[0])
+        dict_result['temp'].append(((record[1]) * 9 / 5) + 32)
+    for element in dict_result:
+        dict_result[element] = np.array(dict_result[element])
+    # print(dict_result)
+    max_temp_for_month = np.amax(dict_result['temp'])  # find max temperature
+    index_max_temp_for_month = np.where(dict_result['temp'] == np.amax(
+        dict_result['temp']))  # find index of max temperatures
+    # print('Returned tuple of index_max_temp_for_year :', index_max_temp_for_year)
+    # print('List of Indices of maximum element :', index_max_temp_for_year[0])
+    # print(dict_result['temp'][index_max_temp_for_year[0][-1]])
+    # print(dict_result['time'][index_max_temp_for_year[0][-1]])
+    # print(datetime.date(dict_result['time'][index_max_temp_for_year[0][-1]]))
+    date_max_temp = datetime.date(dict_result['time'][
+                                      index_max_temp_for_month[0][
+                                          -1]])  # use index to find date for max temperature
+
+    min_temp_for_month = np.amin(dict_result['temp'])  # find min temperature
+    index_min_temp_for_month = np.where(dict_result['temp'] == np.amin(
+        dict_result['temp']))  # find index of min temperatures
+    date_min_temp = datetime.date(dict_result['time'][
+                                      index_min_temp_for_month[0][
+                                          -1]])  # use index to find date of minimum temperature
+
+    custom_date_max_temp = (custom_strftime('%A, %B {jj}',
+                                            date_max_temp))  # make custom date string
+    custom_date_min_temp = (custom_strftime('%A, %B {jj}', date_min_temp))
+
+    # print(custom_date_min_temp)
+
+   # print(f"The high temperature for last month was {max_temp_for_month:.1f}\u2109 on {custom_date_max_temp}.")
+   # print(f"The low temperature for last month was {min_temp_for_month:.1f}\u2109 on {custom_date_min_temp}.")
+
+    return max_temp_for_month, custom_date_max_temp, min_temp_for_month, custom_date_min_temp
 
 
 def get_year_stats():
@@ -1123,8 +1263,7 @@ def get_year_stats():
 
     query = 'SELECT TimeStamp, Outdoor_Temperature FROM OURWEATHERTable WHERE Year(TimeStamp) = 2021'
     result = sqlfile.read_query(db_connection, query)
-    # print(result)
-    # print(result[1])
+    # result is all temperature for the year to date
     dict_result = {
         'time': [],
         'temp': []
@@ -1135,33 +1274,110 @@ def get_year_stats():
     for element in dict_result:
         dict_result[element] = np.array(dict_result[element])
     # print(dict_result)
-    # print(max(dict_result['temp']))
     max_temp_for_year = np.amax(dict_result['temp'])  # find max temperature
     index_max_temp_for_year = np.where(dict_result['temp'] == np.amax(dict_result['temp']))  # find index of max temperatures
-    # print('Returned tuple of index_max_temp_for_year :', index_max_temp_for_year)
-    # print('List of Indices of maximum element :', index_max_temp_for_year[0])
-    # print(dict_result['temp'][index_max_temp_for_year[0][-1]])
-    # print(dict_result['time'][index_max_temp_for_year[0][-1]])
-    # print(datetime.date(dict_result['time'][index_max_temp_for_year[0][-1]]))
-    date_max_temp = datetime.date(dict_result['time'][index_max_temp_for_year[0][-1]])
+
+    date_max_temp = datetime.date(dict_result['time'][index_max_temp_for_year[0][-1]])  # use index to find date for max temperature
 
     min_temp_for_year = np.amin(dict_result['temp'])  # find min temperature
     index_min_temp_for_year = np.where(dict_result['temp'] == np.amin(dict_result['temp']))  # find index of min temperatures
-    date_min_temp = datetime.date(dict_result['time'][index_min_temp_for_year[0][-1]])
+    date_min_temp = datetime.date(dict_result['time'][index_min_temp_for_year[0][-1]])  # use index to find date of minimum temperature
 
-    custom_date_max_temp = (custom_strftime('%A, %B {jj}', date_max_temp))
+    custom_date_max_temp = (custom_strftime('%A, %B {jj}', date_max_temp))  # make custom date string
     custom_date_min_temp = (custom_strftime('%A, %B {jj}', date_min_temp))
 
+    # print(custom_date_min_temp)
 
-    print(f"The high temperature for the year so far was {max_temp_for_year:.1f}\u2109 on {custom_date_max_temp}.")
-    print(f"The low temperature for the year so far was {min_temp_for_year:.1f}\u2109 on {custom_date_min_temp}.")
-
-
-    # input("print")
+   # print(f"The high temperature for the year so far was {max_temp_for_year:.1f}\u2109 on {custom_date_max_temp}.")
+  # print(f"The low temperature for the year so far was {min_temp_for_year:.1f}\u2109 on {custom_date_min_temp}.")
 
     return max_temp_for_year, custom_date_max_temp, min_temp_for_year, custom_date_min_temp
 
-def make_tweet_texts(dict_result, rain_result, hi_dict):
+
+def make_blog_posts():
+    dict_result, hi_dict, wc_result, rain_result = get_data_a()  # get data from SQL
+    if True:
+    # if (dict_result['time'][-1]).day != date.today().day:  # day of last entry not same as today, new day
+        print('new day is true, should see daily blog post')
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+        yesterday_midnight = datetime.combine(yesterday, datetime.min.time())
+        temp_yesterday = []
+        temp_yesterday = dict_result['temp'][
+            (dict_result['time']) > yesterday_midnight]
+        hi = hi_dict['heat_index'][dates.date2num(hi_dict['time_heat_index']) > (
+            dates.date2num(datetime.now())) - 1]
+
+        max_temp_for_year, custom_date_max_temp, min_temp_for_year, custom_date_min_temp = get_year_stats()
+        string_blog = f"The high yesterday was {max(temp_yesterday)}" \
+                      f" and the low was {min(temp_yesterday)} \u2109.\n" \
+                      f"There was {rain_result['rain_total_yesterday_filtered'][-1]:.1f} " \
+                      f"inches of rain.\n"
+
+        if len(hi) > 0:
+            string_blog += f"The max heat index yesterday was {max(hi)}\u2109.\n"
+
+        string_blog += f"\nThe high temperature so far this year was {max_temp_for_year:.1f}\u2109 " \
+                       f"on {custom_date_max_temp} and the low was {min_temp_for_year:.1f} on {custom_date_min_temp}. [tags Daily]\n\n" \
+                       f"Time : {datetime.now().time()}"
+
+        subject = f"Daily weather post for {datetime.today().date()} [Weather] [Daily]"
+        attach = './figures/fig_1.jpeg'
+        write_text_to_send(string_blog, file_name='daily_blog_post.txt')
+
+        send_blog(message=read_text_to_email(file_name='daily_blog_post.txt'),
+              subject=subject, file=attach)
+
+        if today.day == 1:  # set as 1 for first day of month
+            print('first of month is true, should see monthly blog post')
+            # modify so is a monthly report
+            # print("this is the first day of the month.")
+            last_month = monthrange(today.year, today.month - 1)  # a tuple (# day of week for first day, # days)
+           # print(last_month)
+          #  print(today.month - 2)
+           # date_obj = (datetime.strftime(today, '%B'))
+           # print(date_obj)
+            # print(month_name[last_month[0]])
+            # print(month.)
+           # dict_result['time'] = dict_result['time'][(datetime.strftime(dict_result['time'], '%m')) == 6]
+          #  print(datetime.strftime(dict_result['time'][1], '%m'))
+          #  print(dict_result['time'])
+            max_temp_for_month, custom_date_max_temp, min_temp_for_month, custom_date_min_temp = get_last_month_stats(today.month - 1)
+            string_blog = f"Today is start of {calendar.month_name[today.month]}.\n\n" \
+                          f"Last month the high temperature was {max_temp_for_month:.1f}\u2109 " \
+                          f"on {custom_date_max_temp} and " \
+                          f"the low was {min_temp_for_month:.1f} on {custom_date_min_temp}.\n\n" \
+                          f"Time : {datetime.now().time()}"
+
+            subject = f"Weather summary for {calendar.month_name[today.month - 1]} [Weather] [Monthly]"
+            attach = './figures/fig_3.png'
+            write_text_to_send(string_blog, file_name='daily_blog_post.txt')
+            send_blog(
+                message=read_text_to_email(file_name='daily_blog_post.txt'),
+                subject=subject, file=attach)
+
+        if datetime.today().weekday() == 0:  # if today is Monday 0. sunday 7
+            print('new week is true, should see weekly blog post')
+            max_temp_for_week, custom_date_max_temp, min_temp_for_week, custom_date_min_temp = get_last_week_stats()
+            string_blog = f"Today is start of new week.\n\n" \
+                          f"Last week the high temperature was {max_temp_for_week:.1f}\u2109 " \
+                          f"on {custom_date_max_temp} and " \
+                          f"the low was {min_temp_for_week:.1f} on {custom_date_min_temp}.\n\n" \
+                          f"Time : {datetime.now().time()}"
+
+            subject = 'Weekly post [Weather] [Weekly]'
+            attach = './figures/fig_2.png'
+            write_text_to_send(string_blog, file_name='daily_blog_post.txt')
+            # print(string_blog)
+            send_blog(message=read_text_to_email(file_name='daily_blog_post.txt'),
+                  subject=subject, file=attach)
+
+    return True
+
+
+def make_tweet_texts():
+    dict_result, hi_dict, wc_result, rain_result = get_data_a()  # get data from SQL
+
     # make and send freezing tweet
     if dict_result['temp'][-1] < dict_result['temp'][-2] <= 32 < \
             dict_result['temp'][-3]:
@@ -1175,7 +1391,7 @@ def make_tweet_texts(dict_result, rain_result, hi_dict):
         # email / text freeze alert
         string_email = f"This is a freeze email alert: the temperature is now " \
                        f"{dict_result['temp'][-1]}."
-        write_text_to_email(string_email)
+        write_text_to_send(string_email)
         send_email(message=read_text_to_email(), subject="FREEZING")
 
         logger.info(
@@ -1196,7 +1412,7 @@ def make_tweet_texts(dict_result, rain_result, hi_dict):
         # email / text temp above freezing
         string_email = f"This is a temperature email alert: the temperature is now " \
                        f"{dict_result['temp'][-1]}."
-        write_text_to_email(string_email)
+        write_text_to_send(string_email)
         send_email(message=read_text_to_email(), subject="Above freezing!")
 
         logger.info(
@@ -1253,28 +1469,39 @@ def make_tweet_texts(dict_result, rain_result, hi_dict):
         hi = hi_dict['heat_index'][dates.date2num(hi_dict['time_heat_index']) > (dates.date2num(datetime.now())) - 1]
 
         max_temp_for_year, custom_date_max_temp, min_temp_for_year, custom_date_min_temp = get_year_stats()
+        # print(hi)
+        # print(len(hi))
+        # input('print')
+        # hi = [33,]
+        string_email = f"The high yesterday was {max(temp_yesterday)} " \
+                       f"and the low was {min(temp_yesterday)} \u2109. \n" \
+                       f"There was {rain_result['rain_total_yesterday_filtered'][-1]:.1f} " \
+                       f"inches of rain yesterday.\n " \
+                       f"The high temperature so far this year was {max_temp_for_year:.1f}\u2109 " \
+                       f"on {custom_date_max_temp} and the low was {min_temp_for_year:.1f} on {custom_date_min_temp}. \n"
 
-        string_email = f"The high yesterday was {max(temp_yesterday)} and the low was " \
-                       f"{min(temp_yesterday)} \u2109. \n" \
-                       f"There was {rain_result['rain_total_yesterday_filtered'][-1]:.1f} inches of rain yesterday.\n" \
-                       f"The max heat index was {max(hi)}\u2109.\n" \
-                       f"The high temperature so far this year was {max_temp_for_year}\u2109 on {custom_date_max_temp} " \
-                       f"and the low was {min_temp_for_year} on {custom_date_min_temp}."
+        if len(hi) > 0:
+            string_email += f"The max heat index yesterday was {max(hi)}\u2109.\n"
 
-#        if len(hi_dict['heat_index']) > 0 and \
-#                dates.date2num(hi_dict['time_heat_index'][-1]) > (
- #               dates.date2num(datetime.now())) - 1:
-#            string_email += f"the heat index maximum was {}"
-
+        print(string_email)
 
         # string_email = 'test mail'
-        write_text_to_email(string_email)
+        write_text_to_send(string_email)
         send_email(message=read_text_to_email(), subject="HI LOW")
 
 
+def make_figures():
+    dict_result, hi_result, wc_result, rain_result = get_data_a()  # get data from SQL
+    # make and save the figures; then
+    make_fig_1(dict_result, hi_result, wc_result, rain_result)
+    make_fig_2(dict_result, rain_result, hi_result, wc_result)
+    make_fig_3(dict_result, rain_result, hi_result, wc_result)
+    # print('made figures')
+    return True
+
 def mqtt_app():
     # global DICT_RESULT
-
+    day_1 = datetime.today().date()
     logger.debug(
         "START mqtt_app()\n *******************************************************")
     logger.debug("mqtt_app() call to mqtt_client()")
@@ -1284,48 +1511,36 @@ def mqtt_app():
     # DICT_RESULT = get_data()  # get data from SQL
 
     # Make Tweets
-    loop_count = 0
+    # loop_count = 0
     while True:
-        # LOOP to :
-        time.sleep(60)
         logger.debug(
             "mqtt_app()IN WHILE LOOP call to get_data()\n\tand put return into dict_result")
-        dict_result, hi_result, wc_result, rain_result = get_data_a()  # get data from SQL
+        day_2 = datetime.today().date()
+        if day_1 < day_2:  # is a new day
+            day_1 = day_2
+            make_blog_posts()
 
-        # make and save the figures; then
-        make_fig_1(dict_result, hi_result, wc_result, rain_result)
-        make_fig_2(dict_result, rain_result, hi_result, wc_result)
-        make_fig_3(dict_result, rain_result, hi_result, wc_result)
-        loop_count += 1
-        if loop_count >= 5:
-            make_tweet_texts(dict_result, rain_result, hi_result)
-            loop_count = 0
-        #  time.sleep(5)
+        else:  # is not a new day
+            pass
+
+        make_figures()
+     #   make_tweet_texts()
+        # make_email_texts()
+        # if new day then send blog post
+        # f date.today().day == 2:  # set this
+        #    send_blog(message=read_text_to_email(file_name='daily_blog_post.txt'), subject='Monthly report')
+        # if new week send new week blog post
+        # if new month ...
         #   twitterBot.main()
 
-        # pause these, do not need if moving to mqtt_client works
-        # check if new data, by setting
-        # logger.debug(f"mqtt_app() call to get_last_id()\n\tand put return into used_id")
-        # used_id = get_last_id()
-        # new_data = False
-        # logger.debug(f"Reset new_data back to False")
-        #        pyplot.figure(num='one')
-        # while not new_data:
-        #  when there is new data;
-        # time.sleep(10)
-        # if used_id != get_last_id():
-        # dict_result = get_data()
-        # new_data = True
-        # logger.debug("set new_data to True to trigger break out of new data loop")
-        # else:
-        # logger.debug(f"checking for new data \n +++++++++++++++++++++++++++++++++++++++++++++++")
-        # move to mqtt_client
+
         pyplot.close(fig='all')
-        logger.debug("END mqtt_app()")
+        time.sleep(60)  # cycle main loop every 60 sec
+    logger.debug("END mqtt_app()")
 
 
 if __name__ == "__main__":
-    get_year_stats()
+    # make_blog_posts()
     try:
         mqtt_app()
     except Exception as exe:
