@@ -58,7 +58,7 @@ def read_text_to_email(file_name='email_to_send.txt'):
     return text
 
 # message=read_text_to_email()
-def send_email(message="default message", subject="default subject"):
+def send_email(message="default message", subject="default subject", file='./figures/fig_1.jpeg'):
 
     #    toname = toname  # or can to_list = ["ddd"]
     em_config = read_config(section='sendmail')
@@ -117,7 +117,7 @@ def send_email(message="default message", subject="default subject"):
 
     the_msg.attach(part_1)
     the_msg.attach(part_2)
-    email_conn.sendmail(em_config['username'], em_config['toname'], the_msg.as_string())
+    # email_conn.sendmail(em_config['username'], em_config['toname'], the_msg.as_string())
 
     email_conn.quit()  # added
 

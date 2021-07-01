@@ -134,15 +134,17 @@ def mqtt_client():
 
     client.on_subscribe = on_subscribe
     client.on_disconnect = on_disconnect
-    client.on_connect =
+    client.on_connect = on_connect
 
     tryagain = 3
     trynum = 0
+
     while trynum <= tryagain:
 
         try:
             client.connect(broker_url, broker_port)
             logger.debug("mqtt client connected")
+            trynum = 4
         except OSError as ose:
             trynum += 1
             logger.error(
@@ -1301,6 +1303,88 @@ def get_year_stats():
     return max_temp_for_year, custom_date_max_temp, min_temp_for_year, custom_date_min_temp
 
 
+
+def make_email_texts():
+    dict_result, hi_dict, wc_result, rain_result = get_data_a()  # get data from SQL
+    if True:
+    # if (dict_result['time'][-1]).day != date.today().day:  # day of last entry not same as today, new day
+        print('new day is true, should see daily email')
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+        yesterday_midnight = datetime.combine(yesterday, datetime.min.time())
+        temp_yesterday = []
+        temp_yesterday = dict_result['temp'][
+            (dict_result['time']) > yesterday_midnight]
+        hi = hi_dict['heat_index'][dates.date2num(hi_dict['time_heat_index']) > (
+            dates.date2num(datetime.now())) - 1]
+
+        max_temp_for_year, custom_date_max_temp, min_temp_for_year, custom_date_min_temp = get_year_stats()
+        string_email = f"The high yesterday was {max(temp_yesterday)}" \
+                      f" and the low was {min(temp_yesterday)} \u2109.\n" \
+                      f"There was {rain_result['rain_total_yesterday_filtered'][-1]:.1f} " \
+                      f"inches of rain.\n"
+
+        if len(hi) > 0:
+            string_email += f"The max heat index yesterday was {max(hi)}\u2109.\n"
+
+        string_email += f"\nThe high temperature so far this year was {max_temp_for_year:.1f}\u2109 " \
+                       f"on {custom_date_max_temp} and the low was {min_temp_for_year:.1f} on {custom_date_min_temp}.\n\n" \
+                       f"Time : {datetime.now().time()}"
+
+        subject = f"Daily weather message for {datetime.today().date()}"
+        attach = './figures/fig_1.jpeg'
+        write_text_to_send(string_email, file_name='daily_email.txt')
+
+        send_email(message=read_text_to_email(file_name='daily_email.txt'),
+                  subject=subject, file=attach)
+
+        if today.day == 1:  # set as 1 for first day of month
+            print('first of month is true, should see monthly email')
+            # modify so is a monthly report
+            # print("this is the first day of the month.")
+            last_month = monthrange(today.year, today.month - 1)  # a tuple (# day of week for first day, # days)
+           # print(last_month)
+          #  print(today.month - 2)
+           # date_obj = (datetime.strftime(today, '%B'))
+           # print(date_obj)
+            # print(month_name[last_month[0]])
+            # print(month.)
+           # dict_result['time'] = dict_result['time'][(datetime.strftime(dict_result['time'], '%m')) == 6]
+          #  print(datetime.strftime(dict_result['time'][1], '%m'))
+          #  print(dict_result['time'])
+            max_temp_for_month, custom_date_max_temp, min_temp_for_month, custom_date_min_temp = get_last_month_stats(today.month - 1)
+            string_email = f"Today is start of {calendar.month_name[today.month]}.\n\n" \
+                          f"Last month the high temperature was {max_temp_for_month:.1f}\u2109 " \
+                          f"on {custom_date_max_temp} and " \
+                          f"the low was {min_temp_for_month:.1f} on {custom_date_min_temp}.\n\n" \
+                          f"Time : {datetime.now().time()}"
+
+            subject = f"Weather summary for {calendar.month_name[today.month - 1]}"
+            attach = './figures/fig_3.png'
+            write_text_to_send(string_email, file_name='monthly_email.txt')
+            send_email(
+                 message=read_text_to_email(file_name='monthly_email.txt'),
+                 subject=subject, file=attach)
+
+        if datetime.today().weekday() == 0:  # if today is Monday 0. sunday 7
+            print('new week is true, should see weekly email')
+            max_temp_for_week, custom_date_max_temp, min_temp_for_week, custom_date_min_temp = get_last_week_stats()
+            string_email = f"Today is start of new week.\n\n" \
+                          f"Last week the high temperature was {max_temp_for_week:.1f}\u2109 " \
+                          f"on {custom_date_max_temp} and " \
+                          f"the low was {min_temp_for_week:.1f} on {custom_date_min_temp}.\n\n" \
+                          f"Time : {datetime.now().time()}"
+
+            subject = 'Weekly post'
+            attach = './figures/fig_2.png'
+            write_text_to_send(string_email, file_name='weekly_email.txt')
+            # print(string_blog)
+            send_email(message=read_text_to_email(file_name='weekly_email.txt'),
+                       subject=subject, file=attach)
+
+    return True
+
+
 def make_blog_posts():
     dict_result, hi_dict, wc_result, rain_result = get_data_a()  # get data from SQL
     if True:
@@ -1333,7 +1417,7 @@ def make_blog_posts():
         write_text_to_send(string_blog, file_name='daily_blog_post.txt')
 
         send_blog(message=read_text_to_email(file_name='daily_blog_post.txt'),
-              subject=subject, file=attach)
+                  subject=subject, file=attach)
 
         if today.day == 1:  # set as 1 for first day of month
             print('first of month is true, should see monthly blog post')
@@ -1358,10 +1442,10 @@ def make_blog_posts():
 
             subject = f"Weather summary for {calendar.month_name[today.month - 1]} [Weather] [Monthly]"
             attach = './figures/fig_3.png'
-            write_text_to_send(string_blog, file_name='daily_blog_post.txt')
-            # send_blog(
-            #     message=read_text_to_email(file_name='daily_blog_post.txt'),
-            #     subject=subject, file=attach)
+            write_text_to_send(string_blog, file_name='monthly_blog_post.txt')
+            send_blog(
+                message=read_text_to_email(file_name='monthly_blog_post.txt'),
+                subject=subject, file=attach)
 
         if datetime.today().weekday() == 0:  # if today is Monday 0. sunday 7
             print('new week is true, should see weekly blog post')
@@ -1374,10 +1458,10 @@ def make_blog_posts():
 
             subject = 'Weekly post [Weather] [Weekly]'
             attach = './figures/fig_2.png'
-            write_text_to_send(string_blog, file_name='daily_blog_post.txt')
-            # print(string_blog)
-            # send_blog(message=read_text_to_email(file_name='daily_blog_post.txt'),
-            #        subject=subject, file=attach)
+            write_text_to_send(string_blog, file_name='weekly_blog_post.txt')
+            print(string_blog)
+            send_blog(message=read_text_to_email(file_name='weekly_blog_post.txt'),
+                      subject=subject, file=attach)
 
     return True
 
