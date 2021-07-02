@@ -45,25 +45,42 @@ logger = get_a_logger(__name__)
     """
 
 
-
 def write_text_to_send(string, file_name='email_to_send.txt'):
+    """
+    Write a string to a text file
+    Args:
+        string ():
+        file_name ():
+
+    Returns:
+        True
+
+    """
     with open(file_name, 'w') as file:
         file.write(string)
     return True
 
 
-def read_text_to_email(file_name='email_to_send.txt'):
+def read_text_to_send(file_name='email_to_send.txt'):
+    """
+    read text from a file
+    Args:
+        file_name ():
+
+    Returns:
+        text: text string
+
+    """
     with open(file_name, 'r') as file:
         text = file.read()
     return text
 
-# message=read_text_to_email()
+
 def send_email(message="default message", subject="default subject", file='./figures/fig_1.jpeg'):
 
     #    toname = toname  # or can to_list = ["ddd"]
     em_config = read_config(section='sendmail')
     #  em_config = {'host': '', 'port': '', 'username': '', 'password': '', 'toname': ''}
-
 
     tryagain = 3
     trynum = 0
@@ -98,7 +115,7 @@ def send_email(message="default message", subject="default subject", file='./fig
     <html>
      <head></head>
       <body>
-       This is a automatic message from David's Weather Station. <br>
+       This is a automatic email message from <b>David's Weather Station</b>. <br>
        {message}
        <br>
        Thank You.
@@ -108,8 +125,6 @@ def send_email(message="default message", subject="default subject", file='./fig
     file = './figures/fig_1.jpeg'
     with open(file, 'rb') as fp:
         img_data = MIMEImage(fp.read())
-    #the_msg.add_attachment(img_data, maintype='image',
-    #                   subtype=imghdr.what(None, img_data))
     the_msg.attach(img_data)
 
     part_1 = MIMEText(plain_txt, "plain")
@@ -117,20 +132,18 @@ def send_email(message="default message", subject="default subject", file='./fig
 
     the_msg.attach(part_1)
     the_msg.attach(part_2)
-    # email_conn.sendmail(em_config['username'], em_config['toname'], the_msg.as_string())
+    email_conn.sendmail(em_config['username'], em_config['toname'], the_msg.as_string())
 
     email_conn.quit()  # added
 
-#    print(the_msg.as_string())
+    return True
+
 
 def send_blog(message="default message", subject="default subject", file='./figures/fig_1.jpeg'):
 
     #    toname = toname  # or can to_list = ["ddd"]
-    em_config = read_config(section='sendmail')
+    em_config = read_config(section='sendblog')
     #  em_config = {'host': '', 'port': '', 'username': '', 'password': '', 'toname': ''}
-    # em_config['toname'] = '@post.wordpress.com'
-    # em_config['toname'] = '@gmail.com'
-
 
     tryagain = 3
     trynum = 0
@@ -165,11 +178,10 @@ def send_blog(message="default message", subject="default subject", file='./figu
     <html>
      <head></head>
       <body>
-       This is a automatic post from David's Weather Station. <br><br>
+       This is a automatic post from <b>David's Weather Station</b>. <br><br>
        {message}
        <br>
-       
-      </body>
+     </body>
     </html>
     """
     with open(file, 'rb') as fp:

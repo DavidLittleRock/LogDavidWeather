@@ -23,7 +23,7 @@ import sqlfile
 import twitterBot
 from WeatherAppLog import get_a_logger
 from python_config import read_config
-from send_email import read_text_to_email
+from send_email import read_text_to_send
 from send_email import send_email
 from send_email import write_text_to_send
 from send_email import send_blog
@@ -1335,23 +1335,13 @@ def make_email_texts():
         attach = './figures/fig_1.jpeg'
         write_text_to_send(string_email, file_name='daily_email.txt')
 
-        send_email(message=read_text_to_email(file_name='daily_email.txt'),
+        send_email(message=read_text_to_send(file_name='daily_email.txt'),
                   subject=subject, file=attach)
 
         if today.day == 1:  # set as 1 for first day of month
             print('first of month is true, should see monthly email')
             # modify so is a monthly report
-            # print("this is the first day of the month.")
             last_month = monthrange(today.year, today.month - 1)  # a tuple (# day of week for first day, # days)
-           # print(last_month)
-          #  print(today.month - 2)
-           # date_obj = (datetime.strftime(today, '%B'))
-           # print(date_obj)
-            # print(month_name[last_month[0]])
-            # print(month.)
-           # dict_result['time'] = dict_result['time'][(datetime.strftime(dict_result['time'], '%m')) == 6]
-          #  print(datetime.strftime(dict_result['time'][1], '%m'))
-          #  print(dict_result['time'])
             max_temp_for_month, custom_date_max_temp, min_temp_for_month, custom_date_min_temp = get_last_month_stats(today.month - 1)
             string_email = f"Today is start of {calendar.month_name[today.month]}.\n\n" \
                           f"Last month the high temperature was {max_temp_for_month:.1f}\u2109 " \
@@ -1363,10 +1353,10 @@ def make_email_texts():
             attach = './figures/fig_3.png'
             write_text_to_send(string_email, file_name='monthly_email.txt')
             send_email(
-                 message=read_text_to_email(file_name='monthly_email.txt'),
+                 message=read_text_to_send(file_name='monthly_email.txt'),
                  subject=subject, file=attach)
 
-        if datetime.today().weekday() == 0:  # if today is Monday 0. sunday 7
+        if datetime.today().weekday() == 6:  # if today is Monday 0. sunday 7
             print('new week is true, should see weekly email')
             max_temp_for_week, custom_date_max_temp, min_temp_for_week, custom_date_min_temp = get_last_week_stats()
             string_email = f"Today is start of new week.\n\n" \
@@ -1379,7 +1369,7 @@ def make_email_texts():
             attach = './figures/fig_2.png'
             write_text_to_send(string_email, file_name='weekly_email.txt')
             # print(string_blog)
-            send_email(message=read_text_to_email(file_name='weekly_email.txt'),
+            send_email(message=read_text_to_send(file_name='weekly_email.txt'),
                        subject=subject, file=attach)
 
     return True
@@ -1416,7 +1406,7 @@ def make_blog_posts():
         attach = './figures/fig_1.jpeg'
         write_text_to_send(string_blog, file_name='daily_blog_post.txt')
 
-        send_blog(message=read_text_to_email(file_name='daily_blog_post.txt'),
+        send_blog(message=read_text_to_send(file_name='daily_blog_post.txt'),
                   subject=subject, file=attach)
 
         if today.day == 1:  # set as 1 for first day of month
@@ -1424,15 +1414,6 @@ def make_blog_posts():
             # modify so is a monthly report
             # print("this is the first day of the month.")
             last_month = monthrange(today.year, today.month - 1)  # a tuple (# day of week for first day, # days)
-           # print(last_month)
-          #  print(today.month - 2)
-           # date_obj = (datetime.strftime(today, '%B'))
-           # print(date_obj)
-            # print(month_name[last_month[0]])
-            # print(month.)
-           # dict_result['time'] = dict_result['time'][(datetime.strftime(dict_result['time'], '%m')) == 6]
-          #  print(datetime.strftime(dict_result['time'][1], '%m'))
-          #  print(dict_result['time'])
             max_temp_for_month, custom_date_max_temp, min_temp_for_month, custom_date_min_temp = get_last_month_stats(today.month - 1)
             string_blog = f"Today is start of {calendar.month_name[today.month]}.\n\n" \
                           f"Last month the high temperature was {max_temp_for_month:.1f}\u2109 " \
@@ -1444,7 +1425,7 @@ def make_blog_posts():
             attach = './figures/fig_3.png'
             write_text_to_send(string_blog, file_name='monthly_blog_post.txt')
             send_blog(
-                message=read_text_to_email(file_name='monthly_blog_post.txt'),
+                message=read_text_to_send(file_name='monthly_blog_post.txt'),
                 subject=subject, file=attach)
 
         if datetime.today().weekday() == 0:  # if today is Monday 0. sunday 7
@@ -1460,7 +1441,7 @@ def make_blog_posts():
             attach = './figures/fig_2.png'
             write_text_to_send(string_blog, file_name='weekly_blog_post.txt')
             print(string_blog)
-            send_blog(message=read_text_to_email(file_name='weekly_blog_post.txt'),
+            send_blog(message=read_text_to_send(file_name='weekly_blog_post.txt'),
                       subject=subject, file=attach)
 
     return True
@@ -1472,9 +1453,6 @@ def make_tweet_texts():
     # make and send freezing tweet
     if dict_result['temp'][-1] < dict_result['temp'][-2] <= 32 < \
             dict_result['temp'][-3]:
-        #  if (dict_result['temp'][-1] < 32) and (dict_result['temp'][-2] <= 32) and (
-        #          dict_result['temp'][-3] > 32):  # temp falling below set point
-        # tweet freeze alert
         string_tweet = f"This is a freeze alert: the temperature is now " \
                        f"{dict_result['temp'][-1]} at {datetime.now()}."
         twitterBot.write_text_to_tweet(string_tweet)
@@ -1483,7 +1461,7 @@ def make_tweet_texts():
         string_email = f"This is a freeze email alert: the temperature is now " \
                        f"{dict_result['temp'][-1]}."
         write_text_to_send(string_email)
-        send_email(message=read_text_to_email(), subject="FREEZING")
+        send_email(message=read_text_to_send(), subject="FREEZING")
 
         logger.info(
             f"Is now freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time "
@@ -1504,7 +1482,7 @@ def make_tweet_texts():
         string_email = f"This is a temperature email alert: the temperature is now " \
                        f"{dict_result['temp'][-1]}."
         write_text_to_send(string_email)
-        send_email(message=read_text_to_email(), subject="Above freezing!")
+        send_email(message=read_text_to_send(), subject="Above freezing!")
 
         logger.info(
             f"Is now above freezing.\n\ttemp[-1] {dict_result['temp'][-1]} at \n\t time "
@@ -1546,39 +1524,7 @@ def make_tweet_texts():
     twitterBot.write_text_to_tweet(string=temperature_tweet_string,
                                    file_name='temperature_tweet.txt')
 
-    if ((dict_result['time'][-1]).day) != date.today().day:
-    # if True:
-        # print(date.today().day)
-        # print((dict_result['time'][-1]).day)
-        # make the midnight HI/LOW email
-        today = date.today()
-        yesterday = today - timedelta(days=1)
-        yesterday_midnight = datetime.combine(yesterday, datetime.min.time())
-        temp_yesterday = []
-        temp_yesterday = dict_result['temp'][
-            (dict_result['time']) > yesterday_midnight]
-        hi = hi_dict['heat_index'][dates.date2num(hi_dict['time_heat_index']) > (dates.date2num(datetime.now())) - 1]
 
-        max_temp_for_year, custom_date_max_temp, min_temp_for_year, custom_date_min_temp = get_year_stats()
-        # print(hi)
-        # print(len(hi))
-        # input('print')
-        # hi = [33,]
-        string_email = f"The high yesterday was {max(temp_yesterday)} " \
-                       f"and the low was {min(temp_yesterday)} \u2109. \n" \
-                       f"There was {rain_result['rain_total_yesterday_filtered'][-1]:.1f} " \
-                       f"inches of rain yesterday.\n " \
-                       f"The high temperature so far this year was {max_temp_for_year:.1f}\u2109 " \
-                       f"on {custom_date_max_temp} and the low was {min_temp_for_year:.1f} on {custom_date_min_temp}. \n"
-
-        if len(hi) > 0:
-            string_email += f"The max heat index yesterday was {max(hi)}\u2109.\n"
-
-        print(string_email)
-
-        # string_email = 'test mail'
-        write_text_to_send(string_email)
-        send_email(message=read_text_to_email(), subject="HI LOW")
 
 
 def make_figures():
@@ -1589,6 +1535,7 @@ def make_figures():
     make_fig_3(dict_result, rain_result, hi_result, wc_result)
     # print('made figures')
     return True
+
 
 def mqtt_app():
     # global DICT_RESULT
@@ -1610,6 +1557,7 @@ def mqtt_app():
         if day_1 < day_2:  # is a new day
             day_1 = day_2
             make_blog_posts()
+            make_email_texts()
 
         else:  # is not a new day
             pass
@@ -1619,7 +1567,7 @@ def mqtt_app():
         # make_email_texts()
         # if new day then send blog post
         # f date.today().day == 2:  # set this
-        #    send_blog(message=read_text_to_email(file_name='daily_blog_post.txt'), subject='Monthly report')
+        #    send_blog(message=read_text_to_semd(file_name='daily_blog_post.txt'), subject='Monthly report')
         # if new week send new week blog post
         # if new month ...
         #   twitterBot.main()
