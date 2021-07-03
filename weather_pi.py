@@ -1524,7 +1524,39 @@ def make_tweet_texts():
     twitterBot.write_text_to_tweet(string=temperature_tweet_string,
                                    file_name='temperature_tweet.txt')
 
+    if ((dict_result['time'][-1]).day) != date.today().day:
+    # if True:
+        # print(date.today().day)
+        # print((dict_result['time'][-1]).day)
+        # make the midnight HI/LOW email
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+        yesterday_midnight = datetime.combine(yesterday, datetime.min.time())
+        temp_yesterday = []
+        temp_yesterday = dict_result['temp'][
+            (dict_result['time']) > yesterday_midnight]
+        hi = hi_dict['heat_index'][dates.date2num(hi_dict['time_heat_index']) > (dates.date2num(datetime.now())) - 1]
 
+        max_temp_for_year, custom_date_max_temp, min_temp_for_year, custom_date_min_temp = get_year_stats()
+        # print(hi)
+        # print(len(hi))
+        # input('print')
+        # hi = [33,]
+        string_email = f"The high yesterday was {max(temp_yesterday)} " \
+                       f"and the low was {min(temp_yesterday)} \u2109. \n" \
+                       f"There was {rain_result['rain_total_yesterday_filtered'][-1]:.1f} " \
+                       f"inches of rain yesterday.\n " \
+                       f"The high temperature so far this year was {max_temp_for_year:.1f}\u2109 " \
+                       f"on {custom_date_max_temp} and the low was {min_temp_for_year:.1f} on {custom_date_min_temp}. \n"
+
+        if len(hi) > 0:
+            string_email += f"The max heat index yesterday was {max(hi)}\u2109.\n"
+
+        print(string_email)
+
+        # string_email = 'test mail'
+        write_text_to_send(string_email)
+        send_email(message=read_text_to_send(), subject="HI LOW")
 
 
 def make_figures():
