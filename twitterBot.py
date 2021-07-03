@@ -28,7 +28,7 @@ def get_api():
         raise e
     return api
 
-1411447775905071110
+# 1411447775905071110
 def write_text_to_tweet(string, file_name='tweet_to_send.txt'):
   #  tempnow = dict_result['temp'][-1]
     with open(file_name, 'w') as file:
