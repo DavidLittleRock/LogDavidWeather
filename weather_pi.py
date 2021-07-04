@@ -1356,7 +1356,7 @@ def make_email_texts():
                  message=read_text_to_send(file_name='monthly_email.txt'),
                  subject=subject, file=attach)
 
-        if datetime.today().weekday() == 6:  # if today is Monday 0. sunday 7
+        if datetime.today().weekday() == 0:  # if today is Monday 0. sunday 7
             print('new week is true, should see weekly email')
             max_temp_for_week, custom_date_max_temp, min_temp_for_week, custom_date_min_temp = get_last_week_stats()
             string_email = f"Today is start of new week.\n\n" \
