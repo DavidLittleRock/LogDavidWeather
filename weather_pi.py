@@ -1335,8 +1335,8 @@ def make_email_texts():
         attach = './figures/fig_1.jpeg'
         write_text_to_send(string_email, file_name='daily_email.txt')
 
-      #  send_email(message=read_text_to_send(file_name='daily_email.txt'),
-      #            subject=subject, file=attach)
+        send_email(message=read_text_to_send(file_name='daily_email.txt'),
+                  subject=subject, file=attach)
 
         if today.day == 1:  # set as 1 for first day of month
             print('first of month is true, should see monthly email')
@@ -1352,9 +1352,9 @@ def make_email_texts():
             subject = f"Weather summary for {calendar.month_name[today.month - 1]}"
             attach = './figures/fig_3.png'
             write_text_to_send(string_email, file_name='monthly_email.txt')
-         #   send_email(
-         #        message=read_text_to_send(file_name='monthly_email.txt'),
-         #        subject=subject, file=attach)
+            send_email(
+                 message=read_text_to_send(file_name='monthly_email.txt'),
+                 subject=subject, file=attach)
 
         if datetime.today().weekday() == 6:  # if today is Monday 0. sunday 7
             print('new week is true, should see weekly email')
@@ -1369,8 +1369,8 @@ def make_email_texts():
             attach = './figures/fig_2.png'
             write_text_to_send(string_email, file_name='weekly_email.txt')
             # print(string_blog)
-         #   send_email(message=read_text_to_send(file_name='weekly_email.txt'),
-         #            subject=subject, file=attach)
+            send_email(message=read_text_to_send(file_name='weekly_email.txt'),
+                     subject=subject, file=attach)
 
     return True
 
@@ -1406,8 +1406,8 @@ def make_blog_posts():
         attach = './figures/fig_1.jpeg'
         write_text_to_send(string_blog, file_name='daily_blog_post.txt')
 
-       # send_blog(message=read_text_to_send(file_name='daily_blog_post.txt'),
-       #           subject=subject, file=attach)
+        send_blog(message=read_text_to_send(file_name='daily_blog_post.txt'),
+                  subject=subject, file=attach)
 
         if today.day == 1:  # set as 1 for first day of month
             print('first of month is true, should see monthly blog post')
@@ -1424,9 +1424,9 @@ def make_blog_posts():
             subject = f"Weather summary for {calendar.month_name[today.month - 1]} [Weather] [Monthly]"
             attach = './figures/fig_3.png'
             write_text_to_send(string_blog, file_name='monthly_blog_post.txt')
-           # send_blog(
-           #     message=read_text_to_send(file_name='monthly_blog_post.txt'),
-           #     subject=subject, file=attach)
+            send_blog(
+                message=read_text_to_send(file_name='monthly_blog_post.txt'),
+                subject=subject, file=attach)
 
         if datetime.today().weekday() == 0:  # if today is Monday 0. sunday 7
             print('new week is true, should see weekly blog post')
@@ -1441,8 +1441,8 @@ def make_blog_posts():
             attach = './figures/fig_2.png'
             write_text_to_send(string_blog, file_name='weekly_blog_post.txt')
             print(string_blog)
-           # send_blog(message=read_text_to_send(file_name='weekly_blog_post.txt'),
-           #           subject=subject, file=attach)
+            send_blog(message=read_text_to_send(file_name='weekly_blog_post.txt'),
+                      subject=subject, file=attach)
 
     return True
 
@@ -1581,33 +1581,27 @@ def mqtt_app():
     # DICT_RESULT = get_data()  # get data from SQL
 
     # Make Tweets
-    # loop_count = 0
+    loop_count = 0
     while True:
         logger.debug(
             "mqtt_app()IN WHILE LOOP call to get_data()\n\tand put return into dict_result")
         day_2 = datetime.today().date()
-        if day_1 < day_2:  # is a new day
-            day_1 = day_2
-            make_blog_posts()
-            make_email_texts()
 
-        else:  # is not a new day
-            pass
+        if loop_count >= 3:  # do this every 3rd loop, 12 min
+            if day_1 < day_2:  # is a new day
+                day_1 = day_2
+                make_blog_posts()
+                make_email_texts()
+                loop_count = 0
+
+            else:  # is not a new day
+                pass
 
         make_figures()
         make_tweet_texts()  # do often so the tweet texts are current whenever sent
-        # twitterBot.send_reply_tweet()
-        # make_email_texts()
-        # if new day then send blog post
-        # f date.today().day == 2:  # set this
-        #    send_blog(message=read_text_to_semd(file_name='daily_blog_post.txt'), subject='Monthly report')
-        # if new week send new week blog post
-        # if new month ...
-        #   twitterBot.main()
-
 
         pyplot.close(fig='all')
-        time.sleep(60)  # cycle main loop every 60 sec
+        time.sleep(240)  # cycle main loop every 4 min
     logger.debug("END mqtt_app()")
 
 

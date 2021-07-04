@@ -27,8 +27,8 @@ def get_api():
         print("error in authentication")
         raise e
     return api
-
-# 1411447775905071110
+# 1411772214538477569
+# 1411531233817989121
 def write_text_to_tweet(string, file_name='tweet_to_send.txt'):
   #  tempnow = dict_result['temp'][-1]
     with open(file_name, 'w') as file:
@@ -122,18 +122,29 @@ def get_incoming_tweets(api, hashtag='#arwx', number_tweets=2):
     """
     # api = get_api()
     # tweets = tweepy.Cursor(api.search, hashtag).items(number_tweets)
-    tweets = tweepy.Cursor(api.search, hashtag, since_id=read_last_tweet_seen()).items(number_tweets)
+    tweets = tweepy.Cursor(api.search, hashtag, since_id=read_last_tweet_seen(file_name='last_tweet.txt')).items(number_tweets)
 
     for tweet in tweets:
-        # print(tweet.id)
-        # print(tweet.text)
-        print(tweet.user.screen_name)
-        print(tweet.user.following)
-        if not tweet.user.following:
-            api.create_friendship(tweet.user.screen_name)
-            tweet.retweet()
+
+        # if tweet.id < read_last_tweet_seen():
+
         if tweet.id > read_last_tweet_seen():
-            write_last_tweet_seen(tweet.id)
+            if tweet.user.screen_name != 'WeatherDavid':
+                if not tweet.user.following:
+                    # print(tweet.id)
+                    # print(tweet.text)
+                    # print(tweet)
+                    # print(tweet.user.screen_name)
+                    # print(tweet.user.following)
+                    api.create_friendship(tweet.user.screen_name)
+                    write_last_tweet_seen(tweet.id, file_name='last_tweet.txt')
+                    # tweet.retweet()
+                    status_tweet = api.get_status(tweet.id)
+                    retweeted_tweet = status_tweet.retweeted
+                    # print(f"me: {retweeted_tweet}")
+                    if not retweeted_tweet:
+                        tweet.retweet()
+
     # print('get incoming done')
     return tweets
 
@@ -187,44 +198,7 @@ def main():
         time.sleep(6)
         tweets = get_incoming_tweets(api)
         # send_retweet(tweets)
-    # print(len(tweets))
-    #for tweet in tweets:
-    #    print(tweet.id)
-    #    print(f"{tweet.user.screen_name} said {tweet.text}")
-    #    try:
-    #        tweet.retweet()
-    #    except tweepy.TweepError as te:
-    #        print(te.reason)
 
-    # follow_followers()
-   # send_retweet(tweets)
-
-#    send_new_dm(file='tweet_to_send.txt')
-   # weather_pi.make_tweet_texts()
-    # send_reply_tweet(api)
-  #  send_retweet(tweets)
-    # search_bot(tweets)
-#   tweet_to_send = get_text_to_tweet()
-    tweet = f"Hello, world! {datetime.now()}"  # to send out a tweet
-   # status = api.update_status(status=tweet)
-# Yes, tweet is called 'status' rather confusing
-#    public_tweets = api.home_timeline(tweet_mode='extended')  # to get all tweets coming in
-#    for tweet in public_tweets:
-#        print(tweet)
-# open and read in file to tweet out
-   # TODO put the temperature in a txt file
-#    mentions = api.mentions_timeline(since_id=read_last_tweet_seen(), tweet_mode='extended')  # get all tweets that mention me
-#       for tweet in reversed(mentions):
-#           if '#weather' in tweet.full_text.lower():
-#               print(f"ID: {tweet.id} , text: {tweet.full_text}")
-#               api.update_status(f"at {datetime.now()} @{tweet.user.screen_name} reply tweet, here; #weather", tweet.id)
-#               api.create_favorite(tweet.id)
-#              api.retweet(tweet.id)
-#              write_last_tweet_seen(tweet.id)
-# print(mentions[0].entities['hashtags'][0]['text'])
-
-#  send out the tweet
-#    status = api.update_status(status=tweet_to_send)
 
 
 
