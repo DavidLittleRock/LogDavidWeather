@@ -1554,7 +1554,7 @@ def make_tweet_texts():
         if len(hi) > 0:
             string_email += f"The max heat index yesterday was {max(hi)}\u2109.\n"
 
-        print(string_email)
+        # print(string_email)
 
         # string_email = 'test mail'
         # write_text_to_send(string_email)
