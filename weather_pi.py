@@ -1523,7 +1523,9 @@ def make_tweet_texts():
     temperature_tweet_string = f"The temperature is now {dict_result['temp'][-1]}\u2109."
     twitterBot.write_text_to_tweet(string=temperature_tweet_string,
                                    file_name='temperature_tweet.txt')
-
+    """
+    should be able to remove this
+    """
     if ((dict_result['time'][-1]).day) != date.today().day:
     # if True:
         # print(date.today().day)
@@ -1555,8 +1557,8 @@ def make_tweet_texts():
         print(string_email)
 
         # string_email = 'test mail'
-        write_text_to_send(string_email)
-        send_email(message=read_text_to_send(), subject="HI LOW")
+        # write_text_to_send(string_email)
+        # send_email(message=read_text_to_send(), subject="HI LOW")
 
 
 def make_figures():
@@ -1587,15 +1589,16 @@ def mqtt_app():
             "mqtt_app()IN WHILE LOOP call to get_data()\n\tand put return into dict_result")
         day_2 = datetime.today().date()
 
-        if loop_count >= 3:  # do this every 3rd loop, 12 min
-            if day_1 < day_2:  # is a new day
-                day_1 = day_2
-                make_blog_posts()
-                make_email_texts()
-                loop_count = 0
+        if day_1 < day_2:  # is a new day
+            # loop_count = 3
+            # if loop_count >= 3:  # do this every 3rd loop, 12 min
+            day_1 = day_2
+            make_blog_posts()
+            make_email_texts()
+            # loop_count = 0
 
-            else:  # is not a new day
-                pass
+        else:  # is not a new day
+            pass
 
         make_figures()
         make_tweet_texts()  # do often so the tweet texts are current whenever sent
