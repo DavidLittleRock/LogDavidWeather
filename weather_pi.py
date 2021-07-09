@@ -142,13 +142,13 @@ def mqtt_client():
     while trynum <= tryagain:
 
         try:
-            client.connect(broker_url, broker_port)
+            client.connect(broker_url, broker_port, keepalive=120)
             logger.debug("mqtt client connected")
             trynum = 4
         except OSError as ose:
             trynum += 1
             logger.error(
-                f"OS Error, check url or port, {ose}/n/t with url {broker_url} and port {broker_port}")
+                f"OS Error, check url or port, {ose}\n\t with url {broker_url} and port {broker_port}")
             send_email(subject="ERROR",
                        message=f"OS Error, check url or port, {ose}")
         except Exception as ex:
@@ -177,6 +177,7 @@ def on_connect(self, userdata, flags, r_c):
 
 def on_disconnect(self, userdata, r_c):
     logger.debug(f"MQTT disconnected with rc {r_c}")
+    print(f"MQTT disconnected with rc {r_c}")
 
 
 def on_subscribe(self, userdata, mid, granted_qos):

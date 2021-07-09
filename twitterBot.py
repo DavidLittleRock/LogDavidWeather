@@ -107,7 +107,7 @@ def send_new_dm(file):
     return
 
 
-def get_incoming_tweets(api, hashtag='#arwx', number_tweets=2):
+def get_incoming_tweets(api, hashtag='#arwx -#WPS -#razorbacks -#ProHogs', number_tweets=10):
     """
     get new tweets since last seen tweet
     if not following
@@ -122,30 +122,30 @@ def get_incoming_tweets(api, hashtag='#arwx', number_tweets=2):
     """
     # api = get_api()
     # tweets = tweepy.Cursor(api.search, hashtag).items(number_tweets)
-    tweets = tweepy.Cursor(api.search, hashtag, since_id=read_last_tweet_seen(file_name='last_tweet.txt')).items(number_tweets)
+    tweets = tweepy.Cursor(api.search, q=hashtag,
+                           tweet_mode="extended").items(number_tweets)
 
     for tweet in tweets:
+        print('---------------')
+        print(tweet.full_text)
 
-        # if tweet.id < read_last_tweet_seen():
-
-        if tweet.id > read_last_tweet_seen():
-            if tweet.user.screen_name != 'WeatherDavid':
+        stweet = api.get_status(tweet.id)
+        # print('tweet')
+        if stweet.retweeted is False:
+            # print(tweet.retweeted)
+            if stweet.user.screen_name != 'WeatherDavid':
+                print(f"liked and retweeted: {tweet.user.screen_name}")
+                tweet.retweet()
+                api.create_favorite(tweet.id)
                 if not tweet.user.following:
-                    # print(tweet.id)
-                    # print(tweet.text)
-                    # print(tweet)
-                    # print(tweet.user.screen_name)
-                    # print(tweet.user.following)
+                    print(tweet.user.following)
                     api.create_friendship(tweet.user.screen_name)
-                    write_last_tweet_seen(tweet.id, file_name='last_tweet.txt')
-                    # tweet.retweet()
-                    status_tweet = api.get_status(tweet.id)
-                    retweeted_tweet = status_tweet.retweeted
-                    # print(f"me: {retweeted_tweet}")
-                    if not retweeted_tweet:
-                        tweet.retweet()
+                    print(f"friended / followed : {tweet.user.screen_name}")
+                    # self.api.create_favorite(tweet.id)
+                # tweet.retweet()
+                # print('retweeted')
 
-    # print('get incoming done')
+    print('get incoming done')
     return tweets
 
 
@@ -192,12 +192,12 @@ def main():
     # tweets = get_incoming_tweets(api)
 
     while True:
-        follow_followers(api)
-        time.sleep(6)
+        # follow_followers(api)
         send_reply_tweet(api)
-        time.sleep(6)
+        # time.sleep(6)
         tweets = get_incoming_tweets(api)
         # send_retweet(tweets)
+        time.sleep(600)
 
 
 
