@@ -141,6 +141,7 @@ def get_incoming_tweets(api, hashtag='#arwx -#WPS -#razorbacks -#ProHogs', numbe
         print(tweet.full_text)
 
         stweet = api.get_status(tweet.id)
+        print(f"name: {stweet.user.screen_name}")
         # print('tweet')
         if stweet.retweeted is True:
             print('this had been retweeted so stop here')
