@@ -1492,41 +1492,53 @@ def make_tweet_texts():
             f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
 
     #  make and send rain tweet
-    if len(dict_result['rain_rate']) > 4:  # RAINING
+    print(f"rain {dict_result['rain_rate']}")
+    print(f"rain result: {rain_result['rain_rate']}")
+    print(f"rain fall {sum(rain_result['rain_rate'][-4:-1])}")
+    # if sum(rain_result['rain_rate'][-4:-1]) >= 0.05 and sum(rain_result['rain_rate'][-8:-5]) < 0.05:
+    if rain_result['rain_rate'][-1] > sum(rain_result['rain_rate'][-4:-1]):  # rain started
+        twitterBot.send_text_tweet("It has started #raining in Little Rock #arwx")
+        print("It has started #raining in Little Rock #arwx")
+    if rain_result['rain_rate'][-4] > sum(rain_result['rain_rate'][-3:-1]):  # rain stop
+        twitterBot.send_text_tweet(
+            "It has stopped #raining in Little Rock #arwx")
+        print("It has stopped #raining in Little Rock #arwx")
 
-        if dict_result['rain_rate'][-1] >= dict_result['rain_rate'][-2] > 0.09 >= dict_result['rain_rate'][-3]:
+    # if len(dict_result['rain_rate']) > 4:  # RAINING, at least 4 points in rain_rate ? over 30 days?
+
+        # if dict_result['rain_rate'][-1] >= dict_result['rain_rate'][-2] > 0.09 >= dict_result['rain_rate'][-3]:
             #       if (dict_result['rain_rate'][-1] > 0.09) and (
             #               dict_result['rain_rate'][-2] > 0.09) and (
             #               dict_result['rain_rate'][-3] <= 0.09):
-            send_email(subject="Rain",
-                       message=f"raining with rain rate = {dict_result['rain_rate'][-1]}")
-            logger.info(
-                f"rain rate is raining\n\t rain rate[-1] {dict_result['rain_rate'][-1]} at \n\t"
-                f"time {dict_result['time'][-1]}\n\t rain rate[-2] {dict_result['rain_rate'][-2]}"
-                f" at \n\t time {dict_result['time'][-2]}\n\t rain rate[-3] "
-                f"{dict_result['rain_rate'][-3]} at \n\t time {dict_result['time'][-3]}")
+            # send_email(subject="Rain",
+            #            message=f"raining with rain rate = {dict_result['rain_rate'][-1]}")
+           #  logger.info(
+            #     f"rain rate is raining\n\t rain rate[-1] {dict_result['rain_rate'][-1]} at \n\t"
+            #    f"time {dict_result['time'][-1]}\n\t rain rate[-2] {dict_result['rain_rate'][-2]}"
+            #    f" at \n\t time {dict_result['time'][-2]}\n\t rain rate[-3] "
+            #     f"{dict_result['rain_rate'][-3]} at \n\t time {dict_result['time'][-3]}")
 
-        if dict_result['rain_rate'][-3] >= dict_result['rain_rate'][
-            -2] >= 0.09 > \
-                dict_result['rain_rate'][-1]:
+        # if dict_result['rain_rate'][-3] >= dict_result['rain_rate'][
+        #     -2] >= 0.09 > \
+        #        dict_result['rain_rate'][-1]:
             #        if (dict_result['rain_rate'][-3] >= 0.09) and (
             #               dict_result['rain_rate'][-2] >= 0.9) and (
             #               dict_result['rain_rate'][-1] < 0.09):
-            print("it has stopped raining")
-            send_email(subject="Rain",
-                       message=f"STOPPED raining with rain rate: {dict_result['rain_rate'][-1]}")
-            logger.info(
-                f"rain rate has stopped raining\n\train rate[-1] {dict_result['rain_rate'][-1]} at"
-                f"\n\t time {dict_result['time'][-1]}\n\t rain rate[-2] "
-                f"{dict_result['rain_rate'][-2]} at \n\t time {dict_result['time'][-2]}\n\t"
-                f"rain rate[-3] {dict_result['rain_rate'][-3]} at time {dict_result['time'][-3]}")
+           #  print("it has stopped raining")
+            # send_email(subject="Rain",
+             #           message=f"STOPPED raining with rain rate: {dict_result['rain_rate'][-1]}")
+            # logger.info(
+            #     f"rain rate has stopped raining\n\train rate[-1] {dict_result['rain_rate'][-1]} at"
+            #     f"\n\t time {dict_result['time'][-1]}\n\t rain rate[-2] "
+            #    f"{dict_result['rain_rate'][-2]} at \n\t time {dict_result['time'][-2]}\n\t"
+            #     f"rain rate[-3] {dict_result['rain_rate'][-3]} at time {dict_result['time'][-3]}")
     #  make and store current temperature tweet
     temperature_tweet_string = f"The temperature is now {dict_result['temp'][-1]}\u2109."
     twitterBot.write_text_to_tweet(string=temperature_tweet_string,
                                    file_name='temperature_tweet.txt')
     """
     should be able to remove this
-    """
+    
     if ((dict_result['time'][-1]).day) != date.today().day:
     # if True:
         # print(date.today().day)
@@ -1560,7 +1572,7 @@ def make_tweet_texts():
         # string_email = 'test mail'
         # write_text_to_send(string_email)
         # send_email(message=read_text_to_send(), subject="HI LOW")
-
+    """
 
 def make_figures():
     dict_result, hi_result, wc_result, rain_result = get_data_a()  # get data from SQL

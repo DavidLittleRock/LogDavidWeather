@@ -97,6 +97,16 @@ def send_new_tweet(file):
     return
 
 
+def send_text_tweet(text):
+    api = get_api()
+    tweet_to_send = text
+    try:
+        status = api.update_status(status=tweet_to_send)
+    except tweepy.TweepError as e:
+        logger.error(f"Tweet error: {e.reason}")
+        send_email(subject="Tweet Error", message=f"Tweet error: {e.reason}")
+    return
+
 def send_new_dm(file):
     api = get_api()
     tweet_to_send = read_text_to_tweet(file)
