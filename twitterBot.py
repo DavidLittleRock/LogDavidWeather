@@ -69,13 +69,14 @@ def send_reply_tweet(api):
     mentions = api.mentions_timeline(since_id=read_last_tweet_seen(), tweet_mode='extended')  # get all tweets that mention me
     for tweet in reversed(mentions):
         if '#weather' in tweet.full_text.lower():
-            print(f"ID: {tweet.id} , text: {tweet.full_text} {tweet.user.screen_name}")
+            print(f"MENTIONED in ID: {tweet.id} , text: {tweet.full_text} {tweet.user.screen_name}")
             try:
                 # status_a = read_text_to_tweet(file_name='temperature_tweet.txt')  # this posts as tweet
                 status = f"@{tweet.user.screen_name} {read_text_to_tweet(file_name='temperature_tweet.txt')} #Weather"
                 write_last_tweet_seen(tweet.id)
                 api.update_status(status, in_reply_to_status_id=tweet.id)
                 api.create_favorite(tweet.id)  # 'like' it
+                print(f"so I like their tweet and reply with: \n\t@{tweet.user.screen_name} {read_text_to_tweet(file_name='temperature_tweet.txt')} #Weather")
                 # api.retweet(tweet.id)  # this retweets, don't think really need to retweet
             except tweepy.TweepError as e:
                 logger.error(f"Tweet error: {e.reason}")
@@ -131,14 +132,16 @@ def get_incoming_tweets(api, hashtag='#arwx -#WPS -#razorbacks -#ProHogs', numbe
 
         stweet = api.get_status(tweet.id)
         # print('tweet')
-        if stweet.retweeted is False:
-            # print(tweet.retweeted)
+        if stweet.retweeted is True:
+            print('this had been retweeted so stop here')
+        elif stweet.retweeted is False:
             if stweet.user.screen_name != 'WeatherDavid':
-                print(f"liked and retweeted: {tweet.user.screen_name}")
                 tweet.retweet()
                 api.create_favorite(tweet.id)
+                print(f"liked and retweeted: {tweet.user.screen_name}")
+
                 if not tweet.user.following:
-                    print(tweet.user.following)
+                    # print(tweet.user.following)
                     api.create_friendship(tweet.user.screen_name)
                     print(f"friended / followed : {tweet.user.screen_name}")
                     # self.api.create_favorite(tweet.id)
