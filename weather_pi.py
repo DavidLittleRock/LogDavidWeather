@@ -294,6 +294,18 @@ def clean_rain(rain_result):
     yesterday = today - timedelta(days=1)
     yesterday_midnight = datetime.combine(yesterday, datetime.min.time())
     today_midnight = datetime.combine(today, datetime.min.time())
+    print(rain_result['rain_change_all'][-50:-40])
+
+    rain_result['rain_change_all_x'] = [x if x < 100 else 0.0 for x in rain_result['rain_change_all']]
+    print(rain_result['rain_change_all'][-50:-40])
+    print(rain_result['rain_change_all_x'][-50:-40])
+    rain_result['rain_change_all'] = rain_result['rain_change_all_x'].copy()
+    rain_result['rain_change_all'] = np.array(rain_result['rain_change_all'])
+    print(rain_result['rain_change_all'][-50:-40])
+    print(rain_result['rain_change_all_x'][-50:-40])
+
+
+
     # yesterday midnight to now
     rain_result['time_rain_yesterday'] = rain_result['time'][
         (rain_result['time']) > yesterday_midnight]
@@ -477,8 +489,10 @@ def get_data_a():
     if len(result_rain_30) > 0:
         for record in result_rain_30:
             rain_result['time_rain_30'].append(record[0])
+            print(record[0])
             try:
                 rain_result['rain_30'].append(record[1] / 22.5)
+                print(record[1])
             except TypeError as tee:
                 logger.error(f"type error {tee}\n\t {record}")
                 rain_result['rain_30'].append(0)
@@ -487,6 +501,9 @@ def get_data_a():
         rain_result['time_rain_30'].append(0)
         rain_result['rain_30'].append(0)
         rain_result['rain_30_sum'].append(0)
+
+    print('rain 30')
+    print(rain_result['rain_30'])
 
     #    convert each list to a numpy array
     for element in dict_result:

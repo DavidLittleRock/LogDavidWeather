@@ -137,11 +137,11 @@ def get_incoming_tweets(api, hashtag='#arwx -#WPS -#razorbacks -#ProHogs', numbe
                            tweet_mode="extended").items(number_tweets)
 
     for tweet in tweets:
-        print('---------------')
-        print(tweet.full_text)
+        #  print('---------------')
+        # print(tweet.full_text)
 
         stweet = api.get_status(tweet.id)
-        print(f"name: {stweet.user.screen_name}")
+        # print(f"name: {stweet.user.screen_name}")
         # print('tweet')
         if stweet.retweeted is True:
             print('this had been retweeted so stop here')
@@ -149,12 +149,12 @@ def get_incoming_tweets(api, hashtag='#arwx -#WPS -#razorbacks -#ProHogs', numbe
             if stweet.user.screen_name != 'WeatherDavid':
                 tweet.retweet()
                 api.create_favorite(tweet.id)
-                print(f"liked and retweeted: {tweet.user.screen_name}")
+                # print(f"liked and retweeted: {tweet.user.screen_name}")
 
                 if not tweet.user.following:
                     # print(tweet.user.following)
                     api.create_friendship(tweet.user.screen_name)
-                    print(f"friended / followed : {tweet.user.screen_name}")
+                    # print(f"friended / followed : {tweet.user.screen_name}")
                     # self.api.create_favorite(tweet.id)
                 # tweet.retweet()
                 # print('retweeted')
