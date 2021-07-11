@@ -382,8 +382,9 @@ def get_data_a():
             'Rain_Change FROM OneMonth ORDER BY Date ASC'
     result = sqlfile.read_query(db_connection, query)
     # QUERY FOR # 30 DAY RAIN  will 'filter' to get 7 day
-    query = 'SELECT Date, SUM(Rain_Change) FROM OneMonth GROUP BY Day(Date) ORDER BY Date ASC'
+    query = 'SELECT Date, SUM(Rain_Change) FROM OneMonth GROUP BY Date(Date) ORDER BY Date ASC'
     result_rain_30 = sqlfile.read_query(db_connection, query)
+ #  print(result_rain_30)
 
     sqlfile.close_db_connection(db_connection)  # close the db connection
     # Move results into dict of lists
@@ -489,10 +490,14 @@ def get_data_a():
     if len(result_rain_30) > 0:
         for record in result_rain_30:
             rain_result['time_rain_30'].append(record[0])
-            print(record[0])
+           # print(record[0])
+           # print(record[1])
+
             try:
-                rain_result['rain_30'].append(record[1] / 22.5)
-                print(record[1])
+                if record[1] > 100:
+                    rain_result['rain_30'].append(0)
+                else:
+                    rain_result['rain_30'].append(record[1] / 22.5)
             except TypeError as tee:
                 logger.error(f"type error {tee}\n\t {record}")
                 rain_result['rain_30'].append(0)
