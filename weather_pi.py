@@ -294,15 +294,15 @@ def clean_rain(rain_result):
     yesterday = today - timedelta(days=1)
     yesterday_midnight = datetime.combine(yesterday, datetime.min.time())
     today_midnight = datetime.combine(today, datetime.min.time())
-    print(rain_result['rain_change_all'][-50:-40])
+    # print(rain_result['rain_change_all'][-50:-40])
 
     rain_result['rain_change_all_x'] = [x if x < 100 else 0.0 for x in rain_result['rain_change_all']]
-    print(rain_result['rain_change_all'][-50:-40])
-    print(rain_result['rain_change_all_x'][-50:-40])
+    # print(rain_result['rain_change_all'][-50:-40])
+    # print(rain_result['rain_change_all_x'][-50:-40])
     rain_result['rain_change_all'] = rain_result['rain_change_all_x'].copy()
     rain_result['rain_change_all'] = np.array(rain_result['rain_change_all'])
-    print(rain_result['rain_change_all'][-50:-40])
-    print(rain_result['rain_change_all_x'][-50:-40])
+    # print(rain_result['rain_change_all'][-50:-40])
+    # print(rain_result['rain_change_all_x'][-50:-40])
 
 
 
@@ -397,31 +397,31 @@ def get_data_a():
         'wind_d': [],
         'baro_press': [],
         'time_heat_index': [],
-        'time_rain_30': [],
-        'rain_30': [],
-        'rain_30_sum': [],
-        'time_rain_yesterday': [],
-        'rain_change_yesterday': [],
-        'rain_total_yesterday': [],
-        'time_rain_bar': [],
-        'rain_change_bar': [],
-        'time_rain_today': [],
-        'rain_change_today': [],
-        'rain_total_today': [],
-        'time_rain_24': [],
-        'rain_change_24': [],
-        'rain_total_24': [],
-        'rain_7': [],
+        # 'time_rain_30': [],
+        # 'rain_30': [],
+        # 'rain_30_sum': [],
+        # 'time_rain_yesterday': [],
+        # 'rain_change_yesterday': [],
+        # 'rain_total_yesterday': [],
+        # 'time_rain_bar': [],
+        # 'rain_change_bar': [],
+        # 'time_rain_today': [],
+        # 'rain_change_today': [],
+        # 'rain_total_today': [],
+        # 'time_rain_24': [],
+        # 'rain_change_24': [],
+        # 'rain_total_24': [],
+        # 'rain_7': [],
         'wind_chill': [],
         'time_wind_chill': [],
         'wind_for_wc': [],
         'gust': [],
-        'rain_rate': [],
-        'rain_change_all': [],
+        # 'rain_rate': [],
+        # 'rain_change_all': [],
         # 'time_rain_all': [],
-        'time_rain_yesterday_filtered': [],
-        'rain_change_yesterday_filtered': [],
-        'rain_total_yesterday_filtered': []
+        # 'time_rain_yesterday_filtered': [],
+        # 'rain_change_yesterday_filtered': [],
+        # 'rain_total_yesterday_filtered': []
     }
 
     hi_result = {
@@ -507,8 +507,8 @@ def get_data_a():
         rain_result['rain_30'].append(0)
         rain_result['rain_30_sum'].append(0)
 
-    print('rain 30')
-    print(rain_result['rain_30'])
+    # print('rain 30')
+    # print(rain_result['rain_30'])
 
     #    convert each list to a numpy array
     for element in dict_result:
@@ -529,14 +529,14 @@ def get_data_a():
 
 def clean_dict(dict_result):
     logger.debug("START clean_dict() started")
-    del dict_result['time_rain_yesterday']
-    del dict_result['rain_change_yesterday']
-    del dict_result['rain_total_yesterday']
-    del dict_result['rain_change_today']
-    del dict_result['rain_change_24']
-    del dict_result['rain_change_all']
+    # del dict_result['time_rain_yesterday']
+    # del dict_result['rain_change_yesterday']
+    # del dict_result['rain_total_yesterday']
+    # del dict_result['rain_change_today']
+    # del dict_result['rain_change_24']
+    # del dict_result['rain_change_all']
     #  del dict_result['time_rain_all']
-    del dict_result['rain_change_yesterday_filtered']
+    # del dict_result['rain_change_yesterday_filtered']
 
     return dict_result
 
@@ -1514,17 +1514,17 @@ def make_tweet_texts():
             f"\n\t temp[-3] {dict_result['temp'][-3]} at \n\t time {dict_result['time'][-3]}")
 
     #  make and send rain tweet
-    print(f"rain {dict_result['rain_rate']}")
-    print(f"rain result: {rain_result['rain_rate']}")
-    print(f"rain fall {sum(rain_result['rain_rate'][-4:-1])}")
+    # print(f"rain {rain_result['rain_rate']}")
+    # print(f"rain result: {rain_result['rain_rate']}")
+    # print(f"rain fall {sum(rain_result['rain_rate'][-4:-1])}")
     # if sum(rain_result['rain_rate'][-4:-1]) >= 0.05 and sum(rain_result['rain_rate'][-8:-5]) < 0.05:
     if rain_result['rain_rate'][-1] > sum(rain_result['rain_rate'][-4:-1]):  # rain started
-        twitterBot.send_text_tweet("It has started #raining in Little Rock #arwx")
-        print("It has started #raining in Little Rock #arwx")
+        twitterBot.send_text_tweet(f"It has started #raining in Little Rock #arwx, time: {datetime.now().time()}")
+        print(f"It has started #raining in Little Rock #arwx, time: {datetime.now().time()}")
     if rain_result['rain_rate'][-4] > sum(rain_result['rain_rate'][-3:-1]):  # rain stop
         twitterBot.send_text_tweet(
-            "It has stopped #raining in Little Rock #arwx")
-        print("It has stopped #raining in Little Rock #arwx")
+            f"It has stopped #raining in Little Rock #arwx, time: {datetime.now().time()}")
+        print(f"It has stopped #raining in Little Rock #arwx, time: {datetime.now().time()}")
 
     # if len(dict_result['rain_rate']) > 4:  # RAINING, at least 4 points in rain_rate ? over 30 days?
 
