@@ -280,12 +280,12 @@ def clean_wc(wc_result):
 def clean_rain(rain_result):
     # TODO try enumerate
     # for index in range(len(rain_result['rain_rate'])):  # clean none to 0.0
-
+    # TODO rain rate < 0.05 is not real , may be fixed in line 288 now
     for index, result in enumerate(rain_result['rain_rate'], 0):
 
     #    if rain_result['rain_rate'][index] is None:
     #        rain_result['rain_rate'][index] = 0.0
-        rain_result['rain_rate'][index] = 0.0 if rain_result['rain_rate'][index] is None else rain_result['rain_rate'][index]
+        rain_result['rain_rate'][index] = 0.0 if rain_result['rain_rate'][index] is None or rain_result['rain_rate'][index] < 0.05 else rain_result['rain_rate'][index]
 
     for element in rain_result:
         rain_result[element] = np.array(rain_result[element])
@@ -357,14 +357,14 @@ def clean_rain(rain_result):
             i += 1
             continue
 
-    del rain_result['time_rain_yesterday']
-    del rain_result['rain_change_yesterday']
-    del rain_result['rain_total_yesterday']
-    del rain_result['rain_change_today']
-    del rain_result['rain_change_24']
-    del rain_result['rain_change_all']
+    # del rain_result['time_rain_yesterday']
+    # del rain_result['rain_change_yesterday']
+    # del rain_result['rain_total_yesterday']
+    # del rain_result['rain_change_today']
+    # del rain_result['rain_change_24']
+    # del rain_result['rain_change_all']
     # del rain_result['time_rain_all']
-    del rain_result['rain_change_yesterday_filtered']
+    # del rain_result['rain_change_yesterday_filtered']
 
     return rain_result
 
@@ -1519,6 +1519,7 @@ def make_tweet_texts():
     # print(f"rain fall {sum(rain_result['rain_rate'][-4:-1])}")
     # if sum(rain_result['rain_rate'][-4:-1]) >= 0.05 and sum(rain_result['rain_rate'][-8:-5]) < 0.05:
     if rain_result['rain_rate'][-1] > sum(rain_result['rain_rate'][-4:-1]):  # rain started
+        # TODO restart rain tweet after fix multiple sends and sending with no real rain
         # twitterBot.send_text_tweet(f"It has started #raining in Little Rock #arwx, time: {datetime.now().time()}")
         print(f"It has started #raining in Little Rock #arwx, time: {datetime.now().time()}")
     if rain_result['rain_rate'][-4] > sum(rain_result['rain_rate'][-3:-1]):  # rain stop
