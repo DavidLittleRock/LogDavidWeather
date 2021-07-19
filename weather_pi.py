@@ -1519,11 +1519,11 @@ def make_tweet_texts():
     # print(f"rain fall {sum(rain_result['rain_rate'][-4:-1])}")
     # if sum(rain_result['rain_rate'][-4:-1]) >= 0.05 and sum(rain_result['rain_rate'][-8:-5]) < 0.05:
     if rain_result['rain_rate'][-1] > sum(rain_result['rain_rate'][-4:-1]):  # rain started
-        twitterBot.send_text_tweet(f"It has started #raining in Little Rock #arwx, time: {datetime.now().time()}")
+        # twitterBot.send_text_tweet(f"It has started #raining in Little Rock #arwx, time: {datetime.now().time()}")
         print(f"It has started #raining in Little Rock #arwx, time: {datetime.now().time()}")
     if rain_result['rain_rate'][-4] > sum(rain_result['rain_rate'][-3:-1]):  # rain stop
-        twitterBot.send_text_tweet(
-            f"It has stopped #raining in Little Rock #arwx, time: {datetime.now().time()}")
+        # twitterBot.send_text_tweet(
+        #     f"It has stopped #raining in Little Rock #arwx, time: {datetime.now().time()}")
         print(f"It has stopped #raining in Little Rock #arwx, time: {datetime.now().time()}")
 
     # if len(dict_result['rain_rate']) > 4:  # RAINING, at least 4 points in rain_rate ? over 30 days?
