@@ -4,15 +4,16 @@
 
 import tweepy
 
-import weather_pi
+# import weather_pi
 from python_config import read_config
 from datetime import datetime
-from send_email import send_email
+# from send_email import send_email
 from WeatherAppLog import get_a_logger
 import time
+import schedule
 
 logger = get_a_logger(__name__)
-logger.setLevel('INFO')
+logger.setLevel('DEBUG')
 
 
 def get_api():
@@ -30,15 +31,17 @@ def get_api():
 # 1411772214538477569
 # 1411531233817989121
 def write_text_to_tweet(string, file_name='tweet_to_send.txt'):
-  #  tempnow = dict_result['temp'][-1]
     with open(file_name, 'w') as file:
         file.write(string)
-    return
+    logger.info('write_text_to_tweet')
+    logger.debug('write_text_to_tweet;\n\tstring: %s\n\tfile name: %s', string, file_name)
 
 
 def read_text_to_tweet(file_name='tweet_to_send.txt'):
     with open(file_name, 'r') as file:
         text = file.read()
+    logger.info('start')
+    logger.debug('read_text_to_tweet;\n\tfile name: %s\n\ttext: %s', file_name, text)
     return text
 
 
@@ -54,7 +57,7 @@ def write_last_tweet_seen(last_seen_id, file_name='last_tweet_seen.txt'):
     return
 
 
-def send_reply_tweet(api):
+def send_reply_tweet():
     """
     if NEW tweet mentions me (WeatherDavid) and #weather then
     like it
@@ -65,24 +68,25 @@ def send_reply_tweet(api):
     Returns:
 
     """
-    # api = get_api()
+    api = get_api()
     mentions = api.mentions_timeline(since_id=read_last_tweet_seen(), tweet_mode='extended')  # get all tweets that mention me
     for tweet in reversed(mentions):
-        if '#weather' in tweet.full_text.lower():
-            print(f"MENTIONED in ID: {tweet.id} , text: {tweet.full_text} {tweet.user.screen_name}")
+        if '#weather' in tweet.full_text.lower():  # extract tweets with hashtag weather
+            logger.debug('MENTIONED in tweet id: %s\n\ttext: %s\n\tuser screen name: %s',tweet.id, tweet.full_text, tweet.user.screen_name)
             try:
-                # status_a = read_text_to_tweet(file_name='temperature_tweet.txt')  # this posts as tweet
-                status = f"@{tweet.user.screen_name} {read_text_to_tweet(file_name='temperature_tweet.txt')} #Weather"
-                write_last_tweet_seen(tweet.id)
-                api.update_status(status, in_reply_to_status_id=tweet.id)
-                api.create_favorite(tweet.id)  # 'like' it
-                print(f"so I like their tweet and reply with: \n\t@{tweet.user.screen_name} {read_text_to_tweet(file_name='temperature_tweet.txt')} #Weather")
+                status = f"@{tweet.user.screen_name} {read_text_to_tweet(file_name='reply_tweet.txt')} #Weather"
+                if read_last_tweet_seen() < tweet.id:  # update last tweet seen
+                    write_last_tweet_seen(tweet.id)
+                if tweet.user.screen_name != api.me().screen_name:  # if tweet not sent by me
+                    api.update_status(status, in_reply_to_status_id=tweet.id)
+                    if not api.get_status(tweet.id).favorited:  # id I have not liked tweet yet
+                        api.create_favorite(tweet.id)  # 'like' it
+                    print(f"so I like their tweet and reply with: \n\t@{tweet.user.screen_name} {read_text_to_tweet(file_name='reply_tweet.txt')} #Weather")
                 # api.retweet(tweet.id)  # this retweets, don't think really need to retweet
             except tweepy.TweepError as e:
                 logger.error(f"Tweet error: {e.reason}")
                 print(e.reason)
-                send_email(subject="Tweet error", message=f"ERROR: {e.reason}")
-    # print('send reply done')
+                # send_email(subject="Tweet error", message=f"ERROR: {e.reason}")
     return
 
 
@@ -92,8 +96,8 @@ def send_new_tweet(file):
     try:
         status = api.update_status(status=tweet_to_send)
     except tweepy.TweepError as e:
-        logger.error(f"Tweet error: {e.reason}")
-        send_email(subject="Tweet Error", message=f"Tweet error: {e.reason}")
+        logger.error('Tweet error: %s', e.reason)
+        # send_email(subject="Tweet Error", message=f"Tweet error: {e.reason}")
     return
 
 
@@ -103,8 +107,8 @@ def send_text_tweet(text):
     try:
         status = api.update_status(status=tweet_to_send)
     except tweepy.TweepError as e:
-        logger.error(f"Tweet error: {e.reason}")
-        send_email(subject="Tweet Error", message=f"Tweet error: {e.reason}")
+        logger.error('Tweet error: %s', e.reason)
+        # send_email(subject="Tweet Error", message=f"Tweet error: {e.reason}")
     return
 
 def send_new_dm(file):
@@ -114,11 +118,11 @@ def send_new_dm(file):
         status = api.send_direct_message(recipient_id='DavidDoc', text=tweet_to_send)
     except tweepy.TweepError as e:
         logger.error(f"Tweet error: {e.reason}")
-        send_email(subject="Tweet Error", message=f"Tweet error: {e.reason}")
+        # send_email(subject="Tweet Error", message=f"Tweet error: {e.reason}")
     return
 
 
-def get_incoming_tweets(api, hashtag='#arwx -#WPS -#razorbacks -#ProHogs', number_tweets=10):
+def get_incoming_tweets(hashtag='#arwx -#WPS -#razorbacks -#ProHogs', number_tweets=5):
     """
     get new tweets since last seen tweet
     if not following
@@ -131,35 +135,31 @@ def get_incoming_tweets(api, hashtag='#arwx -#WPS -#razorbacks -#ProHogs', numbe
     Returns:
 
     """
-    # api = get_api()
-    # tweets = tweepy.Cursor(api.search, hashtag).items(number_tweets)
+    api = get_api()
     tweets = tweepy.Cursor(api.search, q=hashtag,
-                           tweet_mode="extended").items(number_tweets)
-
+                           tweet_mode="extended", since_id=read_last_tweet_seen(file_name='last_tweet_seen.txt')).items(number_tweets)
     for tweet in tweets:
-        #  print('---------------')
-        # print(tweet.full_text)
+        if read_last_tweet_seen() < tweet.id:
+            write_last_tweet_seen(tweet.id)
+        try:
+            stweet = api.get_status(tweet.id)
 
-        stweet = api.get_status(tweet.id)
-        # print(f"name: {stweet.user.screen_name}")
-        # print('tweet')
-        if stweet.retweeted is True:
-            print('this had been retweeted so stop here')
-        elif stweet.retweeted is False:
-            if stweet.user.screen_name != 'WeatherDavid':
-                tweet.retweet()
-                api.create_favorite(tweet.id)
-                # print(f"liked and retweeted: {tweet.user.screen_name}")
-
-                if not tweet.user.following:
-                    # print(tweet.user.following)
-                    api.create_friendship(tweet.user.screen_name)
-                    # print(f"friended / followed : {tweet.user.screen_name}")
-                    # self.api.create_favorite(tweet.id)
-                # tweet.retweet()
-                # print('retweeted')
-
-    print('get incoming done')
+            if stweet.user.screen_name != api.me().screen_name:  # if not me
+                if not tweet.user.following:  # if I am not following
+                    try:
+                        api.create_friendship(tweet.user.screen_name)
+                        print(f'friended / followed: {tweet.user.screen_name}')
+                    except tweepy.TweepError as e:
+                        print(e)
+                if stweet.retweeted is False:  # if not allready retweeted
+                    tweet.retweet()
+                    print('retweeted')
+                if not stweet.favorited:  # if I have not liked yet
+                    api.create_favorite(tweet.id)
+                    print('liked')
+        except tweepy.TweepError as e:
+            print(e)
+            print(f'blocked by {tweet.user.screen_name}')
     return tweets
 
 
@@ -169,7 +169,6 @@ def send_retweet(tweets):
         try:
             tweet.retweet()
             time.sleep(2)
-            # print('tweet resent')
         except tweepy.TweepError as te:
             print(te.reason)
             time.sleep(2)
@@ -177,7 +176,7 @@ def send_retweet(tweets):
     return
 
 
-def follow_followers(api):
+def follow_followers():
     """
     check all users that are following me
     if I am not following them
@@ -187,31 +186,37 @@ def follow_followers(api):
     Returns:
 
     """
-    # print('statrt follower')
-    # api = get_api()
-    for follower in tweepy.Cursor(api.followers).items():
-        # print(follower.following)
-        # print(follower.screen_name)
+    api = get_api()
+    for follower in tweepy.Cursor(api.followers).items(5):
         if not follower.following:
             follower.follow()
-            status = f"@{follower.screen_name} Thanks for following, if you want to know the temperature in Little Rock mention me in a tweet and use hashtag #weather."
-            # print(status)
+            status = f"@{follower.screen_name} Thanks for following my bot, if you want to know the temperature in Little Rock mention me in a tweet and use hashtag #weather. May take 5 min to respond."
             api.update_status(status=status)
-    # print('follow done')
 
 
 def main():
     api = get_api()  # based on config.ini
-
     # tweets = get_incoming_tweets(api)
-
+    schedule.every(2).minutes.do(send_reply_tweet)
+    schedule.every(10).minutes.do(follow_followers)
+    schedule.every(15).minutes.do(get_incoming_tweets)
     while True:
-        # follow_followers(api)
-        send_reply_tweet(api)
-        # time.sleep(6)
-        tweets = get_incoming_tweets(api)
+        schedule.run_pending()
+        time.sleep(2)
+
+
+    print('0')
+  #  send_reply_tweet(api)
+    print('1')
+
+    # follow_followers(api)
+ #   send_reply_tweet(api)
+    print('2')
+#        # time.sleep(6)
+    # tweets = get_incoming_tweets(api)
+    print('3')
         # send_retweet(tweets)
-        time.sleep(600)
+        # time.sleep(300)
 
 
 

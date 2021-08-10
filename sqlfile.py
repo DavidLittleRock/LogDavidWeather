@@ -20,7 +20,7 @@ def create_server_connection(host_name, user_name, user_password):
         logger.debug("sql connect successful")
     except Error as err:
         logger.error(f"Error: {err}")
-        send_email(f"Error: {err}")
+        # send_email(f"Error: {err}")
     return connection
 
 
@@ -31,7 +31,7 @@ def create_database(connection, query):
         logger.debug("database created")
     except Error as err:
         logger.error(f"Error: {err}")
-        send_email(f"Error: {err}")
+        # send_email(f"Error: {err}")
 
 
 def create_db_connection():
@@ -62,9 +62,10 @@ def execute_query(connection, query):
     try:
         cursor.execute(query)
         connection.commit()
+        logger.debug('execute_query() is ok')
     except Error as err:
         logger.error(f"Error: {err}")
-        send_email(f"Error: {err}")
+        # send_email(f"Error: {err}")
 
 
 def read_query(connection, query):

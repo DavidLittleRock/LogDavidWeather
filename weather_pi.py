@@ -3,12 +3,11 @@
 """
 import calendar
 import gc
-import time
 import traceback
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
-# from datetime import time
+import time
 from calendar import monthrange
 # import
 from calendar import month_name
@@ -147,8 +146,9 @@ def mqtt_client():
             trynum = 4
         except OSError as ose:
             trynum += 1
-            logger.error(
-                f"OS Error, check url or port, {ose}\n\t with url {broker_url} and port {broker_port}")
+           # logger.error(
+           #     f"OS Error, check url or port, {ose}\n\t with url {broker_url} and port {broker_port}")
+            logger.error("OS Error, check url or port, %s\n\t with url %s and port %s.", ose, broker_url, broker_port)
             send_email(subject="ERROR",
                        message=f"OS Error, check url or port, {ose}")
         except Exception as ex:
@@ -1326,7 +1326,6 @@ def get_year_stats():
     return max_temp_for_year, custom_date_max_temp, min_temp_for_year, custom_date_min_temp
 
 
-
 def make_email_texts():
     dict_result, hi_dict, wc_result, rain_result = get_data_a()  # get data from SQL
     if True:
@@ -1610,8 +1609,9 @@ def make_figures():
 def mqtt_app():
     # global DICT_RESULT
     day_1 = datetime.today().date()
+    print(f'day 1 set to {day_1} at start of mqtt_app')
     logger.debug(
-        "START mqtt_app()\n *******************************************************")
+        "START mqtt_app()\n *****************************")
     logger.debug("mqtt_app() call to mqtt_client()")
     mqtt_client()
     # move to mqtt_client
@@ -1624,14 +1624,13 @@ def mqtt_app():
         logger.debug(
             "mqtt_app()IN WHILE LOOP call to get_data()\n\tand put return into dict_result")
         day_2 = datetime.today().date()
+        # print(f'day_2 set to {day_2} in while true loop and day_1 is {day_1}')
 
         if day_1 < day_2:  # is a new day
-            # loop_count = 3
-            # if loop_count >= 3:  # do this every 3rd loop, 12 min
             day_1 = day_2
-            make_blog_posts()
-            make_email_texts()
-            # loop_count = 0
+            # print(f'now in day if loop and day_1 is {day_1} and day_2 is {day_2}')
+            # make_blog_posts()
+            # make_email_texts()
 
         else:  # is not a new day
             pass

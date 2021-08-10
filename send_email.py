@@ -122,9 +122,9 @@ def send_email(message="default message", subject="default subject", file='./fig
       </body>
     </html>
     """
-    file = './figures/fig_1.jpeg'
+    # file = './figures/fig_1.jpeg'
     with open(file, 'rb') as fp:
-        img_data = MIMEImage(fp.read())
+        img_data = MIMEImage(fp.read(), filename="weather graph")
     the_msg.attach(img_data)
 
     part_1 = MIMEText(plain_txt, "plain")
